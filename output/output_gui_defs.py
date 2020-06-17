@@ -1,0 +1,145 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'output\output_gui.ui'
+#
+# Created by: PyQt4 UI code generator 4.11.4
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
+
+class Ui_Frame(object):
+    def setupUi(self, Frame):
+        Frame.setObjectName(_fromUtf8("Frame"))
+        Frame.resize(800, 440)
+        Frame.setStyleSheet(_fromUtf8(""))
+        Frame.setFrameShape(QtGui.QFrame.StyledPanel)
+        Frame.setFrameShadow(QtGui.QFrame.Raised)
+        self.frm_output = QtGui.QFrame(Frame)
+        self.frm_output.setGeometry(QtCore.QRect(0, 0, 791, 351))
+        self.frm_output.setStyleSheet(_fromUtf8("background-color: #f0f0f0"))
+        self.frm_output.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frm_output.setFrameShadow(QtGui.QFrame.Raised)
+        self.frm_output.setObjectName(_fromUtf8("frm_output"))
+        self.gb_actuator_percent = QtGui.QGroupBox(self.frm_output)
+        self.gb_actuator_percent.setGeometry(QtCore.QRect(410, 10, 311, 261))
+        self.gb_actuator_percent.setObjectName(_fromUtf8("gb_actuator_percent"))
+        self.muscle_3 = QtGui.QFrame(self.gb_actuator_percent)
+        self.muscle_3.setEnabled(False)
+        self.muscle_3.setGeometry(QtCore.QRect(20, 150, 200, 16))
+        self.muscle_3.setFrameShadow(QtGui.QFrame.Plain)
+        self.muscle_3.setLineWidth(8)
+        self.muscle_3.setFrameShape(QtGui.QFrame.HLine)
+        self.muscle_3.setObjectName(_fromUtf8("muscle_3"))
+        self.muscle_4 = QtGui.QFrame(self.gb_actuator_percent)
+        self.muscle_4.setEnabled(False)
+        self.muscle_4.setGeometry(QtCore.QRect(20, 190, 200, 16))
+        self.muscle_4.setFrameShadow(QtGui.QFrame.Plain)
+        self.muscle_4.setLineWidth(8)
+        self.muscle_4.setFrameShape(QtGui.QFrame.HLine)
+        self.muscle_4.setObjectName(_fromUtf8("muscle_4"))
+        self.muscle_5 = QtGui.QFrame(self.gb_actuator_percent)
+        self.muscle_5.setEnabled(False)
+        self.muscle_5.setGeometry(QtCore.QRect(20, 230, 200, 16))
+        self.muscle_5.setFrameShadow(QtGui.QFrame.Plain)
+        self.muscle_5.setLineWidth(8)
+        self.muscle_5.setFrameShape(QtGui.QFrame.HLine)
+        self.muscle_5.setObjectName(_fromUtf8("muscle_5"))
+        self.muscle_2 = QtGui.QFrame(self.gb_actuator_percent)
+        self.muscle_2.setEnabled(False)
+        self.muscle_2.setGeometry(QtCore.QRect(20, 110, 200, 16))
+        self.muscle_2.setFrameShadow(QtGui.QFrame.Plain)
+        self.muscle_2.setLineWidth(8)
+        self.muscle_2.setFrameShape(QtGui.QFrame.HLine)
+        self.muscle_2.setObjectName(_fromUtf8("muscle_2"))
+        self.muscle_1 = QtGui.QFrame(self.gb_actuator_percent)
+        self.muscle_1.setEnabled(False)
+        self.muscle_1.setGeometry(QtCore.QRect(20, 70, 200, 16))
+        self.muscle_1.setFrameShadow(QtGui.QFrame.Plain)
+        self.muscle_1.setLineWidth(8)
+        self.muscle_1.setFrameShape(QtGui.QFrame.HLine)
+        self.muscle_1.setObjectName(_fromUtf8("muscle_1"))
+        self.muscle_0 = QtGui.QFrame(self.gb_actuator_percent)
+        self.muscle_0.setEnabled(False)
+        self.muscle_0.setGeometry(QtCore.QRect(20, 10, 200, 16))
+        self.muscle_0.setFrameShadow(QtGui.QFrame.Plain)
+        self.muscle_0.setLineWidth(8)
+        self.muscle_0.setFrameShape(QtGui.QFrame.HLine)
+        self.muscle_0.setObjectName(_fromUtf8("muscle_0"))
+        self.txt_muscle_0 = QtGui.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_0.setGeometry(QtCore.QRect(240, 30, 46, 13))
+        self.txt_muscle_0.setObjectName(_fromUtf8("txt_muscle_0"))
+        self.txt_muscle_1 = QtGui.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_1.setGeometry(QtCore.QRect(240, 70, 46, 13))
+        self.txt_muscle_1.setObjectName(_fromUtf8("txt_muscle_1"))
+        self.txt_muscle_2 = QtGui.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_2.setGeometry(QtCore.QRect(240, 110, 46, 13))
+        self.txt_muscle_2.setObjectName(_fromUtf8("txt_muscle_2"))
+        self.txt_muscle_3 = QtGui.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_3.setGeometry(QtCore.QRect(240, 150, 46, 13))
+        self.txt_muscle_3.setObjectName(_fromUtf8("txt_muscle_3"))
+        self.txt_muscle_4 = QtGui.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_4.setGeometry(QtCore.QRect(240, 190, 46, 13))
+        self.txt_muscle_4.setObjectName(_fromUtf8("txt_muscle_4"))
+        self.txt_muscle_5 = QtGui.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_5.setGeometry(QtCore.QRect(240, 230, 46, 13))
+        self.txt_muscle_5.setObjectName(_fromUtf8("txt_muscle_5"))
+        self.grp_request = QtGui.QGroupBox(self.frm_output)
+        self.grp_request.setGeometry(QtCore.QRect(40, 10, 311, 91))
+        self.grp_request.setObjectName(_fromUtf8("grp_request"))
+        self.txt_translation = QtGui.QLineEdit(self.grp_request)
+        self.txt_translation.setGeometry(QtCore.QRect(120, 30, 141, 20))
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Verdana"))
+        self.txt_translation.setFont(font)
+        self.txt_translation.setObjectName(_fromUtf8("txt_translation"))
+        self.label = QtGui.QLabel(self.grp_request)
+        self.label.setGeometry(QtCore.QRect(20, 30, 61, 16))
+        self.label.setObjectName(_fromUtf8("label"))
+        self.txt_rotation = QtGui.QLineEdit(self.grp_request)
+        self.txt_rotation.setGeometry(QtCore.QRect(120, 60, 141, 20))
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Verdana"))
+        self.txt_rotation.setFont(font)
+        self.txt_rotation.setObjectName(_fromUtf8("txt_rotation"))
+        self.label_2 = QtGui.QLabel(self.grp_request)
+        self.label_2.setGeometry(QtCore.QRect(20, 60, 61, 16))
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.frame = QtGui.QFrame(self.frm_output)
+        self.frame.setGeometry(QtCore.QRect(40, 110, 311, 221))
+        self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frame.setFrameShadow(QtGui.QFrame.Raised)
+        self.frame.setObjectName(_fromUtf8("frame"))
+
+        self.retranslateUi(Frame)
+        QtCore.QMetaObject.connectSlotsByName(Frame)
+
+    def retranslateUi(self, Frame):
+        Frame.setWindowTitle(_translate("Frame", "Frame", None))
+        self.gb_actuator_percent.setTitle(_translate("Frame", "Actuators", None))
+        self.txt_muscle_0.setText(_translate("Frame", "Muscle 0", None))
+        self.txt_muscle_1.setText(_translate("Frame", "Muscle 1", None))
+        self.txt_muscle_2.setText(_translate("Frame", "Muscle 2", None))
+        self.txt_muscle_3.setText(_translate("Frame", "Muscle 3", None))
+        self.txt_muscle_4.setText(_translate("Frame", "Muscle 4", None))
+        self.txt_muscle_5.setText(_translate("Frame", "Muscle 5", None))
+        self.grp_request.setTitle(_translate("Frame", "Request", None))
+        self.txt_translation.setText(_translate("Frame", "000,   000,   000  ", None))
+        self.label.setText(_translate("Frame", "Translation", None))
+        self.txt_rotation.setText(_translate("Frame", "0.00,   0.00,   0.00", None))
+        self.label_2.setText(_translate("Frame", "Rotation", None))
+

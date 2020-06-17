@@ -1,0 +1,145 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'main_gui.ui'
+#
+# Created by: PyQt4 UI code generator 4.11.4
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName(_fromUtf8("MainWindow"))
+        MainWindow.resize(804, 476)
+        self.centralwidget = QtGui.QWidget(MainWindow)
+        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+        self.tabWidget = QtGui.QTabWidget(self.centralwidget)
+        self.tabWidget.setGeometry(QtCore.QRect(0, 0, 801, 371))
+        self.tabWidget.setStyleSheet(_fromUtf8("background-color: #f0f0f0"))
+        self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
+        self.tab = QtGui.QWidget()
+        self.tab.setObjectName(_fromUtf8("tab"))
+        self.frm_input = QtGui.QFrame(self.tab)
+        self.frm_input.setGeometry(QtCore.QRect(4, 0, 791, 401))
+        self.frm_input.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frm_input.setFrameShadow(QtGui.QFrame.Raised)
+        self.frm_input.setObjectName(_fromUtf8("frm_input"))
+        self.tabWidget.addTab(self.tab, _fromUtf8(""))
+        self.tab_2 = QtGui.QWidget()
+        self.tab_2.setObjectName(_fromUtf8("tab_2"))
+        self.frm_dynamics = QtGui.QFrame(self.tab_2)
+        self.frm_dynamics.setGeometry(QtCore.QRect(0, 0, 801, 411))
+        self.frm_dynamics.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frm_dynamics.setFrameShadow(QtGui.QFrame.Raised)
+        self.frm_dynamics.setObjectName(_fromUtf8("frm_dynamics"))
+        self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
+        self.tab_3 = QtGui.QWidget()
+        self.tab_3.setObjectName(_fromUtf8("tab_3"))
+        self.frm_output = QtGui.QFrame(self.tab_3)
+        self.frm_output.setGeometry(QtCore.QRect(0, 0, 801, 351))
+        self.frm_output.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frm_output.setFrameShadow(QtGui.QFrame.Raised)
+        self.frm_output.setObjectName(_fromUtf8("frm_output"))
+        self.frm_output_2 = QtGui.QFrame(self.frm_output)
+        self.frm_output_2.setGeometry(QtCore.QRect(0, 0, 801, 361))
+        self.frm_output_2.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frm_output_2.setFrameShadow(QtGui.QFrame.Raised)
+        self.frm_output_2.setObjectName(_fromUtf8("frm_output_2"))
+        self.lbl_platform_2 = QtGui.QLabel(self.frm_output)
+        self.lbl_platform_2.setGeometry(QtCore.QRect(402, 388, 241, 21))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.lbl_platform_2.setFont(font)
+        self.lbl_platform_2.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.lbl_platform_2.setObjectName(_fromUtf8("lbl_platform_2"))
+        self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
+        self.lbl_client = QtGui.QLabel(self.centralwidget)
+        self.lbl_client.setGeometry(QtCore.QRect(50, 409, 251, 19))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.lbl_client.setFont(font)
+        self.lbl_client.setObjectName(_fromUtf8("lbl_client"))
+        self.btn_exit = QtGui.QPushButton(self.centralwidget)
+        self.btn_exit.setGeometry(QtCore.QRect(710, 412, 75, 23))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btn_exit.setFont(font)
+        self.btn_exit.setObjectName(_fromUtf8("btn_exit"))
+        self.lbl_platform = QtGui.QLabel(self.centralwidget)
+        self.lbl_platform.setGeometry(QtCore.QRect(370, 410, 241, 21))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.lbl_platform.setFont(font)
+        self.lbl_platform.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.lbl_platform.setObjectName(_fromUtf8("lbl_platform"))
+        self.frame_3 = QtGui.QFrame(self.centralwidget)
+        self.frame_3.setGeometry(QtCore.QRect(20, 370, 771, 41))
+        self.frame_3.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frame_3.setFrameShadow(QtGui.QFrame.Raised)
+        self.frame_3.setObjectName(_fromUtf8("frame_3"))
+        self.btn_activate = QtGui.QPushButton(self.frame_3)
+        self.btn_activate.setGeometry(QtCore.QRect(30, 10, 101, 23))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btn_activate.setFont(font)
+        self.btn_activate.setObjectName(_fromUtf8("btn_activate"))
+        self.btn_deactivate = QtGui.QPushButton(self.frame_3)
+        self.btn_deactivate.setGeometry(QtCore.QRect(180, 10, 101, 23))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btn_deactivate.setFont(font)
+        self.btn_deactivate.setObjectName(_fromUtf8("btn_deactivate"))
+        self.lbl_festo_status = QtGui.QLabel(self.frame_3)
+        self.lbl_festo_status.setGeometry(QtCore.QRect(480, 8, 291, 21))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.lbl_festo_status.setFont(font)
+        self.lbl_festo_status.setText(_fromUtf8(""))
+        self.lbl_festo_status.setObjectName(_fromUtf8("lbl_festo_status"))
+        self.chk_festo_wait = QtGui.QCheckBox(self.frame_3)
+        self.chk_festo_wait.setGeometry(QtCore.QRect(330, 10, 141, 21))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.chk_festo_wait.setFont(font)
+        self.chk_festo_wait.setObjectName(_fromUtf8("chk_festo_wait"))
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtGui.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 804, 21))
+        self.menubar.setObjectName(_fromUtf8("menubar"))
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtGui.QStatusBar(MainWindow)
+        self.statusbar.setObjectName(_fromUtf8("statusbar"))
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(MainWindow)
+        self.tabWidget.setCurrentIndex(0)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Input", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Intensity", None))
+        self.lbl_platform_2.setText(_translate("MainWindow", "Platform", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Output", None))
+        self.lbl_client.setText(_translate("MainWindow", "Client", None))
+        self.btn_exit.setText(_translate("MainWindow", "Exit", None))
+        self.lbl_platform.setText(_translate("MainWindow", "Platform", None))
+        self.btn_activate.setText(_translate("MainWindow", "Activate", None))
+        self.btn_deactivate.setText(_translate("MainWindow", "Deactivated", None))
+        self.chk_festo_wait.setText(_translate("MainWindow", "Festo Msg Check", None))
+

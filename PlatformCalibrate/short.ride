@@ -1,0 +1,6 @@
+motion,percent, duration
+yaw,-100,0.5
+pause,0,0.25
+yaw,100,0.5
+pause,0,0.25
+moveZ,0,0.5

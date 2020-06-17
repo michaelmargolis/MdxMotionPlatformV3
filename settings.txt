@@ -1,0 +1,28 @@
+Config
+
+  The default IP addresses are:
+    Festo: 192.168.0.10
+    PC running NoLimits: 192.168.0.4
+    optional computer running control software: 192.168.0.2
+    
+settings for platform:
+  platform_config.py
+     selects the client sim and the platform geometry 
+     
+  platform_output.py
+    sets the Festo IP address and port 
+
+  output_gui.py
+    SHOW_CHAIR_IMAGES if set true will display orientation of chair 
+    this requires Python Image Library PIL and is disabled by default
+    
+
+settings for coaster:
+  pc_monitor.py
+     set HARD_CODED_IP to None to use heartbeat server, or set to fixed IP address of PC running NoLimits.
+ 
+  coaster_client.py   
+  when running on linux (raspberry pi), local_control_itf is imported to support a hardware interface to control switching
+
+  serial_remote.py
+     settings for baud rate and driver name for serial remote control

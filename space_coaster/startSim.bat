@@ -1,0 +1,1 @@
+M:\mdx\MdxPlatformInstall\SpaceCoaster\coasterMSU.exe
