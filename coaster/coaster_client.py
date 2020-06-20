@@ -10,15 +10,14 @@ import sys
 import socket
 import time
 import ctypes
-import tkMessageBox
+import os
 
 #from coaster_interface import CoasterInterface
 from nl2_interface import CoasterInterface
-
 from coaster_gui import CoasterGui
-from coaster_state import RideState,RideStateStr
-from serial_remote import SerialRemote
-import os
+
+sys.path.insert(0, '../common')
+from ride_state import RideState
 
 import logging
 log = logging.getLogger(__name__)
@@ -72,7 +71,6 @@ class State(object):
 
     @staticmethod
     def string(state):
-        # return RideStateStr[state]
         return ("Disabled", "ReadyForDispatch", "Running", "Paused",
                 "EmergencyStopped", "Resetting")[state]
 
@@ -135,25 +133,20 @@ class InputInterface(object):
 
     def __init__(self, sleep_func):
         self.sleep_func = sleep_func
+        self.name = "NL2 Coaster client"
         self.cmd_func = None
         self.is_normalized = True
         self.current_pos = [0.0,0.0,0.0,0.0,0.0,0.0]
         self.is_chair_activated = False
         self.temp_is_preparing_to_run = False  # set True while unparking and checking load
         self.coaster = CoasterInterface()
-        self.gui = CoasterGui(self.dispatch, self.pause, self.reset, self.set_activate_state, self.quit)
-        actions = {'detected remote': self.detected_remote, 'activate': self.activate,
-                   'deactivate': self.deactivate, 'pause': self.pause, 'dispatch': self.dispatch,
-                   'reset': self.reset, 'emergency_stop': self.emergency_stop, 'intensity' : self.set_intensity,
-                   'show_parks' : self.show_parks,'scroll_parks' : self.scroll_parks}
-        self.RemoteControl = SerialRemote(actions)
+        self.gui = CoasterGui(self.dispatch_pressed, self.pause_pressed, self.reset)
         self.prev_movement_time = 0  # holds the time of last reported movement from NoLimits
         #self.isNl2Paused = False
         self.seat = 0
         self.speed = 0
         self.isLeavingStation = False  # set true on dispatch, false when no longer in station
         self.coasterState = State(self.process_state_change)
-        self.rootTitle = "NL2 Coaster Ride Controller"  # the display name in tkinter
         self.heartbeat = pc_monitor_client((40,60),(75,90))
         self.prev_heartbeat = 0
         self.server_address = None # set on receipt of hearbeat from server
@@ -161,13 +154,14 @@ class InputInterface(object):
             self.local_control = local_control_itf.LocalControlItf(actions)
         else:
             self.local_control = None
-        self.USE_UDP_MONITOR = True
+        self.USE_UDP_MONITOR = False
 
     def init_gui(self, frame):
         if self.local_control != None:
             if self.local_control.is_activated():
-               while  self.local_control.is_activated():
-                   tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
+               log.warning("todo - move check for estop at startup to controller")
+               # while  self.local_control.is_activated():
+               #     tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
         self.gui.init_gui(frame)
 
     def connection_msgbox(self, msg):
@@ -179,8 +173,17 @@ class InputInterface(object):
             log.debug("Requesting command: %s", cmd)
             self.cmd_func(cmd)
 
+    def get_ride_state(self):
+        return self.coasterState.state
+
     def prepare_to_dispatch(self):
         pass
+
+    def dispatch_pressed(self):
+        self.command("dispatch")
+
+    def pause_pressed(self):
+        self.command("pause")
 
     def dispatch(self):
         log.debug("->Dispatch command")
@@ -213,9 +216,8 @@ class InputInterface(object):
             #  print "left station, state is", State.string(self.coasterState.state)
             self.start_time = time.time()
             telemetry_log.start()
-            
         else:
-            log.warning("dispatch request ignored, state is %s", State.string(self.coasterState.state)
+            log.warning("dispatch request ignored, state is %s", State.string(self.coasterState.state))
 
     def pause(self):
         # print "Pause cmd, ride state =", State.string(self.coasterState.state)
@@ -249,17 +251,11 @@ class InputInterface(object):
         log.warning("legacy emergency stop callback")
         self.deactivate()
 
-    def set_activate_state(self, state):
-        #  print "in setActivatedState", state
-        if state:
-            self.activate()
-        else:
-            self.deactivate()
-
     def activate(self):
         #  only activate if coaster is ready for dispatch
         #  print "in activate state= ", self.coasterState.state
         log.debug("In activate, resetting park in manual mode")
+        self.is_chair_activated = True
         self.coaster.reset_park(False)
         self.coaster.system_status.is_in_play_mode = False
         self.sleep_func(0.1)
@@ -270,21 +266,16 @@ class InputInterface(object):
         log.debug("selecting seat %d", self.seat)
         self.coaster.select_seat(self.seat)
         self.coasterState.coaster_event(CoasterEvent.RESETEVENT)
-        ####if self.coasterState.state == RideState.READY_FOR_DISPATCH:
-        #  print "in activate "
-        self.is_chair_activated = True
         self.coasterState.set_is_chair_active(True)
-        self.command("enable")
         self.gui.set_activation(True)
         self.gui.process_state_change(self.coasterState.state, True)
         #  print "in activate", str(RideState.READY_FOR_DISPATCH), RideState.READY_FOR_DISPATCH
-        self.RemoteControl.send(str(RideState.READY_FOR_DISPATCH))
+        # self.RemoteControl.send(str(RideState.READY_FOR_DISPATCH))
 
     def deactivate(self):
         log.debug("In deactivate, state=%s", str(self.coasterState))
-        if self.coasterState.state == RideState.READY_FOR_DISPATCH:
-            self.RemoteControl.send(str(RideState.DISABLED))
-        self.command("disable")
+        # if self.coasterState.state == RideState.READY_FOR_DISPATCH:
+        #     self.RemoteControl.send(str(RideState.DISABLED))
         self.gui.set_activation(False)
         self.is_chair_activated = False
         self.coasterState.set_is_chair_active(False)
@@ -296,17 +287,6 @@ class InputInterface(object):
         else:
             self.coasterState.coaster_event(CoasterEvent.DISABLED)
         self.gui.process_state_change(self.coasterState.state, False)
-
-    def quit(self):
-        self.command("quit")
-
-    def detected_remote(self, info):
-        if "Detected Remote" in info:
-            self.set_remote_status_label((info, "green"))
-        elif "Looking for Remote" in info:
-            self.set_remote_status_label((info, "orange"))
-        else:
-            self.set_remote_status_label((info, "red"))
 
     def set_coaster_connection_label(self, label):
         self.gui.set_coaster_connection_label(label)
@@ -320,21 +300,12 @@ class InputInterface(object):
     def intensity_status_changed(self, status):
         self.gui.intensity_status_changed(status)
 
-    def set_remote_status_label(self, label):
-        self.gui.set_remote_status_label(label)
+    def set_rc_label(self, info):
+        self.gui.set_remote_status_label(info)
 
     def process_state_change(self, new_state):
         #  print "in process state change", new_state, self.is_chair_activated
-        if new_state == RideState.READY_FOR_DISPATCH:
-            if self.is_chair_activated:
-                #  here at the end of a ride
-                self.command("idle")  # slow drop of platform
-                self.RemoteControl.send(str(RideState.READY_FOR_DISPATCH))
-            else:
-                self.RemoteControl.send(str(RideState.DISABLED)) # at station but deactivated
-        else: 
-            self.RemoteControl.send(str(new_state))
-
+        # self.RemoteControl.send(str(new_state))
         self.gui.process_state_change(new_state, self.is_chair_activated)
 
     def load_park(self, isPaused, park, seat):
@@ -482,7 +453,7 @@ class InputInterface(object):
         self.check_heartbeat()
         if self.local_control:
             self.local_control.service()
-        self.RemoteControl.service()
+        # self.RemoteControl.service()
         if self.connect():
             self.coaster.service()
             self.show_coaster_status()

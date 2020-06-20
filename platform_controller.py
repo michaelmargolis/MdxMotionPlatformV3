@@ -22,6 +22,8 @@ import gui_sleep
 from serialSensors import Encoder, ServoModel
 import serial_defaults
 import gui_utils as gutil
+from ride_state import RideState
+from RemoteControl import RemoteControl
 
 sys.path.insert(0, './output')
 from kinematicsV2 import Kinematics
@@ -32,9 +34,6 @@ import d_to_p
 from  platform_config import *
 
 log = logging.getLogger(__name__)
-# default handler can be overridden in main 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s',
-                    datefmt='%H:%M:%S')
 
 class Controller(QtGui.QMainWindow):
 
@@ -55,6 +54,7 @@ class Controller(QtGui.QMainWindow):
             self.dynam.init_gui(self.ui.frm_dynamics)
             self.dynam.begin(cfg.limits_1dof, "gains.cfg")
             self.set_intensity(10)  # default intensity at max
+            self.RemoteControl = RemoteControl(self, client.set_rc_label)
             log.warning("Dynamics module has washout disabled, test if this is acceptable")
             self.service_timer = QtCore.QTimer(self) # timer for telemetry data
             self.service_timer.timeout.connect(self.service)
@@ -151,6 +151,53 @@ class Controller(QtGui.QMainWindow):
     def tab_changed(self, tab_index):
         self.ui_tab = tab_index
 
+    def pause(self):
+        if client.get_ride_state() == RideState.RUNNING or client.get_ride_state() == RideState.PAUSED:
+            client.pause()
+        else:
+            self.swell_for_access()
+
+    def dispatch(self):
+        if self.is_output_enabled:
+            log.debug('preparing to dispatch')
+            self.move_to_ready()
+            self.park_platform(False)
+            client.dispatch()
+        else:
+            log.warning("Unable to dispatch because platform not enabled")
+
+    def reset(self):
+       print "reset here"
+
+    def emergency_stop(self):
+       print "estop here"
+
+    def cmd_func(self, cmd):  # command handler function called from client
+        log.debug("controller received cmd function: %s", cmd)
+        if cmd == "exit": self.is_active = False
+        elif cmd == "dispatch": self.dispatch()
+        elif cmd == "pause": self.pause()
+        elif cmd == "enable": self.enable_platform()
+        elif cmd == "disable": self.disable_platform()
+        elif cmd == "idle": self.move_to_idle()
+        elif cmd == "ready": self.move_to_ready()
+        elif cmd == "swellForStairs": self.swell_for_access()
+        elif cmd == "parkPlatform": self.park_platform(True)
+        elif cmd == "unparkPlatform": self.park_platform(False)
+        elif cmd == "quit": self.quit()
+        elif 'intensity' in cmd:
+            m, intensity = cmd.split('=', 2)
+            self.set_intensity(int(intensity))
+
+
+    def activate(self):
+        """remote controls call this method"""
+        self.enable_platform()
+
+    def deactivate(self):
+        """remote controls call this method"""
+        self.disable_platform()
+        
     def enable_platform(self):
         """
         enable sets flag to for output
@@ -168,8 +215,9 @@ class Controller(QtGui.QMainWindow):
             self.is_output_enabled = True
             log.debug("Platform Enabled")
         self.set_activation_buttons(True)
+        client.activate()
 
-    def disable_platform(self):
+    def disable_platform(self):        
         request = self.process_request(client.get_current_pos())
         actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(False, self.actuator_lengths)
@@ -179,6 +227,7 @@ class Controller(QtGui.QMainWindow):
             log.debug("in disable, lengths=%s", ','.join('%d' % l for l in actuator_lengths))
             self.platform.slow_move(actuator_lengths, self.platform_disabled_pos, 1000)
         self.set_activation_buttons(False)
+        client.deactivate()
 
     def set_activation_buttons(self, isEnabled): 
         if isEnabled:
@@ -226,7 +275,6 @@ class Controller(QtGui.QMainWindow):
         if state:
             gui_sleep.sleep(0.5)
         # Todo check if more delay is needed
-
         log.debug("Platform park state changed to %s", "parked" if state else "unparked")
 
     def set_intensity(self, intensity):
@@ -289,20 +337,6 @@ class Controller(QtGui.QMainWindow):
         #  print "dur =",  time.time() - start, "interval= ",  time.time() - self.prevT
         #  self.prevT =  time.time()
 
-    def cmd_func(self, cmd):  # command handler function called from Platform input
-        if cmd == "exit": self.is_active = False
-        elif cmd == "enable": self.enable_platform()
-        elif cmd == "disable": self.disable_platform()
-        elif cmd == "idle": self.move_to_idle()
-        elif cmd == "ready": self.move_to_ready()
-        elif cmd == "swellForStairs": self.swell_for_access()
-        elif cmd == "parkPlatform": self.park_platform(True)
-        elif cmd == "unparkPlatform": self.park_platform(False)
-        elif cmd == "quit": self.quit()
-        elif 'intensity' in cmd:
-            m, intensity = cmd.split('=', 2)
-            self.set_intensity(int(intensity))
-
     def move_func(self, request): # move handler to position platform
         #  print "request is translation/rotation list:", request
         try:
@@ -323,8 +357,9 @@ class Controller(QtGui.QMainWindow):
             log.error("error in move function %s", e)
 
     def service(self):
+        self.RemoteControl.service()
+        client.service()
         if self.is_active:
-            client.service()
             if self.platform_status != self.platform.get_output_status():
                 self.platform_status = self.platform.get_output_status()
                 gutil.set_text(self.ui.lbl_festo_status, self.platform_status[0], self.platform_status[1])
@@ -351,7 +386,7 @@ def man():
     parser = argparse.ArgumentParser(description='Platform Controller\nAMDX motion platform control application')
     parser.add_argument("-l", "--log",
                         dest="logLevel",
-                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                        choices=['DEBUG', 'INFO', 'WARNING'],
                         help="Set the logging level")
     parser.add_argument("-f", "--festo_ip",
                         dest="festoIP",
@@ -361,15 +396,20 @@ def man():
 
 def main():
     args = man().parse_args()
-    if args.logLevel:
-        logging.basicConfig(level=args.logLevel, format='%(asctime)s %(levelname)-8s %(message)s',
+    if args.logLevel == 'DEBUG':
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(module)s: %(message)s',
                             datefmt='%H:%M:%S')
+    elif args.logLevel == 'WARNING':
+        logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)-8s  %(module)s: %(message)s',
+                            datefmt='%H:%M:%S')                            
     else:
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s',
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s  %(module)s: %(message)s',
                             datefmt='%H:%M:%S')
 
     log.info("Python: %s", sys.version[0:5])
     log.info("Starting Platform Controller")
+    log.debug("logging using debug mode")
+    controller = None
     try:
         if args.festoIP:
             controller = Controller(args.festoIP)
@@ -378,11 +418,14 @@ def main():
         controller.show()
         gui_sleep._gui__app.exec_()
 
+    except SystemExit:
+        log.error("user abort")
     except:
         e = sys.exc_info()[0]  # report error
         log.error("error in main %s, %s", e, traceback.format_exc())
 
-    controller.close()
+    if controller:
+        controller.close()
     gui_sleep._gui__app .exit()
     sys.exit()
     log.info("Exiting Platform Controller\n")

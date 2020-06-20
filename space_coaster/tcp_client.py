@@ -30,7 +30,7 @@ class SockClient():
         log.debug('TCP client ready to connect to %s:%d', self.ip_addr, self.port)
 
     def connect(self):
-        log.info('Attempting to connect to %s:%d', self.ip_addr, self.port)
+        log.debug('Attempting to connect to %s:%d', self.ip_addr, self.port)
         # Create a TCP/IP socket to service remote clients
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -39,17 +39,20 @@ class SockClient():
             log.error("error creating client socket %s", e)
             raise
         try:
-            self.sock.connect((self.ip_addr, self.port))
+            #  self.sock.connect((self.ip_addr, self.port))
+            self.sock = socket.create_connection((self.ip_addr, self.port),1) # timeout after one second
             self.status.connected = True
             self.thr = threading.Thread(target=self.listener_thread, args= (self.sock, self.in_queue,self.status,))
             self.thr.daemon = True
             self.thr.start()
             self.status.running = True
             log.info('Connected to %s:%d', self.ip_addr, self.port)
+            return True
         except socket.error as e: 
             self.status.connected = False
             log.debug("client socket error %s", e)
             self.sock.close()
+            return False
         except Exception as e:
             log.error("Error connecting to client %s", e)
             self.status.connected = False

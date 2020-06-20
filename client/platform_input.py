@@ -62,8 +62,8 @@ InputParmType = 'normalized'
 class InputInterface(object):
     USE_GUI = False
 
-    def __init__(self):
-        self.rootTitle = "Chair Test Client"
+    def __init__(self, sleep_func):
+        self.name  = "Platform Test Client"
         self.levels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         if InputParmType == 'normalized':
             self.is_normalized = True
@@ -74,10 +74,22 @@ class InputInterface(object):
         print
         #  additional client init code goes here
 
-    def init_gui(self, root):
+    def init_gui(self, frame):
+        pass
+
+    def set_rc_label(self, label):
+        pass
+
+    def intensity_status_changed(self, status):
         pass
 
     def chair_status_changed(self, chair_status):
+        pass
+
+    def activate(self):
+        pass
+
+    def deactivate(self):
         pass
 
     def begin(self, cmd_func, move_func, limits):

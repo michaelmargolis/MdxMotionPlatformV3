@@ -1,14 +1,6 @@
 """
-RideState is the high level similated coaster state that is displayed on the GUI
-
-ConnectStatus is the status of connection between the contoller and NoLimits
-
+SystemStatus represents low level state of NoLimits
 """
-
-class RideState:
-    DISABLED, READY_FOR_DISPATCH, RUNNING, PAUSED, EMERGENCY_STOPPED, RESETTING = range(6)
-
-RideStateStr = ("Disabled", "Ready for dispatch", "Running", "Paused", "Emergency Stopped", "Resetting")
 
 class SystemStatus(object):
     def __init__(self): 

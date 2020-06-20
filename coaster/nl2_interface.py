@@ -375,7 +375,7 @@ class CoasterInterface():
                 if size == 76:
                     t = (unpack('>IIIIIIIIfffffffffff', data))
                     tm = self.telemetryMsg._make(t)
-                    # print "tm", tm
+                    # print("tm", tm)
                     self.telemetry_data = self._process_telemetry_msg(tm)
                     self.telemetry_status_ok = True
                 else:
@@ -409,7 +409,7 @@ class CoasterInterface():
         self._telemetry_state_flags = msg.state
         is_play_mode = (msg.state & 1) != 0
         if self.system_status.is_in_play_mode == False:
-           #  print "in process msg, play state changed to", is_play_mode
+           # print("in process msg, play state changed to", is_play_mode)
            self.system_status.is_in_play_mode = is_play_mode
         if is_play_mode:  # only process if coaster is in play
             y =[]

@@ -7,19 +7,22 @@ This version requires NoLimits attraction license and NL ver 2.5.3.4 or later
 import os
 import sys
 from coaster_gui_defs import *
-from coaster_state import RideState, RideStateStr
+
+sys.path.insert(0, './common')
+from ride_state import RideState
+import gui_utils as gutil
 
 import logging
 log = logging.getLogger(__name__)
 
 class CoasterGui(object):
 
-    def __init__(self, dispatch, pause, reset, activate_callback_request, quit_callback):
+    def __init__(self, dispatch, pause, reset):
         self.dispatch = dispatch
         self.pause = pause
         self.reset = reset
-        self.activate_callback_request = activate_callback_request
-        self.quit = quit_callback
+        # self.activate_callback_request = activate_callback_request
+        # self.quit = quit_callback
         self.park_path = []
         self.park_name = []
         self.seat = []
@@ -38,7 +41,8 @@ class CoasterGui(object):
         self.ui.btn_reset_rift.clicked.connect(self.reset)
 
         self.read_parks()  # load cmb_park_listbox
-        self.set_button_style(self.ui.btn_deactivate, False, True, "Deactivated")  # disabled, checked
+        # self.set_button_style(self.ui.btn_deactivate, False, True, "Deactivated")  # disabled, checked
+        log.info("Client GUI initialized")
 
     def set_seat(self, seat):
         if seat != '':
@@ -106,14 +110,8 @@ class CoasterGui(object):
     def hide_parks_dialog(self):
          self.top.destroy()
 
-    def _enable_pressed(self):
-        self.activate_callback_request( not self.is_activated) # toggle state
-
-    def _disable_pressed(self):
-        #  self.set_activation_buttons(False)
-        self.activate_callback_request( False) # 
-
-    def set_activation(self, is_enabled):  # callback from Client
+    def set_activation(self, is_enabled):
+        print("is activated in gui set to ", is_enabled)
         if is_enabled:
             self.is_activated = True
             self.ui.cmb_park_listbox.setEnabled(False)
@@ -148,7 +146,7 @@ class CoasterGui(object):
         if event.char == 'e':  self.emergency_stop()
 
     def process_state_change(self, new_state, isActivated):
-        log.debug("Coaster state changed to: %s (%s)", RideStateStr[new_state], "Activated" if isActivated else "Deactivated")
+        log.debug("Coaster state changed to: %s (%s)", RideState.str(new_state), "Activated" if isActivated else "Deactivated")
         if new_state == RideState.READY_FOR_DISPATCH:
             if isActivated:
                 log.debug("Coaster is Ready for Dispatch")
