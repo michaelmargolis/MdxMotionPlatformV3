@@ -562,5 +562,5 @@ if __name__ == "__main__":
     coaster_thread.start()
 
     while True:
-        if raw_input('\nType quit to stop this script') == 'quit':
+        if input('\nType quit to stop this script') == 'quit':
             break

@@ -35,10 +35,10 @@ class InputInterface(ClientApi):
 
     def move_slider_changed(self, sender_id):
         value = self.sliders[sender_id].value()
-        print "slider", sender_id, "value is ", value *.01
+        print("slider", sender_id, "value is ", value *.01)
         if sender_id < 6:
             self.levels[sender_id] = float(value) *.01
-            print self.levels
+            print(self.levels)
 
     def update_sliders(self):
         for idx, val in enumerate(self.levels):

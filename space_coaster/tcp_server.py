@@ -11,7 +11,7 @@ import threading
 try:
     from queue import Queue
 except ImportError:
-    from Queue import Queue 
+    from queue import Queue 
 
 import logging
 log = logging.getLogger(__name__)

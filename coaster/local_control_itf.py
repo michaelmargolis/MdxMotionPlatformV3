@@ -60,11 +60,11 @@ class LocalControlItf(object):   # was SerialRemote(object):
            if self.intensity < 0:
                self.intensity = 0
        else:
-           print "button pushed" 
+           print("button pushed") 
            self.park_inc += dir
     
     def button_callback(self, msg):
-        print 'local control', msg
+        print('local control', msg)
         if msg == 'enc_pushed':
              self.enc_pushed = True
              self.actions['show_parks']('True')
@@ -82,7 +82,7 @@ class LocalControlItf(object):   # was SerialRemote(object):
         self.buttons.service()
         if self.prev_intensity != self.intensity:
             msg = format("intensity=%d" % (self.intensity))
-            print msg
+            print(msg)
             self.actions['intensity'](msg)
             self.prev_intensity = self.intensity
         if self.park_inc > 1:
@@ -96,23 +96,23 @@ class LocalControlItf(object):   # was SerialRemote(object):
 
 if __name__ == "__main__":
     def detected_remote(info):
-        print info
+        print(info)
     def activate():
-        print "activate"
+        print("activate")
     def deactivate():
-        print "deactivate" 
+        print("deactivate") 
     def pause():
-        print "pause"
+        print("pause")
     def dispatch():
-        print "dispatch"
+        print("dispatch")
     def reset():
-        print "reset"
+        print("reset")
     def deactivate():
-        print "deactivate"
+        print("deactivate")
     def emergency_stop():
-        print "estop"
+        print("estop")
     def set_intensity(intensity):
-        print "intensity ", intensity
+        print("intensity ", intensity)
             
     actions = {'detected remote': detected_remote, 'activate': activate,
                'deactivate': deactivate, 'pause': pause, 'dispatch': dispatch,

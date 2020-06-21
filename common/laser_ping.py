@@ -33,10 +33,10 @@ if __name__ == "__main__":
     port = 'COM31'
     MA = MovingAverage(4)
     if laser_ping.open_port(port, 9600):
-        print "laser ping connected on port", port
+        print("laser ping connected on port", port)
         while True:
             if laser_ping.available():
                 distance = laser_ping.read()
-                print int(round(MA.next(distance)))
+                print(int(round(MA.next(distance))))
 
 

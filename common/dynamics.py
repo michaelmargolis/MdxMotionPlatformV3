@@ -122,5 +122,5 @@ class Dynamics(object):
                 arrstr = np.char.mod('%.2f', self.gains)
                 gain_str = ','.join(arrstr) + ',' + str(self.master_gain)
                 outfile.write("gains," + gain_str)
-        except Exception, e: 
+        except Exception as e: 
             log.error("error saving gains to %s: %s", self.config_fname, e)

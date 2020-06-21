@@ -14,14 +14,14 @@ class TelemetryLogger(object):
         if self.is_enabled:
             timestr = time.strftime("%m%d-%H%M")
             fname = "telemetry-" + timestr + ".csv"
-            print  "Opening telemetry log file:", fname
+            print("Opening telemetry log file:", fname)
             self.outfile = open(fname,"w")
             self.outfile.write("time,surge,sway,heave,roll,pitch,yaw\n")
     
     def stop(self):
         if self.is_enabled:
             self.outfile.close()
-            print  "Closing log file"
+            print("Closing log file")
 
     def write(self, data):
         if self.is_enabled:

@@ -111,7 +111,7 @@ class CoasterGui(object):
          self.top.destroy()
 
     def set_activation(self, is_enabled):
-        print("is activated in gui set to ", is_enabled)
+        print(("is activated in gui set to ", is_enabled))
         if is_enabled:
             self.is_activated = True
             self.ui.cmb_park_listbox.setEnabled(False)
@@ -139,7 +139,7 @@ class CoasterGui(object):
         gutil.set_text(self.ui.lbl_remote_status, status[0], status[1])
 
     def hotkeys(self, event):
-        print "pressed", repr(event.char)
+        print("pressed", repr(event.char))
         if event.char == 'd':  self.dispatch()
         if event.char == 'p':  self.pause()
         if event.char == 'r':  self.reset()

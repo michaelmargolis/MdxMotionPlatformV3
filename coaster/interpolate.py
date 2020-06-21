@@ -13,7 +13,7 @@ class Interpolate:
             raise ValueError("x_list must be in strictly ascending order!")
         self.x_list = x_list
         self.y_list = y_list
-        intervals = zip(x_list, x_list[1:], y_list, y_list[1:])
+        intervals = list(zip(x_list, x_list[1:], y_list, y_list[1:]))
         self.slopes = [(y2 - y1) / (x2 - x1) for x1, x2, y1, y2 in intervals]
 
     def __call__(self, x):

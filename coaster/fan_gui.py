@@ -5,10 +5,10 @@ gui for speed control of coaster fan
 
 import os
 import sys
-import Tkinter as tk
-import ttk
-import fan_config as fan_cfg
-from fan_interface import *
+import tkinter as tk
+import tkinter.ttk
+from . import fan_config as fan_cfg
+from .fan_interface import *
 
 
 class FanGui(object):
@@ -75,12 +75,12 @@ class FanGui(object):
         self.save_button.pack(side=tk.LEFT, padx=(100, 4))
 
     def init_config(self):
-        print "configuration settings"
-        print "  com port:", self.com_port
-        print "  threshold speed:", self.threshold_speed 
-        print "  threshold power:", self.threshold_power
-        print "  gains:", self.gains
-        print "  master:", self.master_gain
+        print("configuration settings")
+        print("  com port:", self.com_port)
+        print("  threshold speed:", self.threshold_speed) 
+        print("  threshold power:", self.threshold_power)
+        print("  gains:", self.gains)
+        print("  master:", self.master_gain)
 
     def set_gain(self, idx, value):
         self.gains[idx] = value
@@ -118,7 +118,7 @@ class FanGui(object):
 
     def update_config(self):
         self.interp_update(self.speeds, self.gains) # update interpolation table
-        print "todo update threshold and master?"
+        print("todo update threshold and master?")
 
 
     def save_config(self):
@@ -161,7 +161,7 @@ def service():
         """
     else:
         if coaster.system_status.is_nl2_connected:
-            print("Telemetry error: %s" % coaster.get_telemetry_err_str())
+            print(("Telemetry error: %s" % coaster.get_telemetry_err_str()))
         else:
             print("No connection to NoLimits, is it running?")
 

@@ -93,9 +93,9 @@ class Festo(object):
                 dur = time.time()-t
                 self.msg_latency = int(dur * 1000)
                 resp = easyip.Packet(data)
-                print "in senddpacket, response from Festo", resp, srvaddr
+                # print "in sendpacket, response from Festo", resp, srvaddr
                 if packet.response_errors(resp) is not None:
-                    print packet
+                    print(packet)
                     log.error("festo output error: %s",  str(packet.response_errors(resp)))
                     self.netlink_ok = False
                 else:
@@ -120,7 +120,7 @@ class Festo(object):
             packet = easyip.Factory.req_flagword(1, 6, 10)
             resp = self._output_festo_packet(packet)            
             values = resp.decode_payload(easyip.Packet.DIRECTION_REQ)
-            print list(values)
+            print(list(values))
             return list(values)
         except socket.timeout:
             log.warning("timeout waiting for Pressures from Festo")
@@ -146,11 +146,11 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%H:%M:%S')
     festo = Festo('192.168.1.16')
-    print "Festo address set to 192.168.1.16"
+    print("Festo address set to 192.168.1.16")
     festo.set_wait(True)
     while True:
         try:
-            msg = input("enter one to six comma separated millibar values (0-6000): ")
+            msg = eval(input("enter one to six comma separated millibar values (0-6000): "))
             if msg:
                 festo.process_test_message(msg)
             else:

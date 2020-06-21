@@ -97,7 +97,7 @@ class PlatformConfig(object):
         self.PLATFORM_POS = np.array(platform_pos)
 
 if __name__ == "__main__":
-    import plot_config 
+    from . import plot_config 
     cfg = PlatformConfig()
     cfg.calculate_coords()
     plot_config.plot(cfg.BASE_POS, cfg.PLATFORM_POS, cfg.PLATFORM_MID_HEIGHT, cfg.PLATFORM_NAME )

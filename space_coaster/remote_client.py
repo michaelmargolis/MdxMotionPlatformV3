@@ -13,12 +13,12 @@ import time
 try:
     from queue import Queue
 except ImportError:
-    from Queue import Queue
+    from queue import Queue
 
 import csv,os
 
-from tcp_client import SockClient
-from remote_client_gui_defs import *
+from .tcp_client import SockClient
+from .remote_client_gui_defs import *
 
 
 import logging
@@ -224,7 +224,7 @@ class InputInterface(object):
 
 ######### code for remote client run from main ############
 
-class RemoteClient(QtGui.QMainWindow):
+class RemoteClient(QtWidgets.QMainWindow):
     """
     on state or status change local client will pass:
         current coaster state, current connection state, coaster status string, color
@@ -237,7 +237,7 @@ class RemoteClient(QtGui.QMainWindow):
     """
     def __init__(self, sleep_func):
         try:
-            QtGui.QMainWindow.__init__(self)
+            QtWidgets.QMainWindow.__init__(self)
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
             self.client = InputInterface(sleep_func) 
@@ -268,8 +268,7 @@ class RemoteClient(QtGui.QMainWindow):
  
 if __name__ == "__main__":
     sys.path.insert(0, '../output')
-    import gui_sleep
-    from local_client_gui_defs import *
+    from .local_client_gui_defs import *
     import importlib  
    
    #start_logging(log.DEBUG)
@@ -281,14 +280,13 @@ if __name__ == "__main__":
     platform_selection = 'configNextgen'
     cfg = importlib.import_module(platform_selection).PlatformConfig()
 
-    gui_sleep._gui__app = QtGui.QApplication(sys.argv) 
+    app = QtWidgets.QApplication(sys.argv) 
     
     try:       
-        remote_client = RemoteClient(gui_sleep.sleep )
+        remote_client = RemoteClient(gutil.sleep_qt)
         remote_client.show()
-        gui_sleep._gui__app.exec_()
-        
-        gui_sleep._gui__app.exit()
+        app.exec_()
+        app.exit()
         log.info("Exiting Remote client\n")
     except Exception as e:
         log.error("error starting remote client %s", e)

@@ -83,7 +83,7 @@ class Kinematics(object):
         Rxyz = self.calc_rotation(rpy)
 
         self.pose = np.zeros(self.platform_coords.shape)
-        for i in xrange(6):
+        for i in range(6):
             self.pose[i, :] = np.dot(Rxyz, platform_xlate[i, :])
         return self.pose  # 6 rows of 3d platform attachment points
 
@@ -146,7 +146,7 @@ class Kinematics(object):
                     if delta >=2: # smallest step is 1mm
                         delta /= 2 
                 if iter > 6:
-                    print format("iter= %d, d=%d, err= %d, delta=%d" %(iter, d, self.strut_length-d1, delta))
+                    print(format("iter= %d, d=%d, err= %d, delta=%d" %(iter, d, self.strut_length-d1, delta)))
             if iter > self.temp_max_iter:
                 self.temp_max_iter = iter
             dist.append(d-self.joint_min_offset)
@@ -163,12 +163,12 @@ class Kinematics(object):
     
     def set_intensity(self, intensity):
         self.intensity = intensity
-        print "Kinematics intensity set to", self.intensity
+        print("Kinematics intensity set to", self.intensity)
         log.info("Kinematics intensity set to %.1f", intensity)
 
 def test(request):
     distances =  k.actuator_lengths(request)
-    print request,   "distances:", distances,  "percents:", k.percent_from_len(distances)
+    print(request,   "distances:", distances,  "percents:", k.percent_from_len(distances))
    
 
 def test_suite():
@@ -176,16 +176,16 @@ def test_suite():
     test([0,0,75,0,0,0])
     test([0,0,-75,0,0,0])
 
-    print "start of timing test"
+    print("start of timing test")
     start = time.time()
     for z in range(-75,75):
         k.actuator_percents([.1,.1,z,.1,.1,.05])
         # k.actuator_lengths([.1,.1,z,.1,.1,.05])
     t = time.time() - start
-    print format("%d kinematic calculations in %.3f ms" % ( 150, t*1000))
+    print(format("%d kinematic calculations in %.3f ms" % ( 150, t*1000)))
     # print "max iters = ", k.temp_max_iter
     return
-    print "Standard tests:"
+    print("Standard tests:")
     test([0,0,0,0,0,0])
     test([0,0,75,0,0,0])
     test([0,0,-75,0,0,0])
@@ -201,28 +201,28 @@ def test_suite():
     test([0,-70,0,0,0,0])
     test([30,10,10,.1,.1,0])
     k.set_intensity(.1)
-    print "intensity set to 0.1"
+    print("intensity set to 0.1")
     test([0,0,75,0,0,0])
     test([0,0,-75,0,0,0])
     k.set_intensity(1)
-    print "intensity set back to 1\n"
+    print("intensity set back to 1\n")
 
 
 if __name__ == "__main__":
     log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     ECHO_TO_SOLIDWORKS = False
-    from configNextgen import *
+    from .configNextgen import *
     #  from ConfigV3 import *  # comment above and uncomment this for chair
-    import plot_config
+    from . import plot_config
     import time
     if ECHO_TO_SOLIDWORKS:    
-        import sw_api as sw
+        from . import sw_api as sw
     
     cfg = PlatformConfig()
     cfg.calculate_coords()
     k = Kinematics()
-    print "using config for", cfg.PLATFORM_NAME 
+    print("using config for", cfg.PLATFORM_NAME) 
     k.set_geometry( cfg.BASE_POS, cfg.PLATFORM_POS)
     if cfg.PLATFORM_TYPE == "SLIDER":
         k.set_slider_params(cfg.joint_min_offset, cfg.joint_max_offset, cfg.strut_length, cfg.slider_angles)
@@ -238,13 +238,13 @@ if __name__ == "__main__":
 
     #  user input
     while True:
-        request = raw_input("enter orientation on command line as: surge, sway, heave, roll, pitch yaw ")
+        request = input("enter orientation on command line as: surge, sway, heave, roll, pitch yaw ")
         if request == "":
             exit()
-        request = map( float, request.split(',') )
+        request = list(map( float, request.split(',') ))
         if len(request) == 6:
             percents = k.actuator_percents(request)
-            print "percents:", percents
+            print("percents:", percents)
         else:
-           print "expected 3 translation values in mm and 3 rotations values in radians"
+           print("expected 3 translation values in mm and 3 rotations values in radians")
     

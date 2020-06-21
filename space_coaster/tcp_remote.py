@@ -31,7 +31,7 @@ class TcpRemote(object):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.bind((self.HOST, self.PORT))
-            print "opening TCP remote control socket on", self.PORT
+            print("opening TCP remote control socket on", self.PORT)
             self.sock.listen(1)  # listen for incoming connection
             t = threading.Thread(target=self.listener_thread, args=(self.inQ, self.sock))
             t.daemon = True
@@ -39,25 +39,25 @@ class TcpRemote(object):
         except:
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print "thread init err", e, s
+            print("thread init err", e, s)
 
     def listener_thread(self, inQ, sock):
         MAX_MSG_LEN = 80
         while True:
             self.client, self.address = sock.accept()
             infile = self.client.makefile()
-            print "Connection from remote controller at", self.address
+            print("Connection from remote controller at", self.address)
             while self.client:
                 try:
                     line = infile.readline()
                     if line and len(line) > 0:
                         inQ.put(line)
-                    print len(line), self.client, infile
+                    print(len(line), self.client, infile)
                 except:
                     e = sys.exc_info()[0]
                     s = traceback.format_exc()
-                    print "listener err", e,s 
-            print self.client
+                    print("listener err", e,s) 
+            print(self.client)
     """
     def listener_thread(self, inQ, sock):
         MAX_MSG_LEN = 80
@@ -102,42 +102,42 @@ class TcpRemote(object):
             try:
                 self.sock.sendto(toSend, self.address)
             except:
-                print "unable to send to", self.address
+                print("unable to send to", self.address)
 
     def service(self):
         """ Poll to service remote control requests."""
         while not self.inQ.empty():
             msg = self.inQ.get().rstrip()
-            print msg
+            print(msg)
             if "intensity" in msg:
                 try:
                     m,intensity = msg.split('=',2)
                     #print m, "=", intensity
                     self.actions[m](intensity)
                 except ValueError:
-                    print msg, "is invalid intensity msg"
+                    print(msg, "is invalid intensity msg")
             else:
                 self.actions[msg]()
 
 if __name__ == "__main__":
     def detected_remote(info):
-        print info
+        print(info)
     def activate():
-        print "activate"
+        print("activate")
     def deactivate():
-        print "deactivate" 
+        print("deactivate") 
     def pause():
-        print "pause"
+        print("pause")
     def dispatch():
-        print "dispatch"
+        print("dispatch")
     def reset():
-        print "reset"
+        print("reset")
     def deactivate():
-        print "deactivate"
+        print("deactivate")
     def emergency_stop():
-        print "estop"
+        print("estop")
     def set_intensity(intensity):
-        print "intensity ", intensity
+        print("intensity ", intensity)
             
     actions = {'detected remote': detected_remote, 'activate': activate,
                'deactivate': deactivate, 'pause': pause, 'dispatch': dispatch,

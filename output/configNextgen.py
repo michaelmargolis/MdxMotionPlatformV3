@@ -110,18 +110,18 @@ class PlatformConfig(object):
 
 if __name__ == "__main__":
     import numpy as np
-    from kinematicsV2 import Kinematics
-    import plot_config  #  only for testing
+    from .kinematicsV2 import Kinematics
+    from . import plot_config  #  only for testing
 
     cfg = PlatformConfig() 
     cfg.calculate_coords()
     k = Kinematics()
     
-    print cfg.upper_coordinates
-    print cfg.lower_coordinates
+    print(cfg.upper_coordinates)
+    print(cfg.lower_coordinates)
     
-    print "base\n", cfg.BASE_POS
-    print "platform\n", cfg.PLATFORM_POS
+    print("base\n", cfg.BASE_POS)
+    print("platform\n", cfg.PLATFORM_POS)
     plot_config.plot( cfg.BASE_POS,  cfg.PLATFORM_POS, cfg.PLATFORM_MID_HEIGHT, cfg.PLATFORM_NAME )
     plot_config.plot3d(cfg, cfg.PLATFORM_POS)
  
@@ -129,13 +129,13 @@ if __name__ == "__main__":
     mid_pos = k.inverse_kinematics([0,0,0,0,0,0])
     #  calculates inverse kinematics and prints actuator lenghts
     while True:
-        request = raw_input("enter orientation on command line as: surge, sway, heave, roll, pitch yaw ")
+        request = input("enter orientation on command line as: surge, sway, heave, roll, pitch yaw ")
         if request == "":
             exit()
-        request = map( float, request.split(',') )
+        request = list(map( float, request.split(',') ))
         if len(request) == 6:
             actuator_lengths = k.inverse_kinematics(request)
-            print  np.around(actuator_lengths- mid_pos)
+            print(np.around(actuator_lengths- mid_pos))
             # print actuator_lengths.astype(int) 
         else:
-           print "expected 3 translation values in mm and 3 rotations values in radians"
+           print("expected 3 translation values in mm and 3 rotations values in radians")

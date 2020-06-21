@@ -67,7 +67,7 @@ class Buttons(object):
 
 
 def test(key):
-    print key
+    print(key)
 
 if __name__ == "__main__":
     buttons = Buttons(test)

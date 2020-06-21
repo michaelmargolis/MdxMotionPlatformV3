@@ -78,7 +78,7 @@ def plot3d(cfg, platform_transform):
             b = platform_transform[i+1]
         ax.plot( [a[0],b[0]], [a[1],b[1]],[a[2],b[2]], 'yellow')
         
-    print "platform type =", cfg.PLATFORM_TYPE
+    print("platform type =", cfg.PLATFORM_TYPE)
     if cfg.PLATFORM_TYPE == "SLIDER":
         ax.plot([cfg.center_to_inner_joint,cfg.center_to_inner_joint],[0,-cfg.joint_max_offset],[0,0],'black')
         ax.plot([cfg.center_to_outer_joint,cfg.center_to_outer_joint],[0,cfg.joint_max_offset],[0,0], 'black')

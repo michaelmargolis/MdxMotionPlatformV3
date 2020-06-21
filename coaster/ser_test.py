@@ -15,7 +15,7 @@ timeout_period = 2
 def search():
     for p in sorted(list(serial.tools.list_ports.comports())):
         port = p[0] 
-        print port, len(port)
+        print(port, len(port))
         if connect(port):
             return port
     return None
@@ -34,21 +34,21 @@ def connect(portName):
         ser.setDTR(False)
         ser.open()
         if not ser.isOpen():
-            print "Connection failed:", portName, "has already been opened by another process"
+            print("Connection failed:", portName, "has already been opened by another process")
             ser = None
             return False
         ser.flush()
         time.sleep(.1)
-        print "Looking for Remote control on ", portName
+        print("Looking for Remote control on ", portName)
         ser.write('V')
         time.sleep(.1)
 
         while True:
             result = ser.readline()
             if len(result) > 0:
-                print "serial data:", result
+                print("serial data:", result)
             if "MdxRemote_V1" in result or "deactivate" in result:
-                print "found remote"
+                print("found remote")
                 return True
             if len(result) < 1:
                 break

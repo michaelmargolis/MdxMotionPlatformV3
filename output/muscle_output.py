@@ -11,11 +11,11 @@ muscle_output.py
 """
 import sys
 import time
-import festo_itf
-import gui_sleep
-
 import numpy as np
 import traceback
+
+import festo_itf
+import gui_utils as gutil
 
 import logging
 log = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class MuscleOutput(object):
         
     def brake(self):
         # enables brakes on sliders to avoid unintended movement
-        print "todo brake"
+        print("todo brake")
 
     def get_pressures(self):
         self.in_pressures = self.festo.get_pressure()
@@ -137,7 +137,7 @@ class MuscleOutput(object):
                      percents.append(d / self.percent_factor)
                 self.echo_method(percents)
         except:
-            print "error in move distance", sys.exc_info()[0], traceback.format_exc(),distances
+            print("error in move distance", sys.exc_info()[0], traceback.format_exc(),distances)
             log.error("error in move_distancet %s", sys.exc_info()[0])
 
     def move_percent(self, percents):
@@ -158,8 +158,8 @@ class MuscleOutput(object):
                     p = self.up_curves[self.up_indices[i]][int(distances[i])]
                 pressures.append(p)
             except:
-                print "error in distance_to_pressure", sys.exc_info()[0], traceback.format_exc()
-                print distances, "\ni=", i
+                print("error in distance_to_pressure", sys.exc_info()[0], traceback.format_exc())
+                print(distances, "\ni=", i)
 
         # print pressures
         self.prev_distances = distances
@@ -180,14 +180,14 @@ class MuscleOutput(object):
             self.move_distance(end)
         else:
             current = start
-            print "moving from", start, "to", end, "steps", steps
+            print("moving from", start, "to", end, "steps", steps)
             # print "percent", (end[0]/start[0]) * 100
             delta = [float(e - s)/steps for s, e in zip(start, end)]
-            print "move_func todo in step!!!!!!!!!!!"
-            for step in xrange(steps):
+            print("move_func todo in step!!!!!!!!!!!")
+            for step in range(steps):
                 current = [x + y for x, y in zip(current, delta)]
                 self.move_distance(current)
-                gui_sleep.sleep(interval / 1000.0)
+                gutil.sleep_qt(interval / 1000.0)
                 
     def slow_pressure_move(self, start_pressure, end_pressure, duration_ms):
         #  caution, this moves even if disabled
@@ -197,13 +197,13 @@ class MuscleOutput(object):
             self.send_pressures([end_pressure]*6)
         else:            
             current = [start_pressure]*6
-            print "moving from", start_pressure, "to", end_pressure, "steps", steps
+            print("moving from", start_pressure, "to", end_pressure, "steps", steps)
             delta = float(end_pressure - start_pressure)/steps
-            print "delta = ", delta
+            print("delta = ", delta)
             for step in range(steps):
                 current  =  [p+delta for p in current]
-                print current
-                time.sleep(interval / 1000.0)
+                print(current)
+                gutil.sleep_qt(interval / 1000.0)
                 if self.progress_callback:
                     self.progress_callback(100 * step/steps)
 

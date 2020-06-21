@@ -95,6 +95,6 @@ class ConnectStatus():
 if __name__ == "__main__":
 
     s = SystemStatus()
-    print s.is_pc_connected
+    print(s.is_pc_connected)
     s.is_pc_connected = True
-    print s.is_pc_connected
+    print(s.is_pc_connected)

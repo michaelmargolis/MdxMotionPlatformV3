@@ -140,23 +140,23 @@ if __name__ == "__main__":
     log.info("Starting serial remote test")
 
     def detected_remote(info):
-        print info
+        print(info)
     def activate():
-        print "activate"
+        print("activate")
     def deactivate():
-        print "deactivate"
+        print("deactivate")
     def pause():
-        print "pause"
+        print("pause")
     def dispatch():
-        print "dispatch"
+        print("dispatch")
     def reset():
-        print "reset"
+        print("reset")
     def deactivate():
-        print "deactivate"
+        print("deactivate")
     def emergency_stop():
-        print "estop"
+        print("estop")
     def set_intensity(intensity):
-        print "intensity ", intensity
+        print("intensity ", intensity)
 
     actions = {'detected remote': detected_remote, 'activate': activate,
                'deactivate': deactivate, 'pause': pause, 'dispatch': dispatch,

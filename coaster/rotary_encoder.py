@@ -87,10 +87,10 @@ if __name__ == "__main__":
    def callback(way):
       global pos
       pos += way
-      print("pos={}".format(pos))
+      print(("pos={}".format(pos)))
 
    decoder = rotary_encoder.decoder(9, 11, callback)
-   t = raw_input("hit enter to quit")
+   t = input("hit enter to quit")
    decoder.cancel()
 
 

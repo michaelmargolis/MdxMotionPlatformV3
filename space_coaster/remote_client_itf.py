@@ -29,8 +29,8 @@ class ClientNetworkItf(object):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except Exception:
-            print(sys.exc_info()[0])
-            print traceback.format_exc()
+            print((sys.exc_info()[0]))
+            print(traceback.format_exc())
             raise
         self.eventQ = Queue()  # for incoming client messages
         self.ip_addr = ip_addr
@@ -48,7 +48,7 @@ class ClientNetworkItf(object):
             self.sock.settimeout(None)
             self.sock.connect((self.ip_addr, self.port))
             self.is_connected = True
-            print "starting thread"
+            print("starting thread")
             self.sock.settimeout(timeout)
             self.thr = threading.Thread(target=self.listener_thread, args= (self.sock, self.eventQ,))
             self.thr.daemon = True
@@ -58,22 +58,22 @@ class ClientNetworkItf(object):
         except socket.error: 
             self.is_connected = False
         except Exception:
-            print(sys.exc_info()[0])
-            print traceback.format_exc()
-            print "Error connecting to client", e,s
+            print((sys.exc_info()[0]))
+            print(traceback.format_exc())
+            print("Error connecting to client", e,s)
             self.is_connected = False
             raise
 
     def disconnect(self):
-        print "starting disconnect"
+        print("starting disconnect")
         self.is_connected = False
         while self.is_thr_running:
             time.sleep(.1)
         if self.thr:
             self.thr.join()
-            print "joining tread"
+            print("joining tread")
         self.sock.close()
-        print "socket closed"
+        print("socket closed")
 
 
     
@@ -90,10 +90,10 @@ class ClientNetworkItf(object):
                     self.disconnect() # kill thread
                 else:
                    self.is_connected = False
-                   print "socket error in send"
+                   print("socket error in send")
                    self.disconnect() # kill thread
         else:
-            print "wha"
+            print("wha")
 
 
     def service(self):
@@ -105,7 +105,7 @@ class ClientNetworkItf(object):
         while self.is_connected:
             try:
                 msg += sock.recv(512)
-                print("in thread:", msg)
+                print(("in thread:", msg))
                 while True:
                     end = msg.find('\n')
                     if end > 0:
@@ -117,13 +117,13 @@ class ClientNetworkItf(object):
             except socket.timeout:
                 pass
             except socket.error: 
-               print("socket error in thread", sys.exc_info()[0])
+               print(("socket error in thread", sys.exc_info()[0]))
                self.is_connected = False
                break
             except Exception:
-                print( "unhandled listener err", sys.exc_info()[0])
-                print(traceback.format_exc())
-        print "wha, killing thread"
+                print(( "unhandled listener err", sys.exc_info()[0]))
+                print((traceback.format_exc()))
+        print("wha, killing thread")
         self.is_thr_running = False
 
 
@@ -153,19 +153,19 @@ if __name__ == "__main__":
             if not client.is_connected:
                 client.connect()
             else: 
-                print "sending msg"
+                print("sending msg")
                 client.send_cmd("dispatch")
                 client.service()
         except Exception:
-            print( "err", sys.exc_info()[0])
+            print(( "err", sys.exc_info()[0]))
         if msvcrt.kbhit(): 
             key = msvcrt.getch()
-            print "got key", key
+            print("got key", key)
             if ord(key) == 27: # esc
                 break
             elif client.is_connected:
                 client.send_cmd(str(key))
         time.sleep(.5)
-        print "whwwww"
+        print("whwwww")
                 
     client.disconnect()

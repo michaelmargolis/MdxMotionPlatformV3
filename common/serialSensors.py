@@ -80,12 +80,12 @@ class Scale(SerialProcess):
                     # print "scale", msg
             except TypeError:
                 pass
-            except Exception, e:
-                print "error reading scale:", e
+            except Exception as e:
+                print("error reading scale:", e)
         return None
 
     def tare(self):
-        print "Press yellow button, tare not yet supported in scale firmware\n"
+        print("Press yellow button, tare not yet supported in scale firmware\n")
 
 class ServoModel(SerialProcess):
     def __init__(self):

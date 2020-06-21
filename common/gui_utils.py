@@ -17,3 +17,12 @@ def set_button_style(object, is_enabled, is_checked=None, text=None, checked_col
            object.setStyleSheet("background-color: silver")
     if is_enabled != None:
        object.setEnabled(is_enabled)
+
+def sleep_qt(delay):
+    loop = QtCore.QEventLoop()
+    timer = QtCore.QTimer()
+    timer.setInterval(delay*1000)
+    timer.setSingleShot(True)
+    timer.timeout.connect(loop.quit)
+    timer.start()
+    loop.exec_()

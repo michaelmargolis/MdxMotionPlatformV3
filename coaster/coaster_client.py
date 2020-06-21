@@ -1,8 +1,8 @@
 """
  coaster_client control module for NoLimits2.
 Copyright Michael Margolis, Middlesex University 2019; see LICENSE for software rights.
- 
- module coordinates chair activity with logical coaster state 
+
+module coordinates chair activity with logical coaster state
 This version requires NoLimits attraction license and NL ver 2.5.3.5 or later
 """
 
@@ -25,10 +25,10 @@ log = logging.getLogger(__name__)
 import platform_config as cfg
 
 IS_RASPBERRYPI = False # this will be set True if software is running on pi
-if os.name == 'posix' :
+if os.name == 'posix':
     if os.uname()[1] == 'raspberrypi':
         # for now assumes running on raspberry pi
-        import local_control_itf 
+        import local_control_itf
         IS_RASPBERRYPI = True
 
 
@@ -40,7 +40,7 @@ from pc_monitor import pc_monitor_client
 
 
 class CoasterEvent:
-    ACTIVATED, DISABLED, PAUSED, UNPAUSED, DISPATCHED, ESTOPPED, STOPPED, RESETEVENT = range(8)
+    ACTIVATED, DISABLED, PAUSED, UNPAUSED, DISPATCHED, ESTOPPED, STOPPED, RESETEVENT = list(range(8))
 
 CoasterEventStr = ("ACTIVATED", "DISABLED", "PAUSED", "UNPAUSED", "DISPATCHED", "ESTOPPED", "STOPPED", "RESETEVENT")
 
@@ -115,7 +115,7 @@ class State(object):
                 self._state_change()
             if event == CoasterEvent.STOPPED and self._state != RideState.READY_FOR_DISPATCH:
                 #  here if stopped at station
-                
+
                 log.debug("stopped at station while deactivated, state = %s", str(self))
                 self._state = RideState.READY_FOR_DISPATCH
                 self._state_change()
@@ -126,7 +126,7 @@ class State(object):
             self.position_requestCB(self._state)  # tell user interface that state has changed
             log.debug("--STATE CHANGE %s", str(self))
 
-colors = ["green","orange","red"] # for warning level text
+colors = ["green", "orange", "red"] # for warning level text
 
 class InputInterface(object):
     USE_GUI = True
@@ -136,7 +136,7 @@ class InputInterface(object):
         self.name = "NL2 Coaster client"
         self.cmd_func = None
         self.is_normalized = True
-        self.current_pos = [0.0,0.0,0.0,0.0,0.0,0.0]
+        self.current_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.is_chair_activated = False
         self.temp_is_preparing_to_run = False  # set True while unparking and checking load
         self.coaster = CoasterInterface()
@@ -147,7 +147,7 @@ class InputInterface(object):
         self.speed = 0
         self.isLeavingStation = False  # set true on dispatch, false when no longer in station
         self.coasterState = State(self.process_state_change)
-        self.heartbeat = pc_monitor_client((40,60),(75,90))
+        self.heartbeat = pc_monitor_client((40, 60), (75, 90))
         self.prev_heartbeat = 0
         self.server_address = None # set on receipt of hearbeat from server
         if IS_RASPBERRYPI and cfg.USE_PI_SWITCHES:
@@ -159,9 +159,9 @@ class InputInterface(object):
     def init_gui(self, frame):
         if self.local_control != None:
             if self.local_control.is_activated():
-               log.warning("todo - move check for estop at startup to controller")
-               # while  self.local_control.is_activated():
-               #     tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
+                 log.warning("todo - move check for estop at startup to controller")
+                 # while  self.local_control.is_activated():
+                 # tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
         self.gui.init_gui(frame)
 
     def connection_msgbox(self, msg):
@@ -192,36 +192,29 @@ class InputInterface(object):
             self.temp_is_preparing_to_run = True
             self.coasterState.coaster_event(CoasterEvent.DISPATCHED)
             while not self.coaster.prepare_for_dispatch():
-                 self.sleep_func(1)
+                self.sleep_func(1)
+            print("todo in coaster dispatch, remove ready and park cmds")
             self.command("ready")  # slow rise of platform
             self.command("unparkPlatform")
             self.sleep_func(.2)
-            #  self.sleep_func(1)
             self.temp_is_preparing_to_run = False
-            self.coaster.dispatch(0,0)
+            self.coaster.dispatch(0, 0)
             log.debug("dispatched")
             self.prev_movement_time = time.time()  # set time that train started to move
             self.isLeavingStation = True
             while self.coaster.is_train_in_station():
                 #  print "Leaving station"
                 self.sleep_func(.05)
-            """
-            while self.coaster.train_in_station:
-                self.coaster.get_station_state()
-                print "sent get station state"
-                print "todo - exit and handle if not ready to dispatch"
-                self.service()
-            """
             self.isLeavingStation = False
             #  print "left station, state is", State.string(self.coasterState.state)
             self.start_time = time.time()
             telemetry_log.start()
         else:
-            log.warning("dispatch request ignored, state is %s", State.string(self.coasterState.state))
+            log.warning("dispatch request ignored, state: %s", State.string(self.coasterState.state))
 
     def pause(self):
         # print "Pause cmd, ride state =", State.string(self.coasterState.state)
-        if self.coasterState.state  == RideState.RUNNING:
+        if self.coasterState.state == RideState.RUNNING:
             self.coaster.set_pause(True)
             self.command("parkPlatform")
         elif self.coasterState.state == RideState.PAUSED:
@@ -245,7 +238,7 @@ class InputInterface(object):
         elif msg == '-1':
             self.gui.scroll_parks('<Up>')
         else:
-           log.warning("in scroll_parks, got unexpected msg: %s", msg)
+            log.warning("in scroll_parks, got unexpected msg: %s", msg)
 
     def emergency_stop(self):
         log.warning("legacy emergency stop callback")
@@ -311,7 +304,7 @@ class InputInterface(object):
     def load_park(self, isPaused, park, seat):
         log.info("load park: %s, seat %s", park, seat)
         self.seat = int(seat)
-        self.coasterState.coaster_event(CoasterEvent.RESETEVENT) 
+        self.coasterState.coaster_event(CoasterEvent.RESETEVENT)
         self.gui.set_coaster_connection_label(("loading: " + park, "orange"))
         self.sleep_func(2)
         self.coaster.load_park(isPaused, park)
@@ -345,8 +338,8 @@ class InputInterface(object):
 
         while not self.connect():
              self.sleep_func(0.5)
-        """  
-        # return code removed, service func now used to exit if problems 
+        """
+        # return code removed, service func now used to exit if problems
 
     def check_heartbeat(self):
         addr, heartbeat_status, warning = self.heartbeat.read()
@@ -406,15 +399,15 @@ class InputInterface(object):
                 if self.isLeavingStation == False:
                    # print "in station check, state is ",  self.coasterState
                    if self.coasterState.state == RideState.RUNNING:
-                       log.debug("train arrived in station")
-                       telemetry_log.stop()
-                       self.command("parkPlatform")
-                       return True
+                        log.debug("train arrived in station")
+                        telemetry_log.stop()
+                        self.command("parkPlatform")
+                        return True
                 ##print "CAN DISPATCH"
             else:
                 if self.isLeavingStation == True:
-                   # print "in station check, setting leaving flag to false"  
-                   self.isLeavingStation = False
+                    # print "in station check, setting leaving flag to false"  
+                    self.isLeavingStation = False
 
             if time.time() - self.prev_movement_time > 3:
                 #  print "speed", speed
@@ -428,17 +421,17 @@ class InputInterface(object):
         if not self.coaster.system_status.is_pc_connected:
             self.gui.set_coaster_connection_label(("Not connected to VR server", "red"))
         if not  self.coaster.system_status.is_nl2_connected:
-            self.gui.set_coaster_connection_label( ("Not connected to NoLimits server", "red"))
+            self.gui.set_coaster_connection_label(("Not connected to NoLimits server", "red"))
         if not self.coaster.system_status.is_in_play_mode:
             self.gui.set_coaster_connection_label(("NoLimits is not in play mode", "red"))
         else:
-           self.gui.set_coaster_connection_label(("Receiving NoLimits Telemetry", "green"))
+            self.gui.set_coaster_connection_label(("Receiving NoLimits Telemetry", "green"))
 
     def log(self, data):
         if telemetry_log.is_enabled:
             t = time.time() - self.start_time
             xyzrpy = ",".join('%0.2f' % item for item in data)
-            log_entry = format("%.2f,%s,%s\n" % (t, xyzrpy,self.coaster.quat))
+            log_entry = format("%.2f, %s, %s\n" % (t, xyzrpy,self.coaster.quat))
             telemetry_log.write(log_entry)
 
     def log_both(self, raw_data, processed_data):
@@ -469,7 +462,7 @@ class InputInterface(object):
                     if self.coaster.system_status.is_in_play_mode:
                         self.gui.set_coaster_connection_label(("Receiving Coaster Telemetry", "green"))
                         self.speed = input_field[0]
-                        if self.coaster.system_status.is_paused == False: 
+                        if self.coaster.system_status.is_paused == False:
                             if self.check_is_stationary(self.speed):
                                 #  print "is stopped??"
                                 self.coasterState.coaster_event(CoasterEvent.STOPPED)
@@ -479,7 +472,7 @@ class InputInterface(object):
                                 if self.coasterState.state == RideState.DISABLED:
                                     # coaster is moving at startup
                                     self.coasterState.coaster_event(CoasterEvent.RESETEVENT)
-                                else:                                
+                                else:
                                     self.coasterState.coaster_event(CoasterEvent.UNPAUSED)
 
                         else:
@@ -488,17 +481,16 @@ class InputInterface(object):
                     else:
                         self.gui.set_coaster_connection_label(("Coaster not in play mode", "red"))
 
-                    if  input_field[1] and len(input_field[1]) == 6:  # check if we have data for all 6 DOF
-                            self.current_pos = input_field[1]
+                    if input_field[1] and len(input_field[1]) == 6:  # check if we have data for all 6 DOF
+                        self.current_pos = input_field[1]
                     if self.is_chair_activated and self.coasterState.state != RideState.READY_FOR_DISPATCH:
                             # only send if activated and not waiting in station
                             if self.move_func is not None:
                                 self.move_func(self.current_pos)
                 else:
                     if self.coaster.system_status.is_nl2_connected:
-                        errMsg = format("Telemetry error: %s" % self.coaster.get_telemetry_err_str())
+                        errMsg = format("Telemetry err: %s" % self.coaster.get_telemetry_err_str())
                         #  print errMsg
                         self.gui.set_coaster_connection_label((errMsg, "red"))
                     else:
                         self.gui.set_coaster_connection_label(("No connection to NoLimits, is it running?", "red"))
-

@@ -122,7 +122,7 @@ class Chart():
         plt.show()
         
     def save_figures(self, fname):
-        print "Saving:", fname
+        print("Saving:", fname)
         plt.savefig('%s.png' % (fname), bbox_inches='tight')
         """
         for i in plt.get_fignums():

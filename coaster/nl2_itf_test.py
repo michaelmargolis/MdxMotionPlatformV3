@@ -16,7 +16,7 @@ import ctypes #  for bit fields
 import os
 import  binascii  # only for debug
 import traceback
-from pc_monitor import pc_monitor_client
+from .pc_monitor import pc_monitor_client
 heartbeat = pc_monitor_client((40,60),(75,90))
 
 # bit fields for station message
@@ -84,12 +84,12 @@ class CoasterInterface():
 
     def connect_to_coaster(self, coaster_ip_addr):
         try:
-            print "attempting connect to NoLimits @",coaster_ip_addr, self.nl2_msg_port
+            print("attempting connect to NoLimits @",coaster_ip_addr, self.nl2_msg_port)
             self.sock.connect((coaster_ip_addr, self.nl2_msg_port))
-            print "connected to NoLimits"
+            print("connected to NoLimits")
             return True
-        except Exception, e:
-            print "error connecting to NoLimits", e
+        except Exception as e:
+            print("error connecting to NoLimits", e)
             return False
 
         #print "telemetry flags = ", self._telemetry_state_flags 
@@ -150,7 +150,7 @@ class CoasterInterface():
                 v0, v1, v2, v3 = unpack('cccc', data[self.c_nExtraSizeOffset:self.c_nExtraSizeOffset+4])
                 self.nl2_version = format("%c.%c.%c.%c" % (chr(ord(v0)+48),chr(ord(v1)+48),chr(ord(v2)+48), chr(ord(v3)+48)))
                 #self.nl2_version = nl2_version
-                print 'NL2 version', self.nl2_version
+                print('NL2 version', self.nl2_version)
                 
             elif msg == self.N_MSG_STATION_STATE:
                 s = unpack('>I', data[self.c_nExtraSizeOffset:self.c_nExtraSizeOffset+4])
@@ -168,25 +168,25 @@ class CoasterInterface():
                     #self.set_coaster_status(ConnectStatus.is_nl2_connected, True)
                     #  print "telemetry ", self.telemetry_status_ok 
                 else:
-                    print 'invalid msg len expected 76, got ', size
+                    print('invalid msg len expected 76, got ', size)
                 #sleep(self.interval)
                 #self.send(self._create_simple_message(self.N_MSG_GET_TELEMETRY, self.N_MSG_GET_TELEMETRY))
             elif msg == self.N_MSG_OK:
                 self.telemetry_status_ok = True
-                print "telemetry status ok"
+                print("telemetry status ok")
                 pass
             elif msg == self.N_MSG_ERROR:
                 self.telemetry_status_ok = False
                 self.telemetry_err_str = data[self.c_nExtraSizeOffset: self.c_nExtraSizeOffset+size]
-                print "telemetry err:", self.telemetry_err_str
+                print("telemetry err:", self.telemetry_err_str)
             else:
-                print 'unhandled message', msg, requestId, size, data
+                print('unhandled message', msg, requestId, size, data)
         except socket.error:
-            print "Connection to NoLimits broken"
+            print("Connection to NoLimits broken")
         except:
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print "process msg error", e, s
+            print("process msg error", e, s)
 
 
     def _process_telemetry_msg(self, msg):
@@ -205,9 +205,9 @@ class CoasterInterface():
             pitch = degrees(quat.toPitchFromYUp())
             yaw = degrees(quat.toYawFromYUp())
             roll = degrees(quat.toRollFromYUp())
-            print format("telemetry (speed, rpy): %.2f, %.2f, %.2f, %.2f" % (msg.speed, roll, pitch, yaw))
+            print(format("telemetry (speed, rpy): %.2f, %.2f, %.2f, %.2f" % (msg.speed, roll, pitch, yaw)))
         else:
-            print "in telemetry, Coaster not in play mode"
+            print("in telemetry, Coaster not in play mode")
         return [False, False, 0, None]
 
 
@@ -219,8 +219,8 @@ def check_heartbeat():
     if len(addr[0]) > 6 and addr[1]  == 10011: #  server sends on port 10011
         if server_address != addr[0]:
             server_address = addr[0]
-            print "first time connection to server @", server_address
-        print format("heartbeat {%s:%s} {%s} {%s}" % (addr[0], addr[1], heartbeat_status, warning))
+            print("first time connection to server @", server_address)
+        print(format("heartbeat {%s:%s} {%s} {%s}" % (addr[0], addr[1], heartbeat_status, warning)))
         return True
     return False
 
@@ -228,9 +228,9 @@ if __name__ == "__main__":
     nl2 = CoasterInterface()
     heartbeat.begin()
     while not check_heartbeat():
-         print '.',
+         print('.', end=' ')
          sleep(0.1)
-    print "\nserver address:", server_address
+    print("\nserver address:", server_address)
     while nl2.connect_to_coaster(server_address) == False:
         sleep(1)
     nl2.get_nl2_version()
@@ -240,22 +240,22 @@ if __name__ == "__main__":
             data = nl2.sock.recv(nl2.nl2_msg_buffer_size)
             if data and len(data) > 8:
                 msg, requestId, size = (unpack('>HIH', data[1:9]))
-                print "msg:", msg, size, requestId 
+                print("msg:", msg, size, requestId) 
                 nl2._process_nl2_msgs(msg, requestId, data, size)
   
         except socket.timeout:
             nl2.send(nl2._create_simple_message(nl2.N_MSG_GET_TELEMETRY, nl2.get_msg_id()))
-            print "timeout in listener"
+            print("timeout in listener")
         except:
             if msg:
-                print "bad msg:",msg, "len=", len(msg)
+                print("bad msg:",msg, "len=", len(msg))
             if data: 
-                print "bad data",data,"len=", len(data)
+                print("bad data",data,"len=", len(data))
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print "listener thread err", e, s
+            print("listener thread err", e, s)
 
-        if raw_input('\nType quit to stop this script ') == 'quit':
+        if input('\nType quit to stop this script ') == 'quit':
             break
         nl2.get_telemetry()
 

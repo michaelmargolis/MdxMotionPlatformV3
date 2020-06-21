@@ -64,7 +64,7 @@ class D_to_P(object):
             self.rows = self.d_to_p_up.shape[0]
             return True
         except Exception as e:
-            print str(e)
+            print(str(e))
             raise 
 
     def set_DtoP_index(self, pressure, distances, dir):
@@ -83,7 +83,7 @@ class D_to_P(object):
             for i in range(6):
                 self.down_curve_idx.append((np.abs(distances_in_curves - distances[i])).argmin(axis=0))
         else:
-            print "invalid direction in set_DtoP_index"
+            print("invalid direction in set_DtoP_index")
 
 
     def munge_file(self, fname):
@@ -95,7 +95,7 @@ class D_to_P(object):
         if os.path.isfile(fname): 
             header = np.loadtxt(fname, delimiter=',',dtype=int, usecols=1, max_rows=4)
         else:
-            print "unable to open file:", fname
+            print("unable to open file:", fname)
             return None, None, None, None
         weight = header[0]
         steps_per_dir =  header[1] + 1  #add one as placeholder for zero pressure
@@ -104,14 +104,14 @@ class D_to_P(object):
    
         nbr_rows = (steps_per_dir * 2) * self.nbr_cycles
         nbr_columns = 6 # six actuators
-        print format("weight=%d, steps per dir=%d, nbr cycles=%d, data rows=%d\n" % (weight, steps_per_dir, self.nbr_cycles, nbr_rows))
+        print(format("weight=%d, steps per dir=%d, nbr cycles=%d, data rows=%d\n" % (weight, steps_per_dir, self.nbr_cycles, nbr_rows)))
         if self.is_V3_chair:
             #chair file data starts from column 1
             data = np.loadtxt(fname, delimiter=',', dtype=int, usecols= (1,2,3,4,5,6), skiprows=6, max_rows=nbr_rows)
         else:
             data = np.loadtxt(fname, delimiter=',', dtype=int, usecols= (4,5,6,7,8,9), skiprows=6, max_rows=nbr_rows)
         np_array = data.reshape(self.nbr_cycles*2, steps_per_dir, nbr_columns)
-        print np_array
+        print(np_array)
         # separate up and down arrays will be used to process the data
         up = np.empty([self.nbr_cycles,steps_per_dir, nbr_columns])
         down = np.empty([self.nbr_cycles,steps_per_dir,nbr_columns])
@@ -120,8 +120,8 @@ class D_to_P(object):
             # print "up:", up[i]
             down[i] = np.flipud(np_array[(i*2)+1][:,0:nbr_columns]) 
             # print "down:", down[i]
-        print "up", up
-        print "down", down
+        print("up", up)
+        print("down", down)
         return  up, down, weight, self.step_size
 
 
@@ -136,7 +136,7 @@ class D_to_P(object):
             downdevs += [np.max(np.max(np.std(down[ first_cycle:,:,a], axis=0)))]
         devs = [max(u,d) for u,d in zip(updevs, downdevs)]
         best_index  =  devs.index(min(devs))
-        print "best index is", best_index, ", up std dev = ", updevs[best_index], "down=", downdevs[best_index]
+        print("best index is", best_index, ", up std dev = ", updevs[best_index], "down=", downdevs[best_index])
         avg_up = np.median(up[first_cycle:,:,best_index], axis=0)
         avg_down = np.median(down[first_cycle:,:,best_index], axis=0)
         self.show_charts( up, down, weight, ["Combined", "Individual", "Std Dev"])
@@ -307,7 +307,7 @@ class D_to_P(object):
                 for i in range (len(weights)*2):  # write up then down
                     fp.write( ','.join(str(n) for n in combined_d_to_p[i] ) + '\n')
         else:
-           print "no valid d to p files found"
+           print("no valid d to p files found")
 
 def test():
      # test harness using PtoD_40.csv, PtoD_80.csv as inputs, DtoP_40.csv, DtoP_80.csv interim outputs
@@ -332,7 +332,7 @@ def test():
         infiles.append('DtoP_' + frag)
     dp.merge_d_to_p(infiles, 'DtoP_test.csv')
     if dp.load_DtoP('DtoP_test.csv'):
-        print format("using %d Distance to Pressure curves" % dp.rows)
+        print(format("using %d Distance to Pressure curves" % dp.rows))
     # At this point the system has a set of up and down curves for a range of loads
     # Each time the platform load is changed,the runtime system should apply mid pressure (say 3 bar)
     # and call the set_DtoP_index method with the pressure and encoder readings to find the closest up curve

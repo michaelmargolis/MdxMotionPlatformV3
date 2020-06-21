@@ -14,13 +14,13 @@ import time
 try:
     from queue import Queue
 except ImportError:
-    from Queue import Queue
+    from queue import Queue
 
 import traceback
 import csv,os
 import win32gui
 
-from space_coaster_gui_defs import *
+from .space_coaster_gui_defs import *
 
 import logging
 log = logging.getLogger(__name__)
@@ -175,6 +175,7 @@ class InputInterface(object):
         self.deactivate()
  
     def command(self, cmd):
+        print(("command", cmd))
         if self.cmd_func is not None:
             log.debug("Requesting command: %s", cmd)
             self.cmd_func(cmd)
@@ -204,6 +205,8 @@ class InputInterface(object):
         self.xyzrpyQ = Queue()
         self.cmdQ = Queue()
         while True:
+            print("test version ignores test for space coaster")
+            break
             try:
                 log.debug("attempting to set focus")
                 self.set_focus("UnityWndClass","Coaster MSU")
@@ -224,6 +227,8 @@ class InputInterface(object):
         
         self.report_connection_status("Connecting to Coaster", "orange") 
         while self.is_coaster_connected < 0:
+            print("test version ignores test for space coaster")
+            break
             self.sleep_func(5)
             if self.is_coaster_connected != 1:
                log.warning("Coaster not connected - Is CoasterMSU running?")
@@ -417,7 +422,7 @@ class InputInterface(object):
 
 ######### code for local client run from main ############
 
-class LocalClient(QtGui.QMainWindow):
+class LocalClient(QtWidgets.QMainWindow):
     """
     on state or status change local client will pass:
         current coaster state, current connection state, coaster status string, color
@@ -431,7 +436,7 @@ class LocalClient(QtGui.QMainWindow):
     def __init__(self, sleep_func):
         log.info("Starting space coaster local client")
         try:
-            QtGui.QMainWindow.__init__(self)
+            QtWidgets .QMainWindow.__init__(self)
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
             
@@ -485,9 +490,8 @@ class LocalClient(QtGui.QMainWindow):
         sys.exit()
  
 if __name__ == "__main__":
-    import gui_sleep
-    from local_client_gui_defs import *
-    import tcp_server
+    from .local_client_gui_defs import *
+    from . import tcp_server
     sys.path.insert(0, '../output')
     import importlib  
     
@@ -498,12 +502,12 @@ if __name__ == "__main__":
     platform_selection = 'configNextgen'
     cfg = importlib.import_module(platform_selection).PlatformConfig()
 
-    gui_sleep._gui__app = QtGui.QApplication(sys.argv) 
+    app = QtWidgets.QApplication(sys.argv) 
     
     try:       
-        local_client = LocalClient(gui_sleep.sleep )
+        local_client = LocalClient(gutil.sleep_qt)
         local_client.show()
-        gui_sleep._gui__app.exec_()
+        app.exec_()
     except ConnectionException as error:
         log.error("User aborted because space coaster not found") 
     except:
@@ -511,6 +515,6 @@ if __name__ == "__main__":
         s = traceback.format_exc()
         log.error("space coaster main %s %s", e, s)
       
-    gui_sleep._gui__app.exit()
+    app.exit()
     log.info("Exiting Platform Controller\n")
     

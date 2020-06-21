@@ -36,7 +36,7 @@ class UdpRemote(object):
         except:
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print("thread init err", e, s)
+            print(("thread init err", e, s))
 
 
     def listener_thread(self, inQ, sock):
@@ -49,14 +49,14 @@ class UdpRemote(object):
             except:
                 e = sys.exc_info()[0]
                 s = traceback.format_exc()
-                print("listener err", e, s)
+                print(("listener err", e, s))
 
     def send(self, toSend):
         if self.address:
             try:
                 self.sock.sendto(toSend, self.address)
             except:
-                print("unable to send to", self.address)
+                print(("unable to send to", self.address))
 
     def service(self):
         """ Poll to service remote control requests."""
@@ -68,7 +68,7 @@ class UdpRemote(object):
                     #print m, "=", intensity
                     self.actions[m](intensity)
                 except ValueError:
-                    print(msg, "is invalid intensity msg")
+                    print((msg, "is invalid intensity msg"))
             else:
                 self.actions[msg]()
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     def emergency_stop():
         print("estop")
     def set_intensity(intensity):
-        print("intensity ", intensity)
+        print(("intensity ", intensity))
             
     actions = {'detected remote': detected_remote, 'activate': activate,
                'deactivate': deactivate, 'pause': pause, 'dispatch': dispatch,

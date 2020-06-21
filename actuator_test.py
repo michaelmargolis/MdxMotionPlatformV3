@@ -2,8 +2,8 @@
 
 """
 
-import Tkinter as tk
-import ttk
+import tkinter as tk
+import tkinter.ttk
 
 
 from platform_output import OutputInterface
@@ -20,7 +20,7 @@ class Controller:
         self.is_output_enabled = False
         self.actuator_length_range = chair.get_actuator_lengths()
         self.actuator_lengths = [self.actuator_length_range[1] for i in range(6)]
-        print self.actuator_lengths
+        print(self.actuator_lengths)
 
     def init_gui(self, root):
         self.root = root
@@ -28,11 +28,11 @@ class Controller:
         self.root.iconbitmap('images\ChairIcon3.ico')
         title = "Actuator test for " + chair.get_platform_name()
         self.root.title(title)
-        print title
-        nb = ttk.Notebook(root)
-        page1 = ttk.Frame(nb)  # client
+        print(title)
+        nb = tkinter.ttk.Notebook(root)
+        page1 = tkinter.ttk.Frame(nb)  # client
         nb.add(page1, text='  Input  ')
-        page2 = ttk.Frame(nb)  # output
+        page2 = tkinter.ttk.Frame(nb)  # output
         nb.add(page2, text='  Output ')
         nb.pack(expand=1, fill="both")
         chair.init_gui(page2)

@@ -1,6 +1,6 @@
 # tcp_client.py
 # code to support tcp connection to networked socket servers
-from __future__ import print_function
+
 import time
 import sys
 import socket
@@ -8,7 +8,7 @@ import threading
 try:
     from queue import Queue
 except ImportError:
-    from Queue import Queue
+    from queue import Queue
 
 import logging
 log = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class SockClient():
         self.status.connected = False
         while self.status.thr_running:
             time.sleep(.1)
-            print("*", end =" ")
+            # print("*", end =" ")
         log.debug("thread no longer running")
         # if self.thr:
         #    self.thr.join()

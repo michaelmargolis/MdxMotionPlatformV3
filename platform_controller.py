@@ -18,7 +18,6 @@ import importlib
 from main_gui import *
 
 sys.path.insert(0, './common')
-import gui_sleep
 from serialSensors import Encoder, ServoModel
 import serial_defaults
 import gui_utils as gutil
@@ -35,7 +34,7 @@ from  platform_config import *
 
 log = logging.getLogger(__name__)
 
-class Controller(QtGui.QMainWindow):
+class Controller(QtWidgets.QMainWindow):
 
     def __init__(self, festo_ip):
         try:
@@ -103,7 +102,7 @@ class Controller(QtGui.QMainWindow):
         self.platform_winddown_pos.fill(cfg.PROPPING_LEN)      # position for attaching stairs or moving prop
 
     def init_gui(self):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.tabWidget.currentChanged.connect(self.tab_changed)
@@ -167,10 +166,10 @@ class Controller(QtGui.QMainWindow):
             log.warning("Unable to dispatch because platform not enabled")
 
     def reset(self):
-       print "reset here"
+       print("reset here")
 
     def emergency_stop(self):
-       print "estop here"
+       print("estop here")
 
     def cmd_func(self, cmd):  # command handler function called from client
         log.debug("controller received cmd function: %s", cmd)
@@ -259,7 +258,7 @@ class Controller(QtGui.QMainWindow):
             #Briefly raises platform high enough to insert access stairs and activate piston
             log.debug("Start swelling for access")
             self.platform.slow_move(self.platform_disabled_pos, self.platform_winddown_pos, 10)
-            gui_sleep.sleep(3) # time in seconds in up pos
+            gutil.sleep_qt(3) # time in seconds in up pos
             self.platform.slow_move(self.platform_winddown_pos, self.platform_disabled_pos, 10)
             log.debug("Finished swelling for access")
 
@@ -273,7 +272,7 @@ class Controller(QtGui.QMainWindow):
         log.debug("Sending last requested pressure with new piston state")
         # self._send(self.requested_pressures[:6])  # current prop state will be appended in _send
         if state:
-            gui_sleep.sleep(0.5)
+            gutil.sleep_qt(0.5)
         # Todo check if more delay is needed
         log.debug("Platform park state changed to %s", "parked" if state else "unparked")
 
@@ -369,18 +368,17 @@ class Controller(QtGui.QMainWindow):
             sys.exit()
 
     def quit(self):
-        qm = QtGui.QMessageBox
+        qm = QtWidgets.QMessageBox
         result = qm.question(self, 'Exit?', "Are You Sure you want to quit?", qm.Yes | qm.No)
         if result != qm.Yes:
             return
         self.is_active = False # this will trigger exit in the service routine
 
 
-# qt app is defined in gui sleep so it can be imported into files needing non-blocking sleep
-gui_sleep._gui__app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv) 
 
 cfg = importlib.import_module(platform_selection).PlatformConfig()
-client = importlib.import_module(client_selection).InputInterface(gui_sleep.sleep)
+client = importlib.import_module(client_selection).InputInterface(gutil.sleep_qt)
 
 def man():
     parser = argparse.ArgumentParser(description='Platform Controller\nAMDX motion platform control application')
@@ -406,7 +404,7 @@ def main():
         logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s  %(module)s: %(message)s',
                             datefmt='%H:%M:%S')
 
-    log.info("Python: %s", sys.version[0:5])
+    log.info("Python: %s, qt version %s", sys.version[0:5], QtCore.QT_VERSION_STR)
     log.info("Starting Platform Controller")
     log.debug("logging using debug mode")
     controller = None
@@ -416,7 +414,7 @@ def main():
         else:
             controller = Controller('')
         controller.show()
-        gui_sleep._gui__app.exec_()
+        app.exec_()
 
     except SystemExit:
         log.error("user abort")
@@ -426,7 +424,7 @@ def main():
 
     if controller:
         controller.close()
-    gui_sleep._gui__app .exit()
+    app .exit()
     sys.exit()
     log.info("Exiting Platform Controller\n")
     log.shutdown()

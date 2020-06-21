@@ -117,13 +117,13 @@ else:
                                     warning_level = max(warning_level,1)
                             #  print status
                         else:
-                            print "ignored monitor payload:", data
+                            print("ignored monitor payload:", data)
                             pass
                             # MEng test data would come in here
                     except ValueError:
                        e = sys.exc_info()[0]
-                       print e
-                       print format("pc monitor data {%s}, addr [%s] [%s]" % (data, addr[0], addr[1]))
+                       print(e)
+                       print(format("pc monitor data {%s}, addr [%s] [%s]" % (data, addr[0], addr[1])))
                     #  print format("In pc monitor, heartbeat {%s:%s} {%s} {%d}" % (addr[0], addr[1], data, warning_level))
                 #  print("pc monitor read:",addr, status, warning_level)
                 return addr[0], status, warning_level
@@ -131,7 +131,7 @@ else:
                 #  print error if input not a string or cannot be converted into valid request
                 e = sys.exc_info()[0]
                 s = traceback.format_exc()
-                print e, s
+                print(e, s)
                 return ("", 0), "Error", 2
 
         def fin(self):
@@ -180,23 +180,23 @@ else:
                     except:
                         e = sys.exc_info()[0]
                         s = traceback.format_exc()
-                        print "listener err", e, s
+                        print("listener err", e, s)
                         time.sleep(.5)
             except:
                 e = sys.exc_info()[0]
                 s = traceback.format_exc()
                 log.info("pc monitor thread init error %s", e)
-                print "thread init err", e, s
-                print "IS ANOTHER INSTANCE ALREADY RUNNING?"
+                print("thread init err", e, s)
+                print("IS ANOTHER INSTANCE ALREADY RUNNING?")
             sock.close()
             log.debug("heartbeat thread terminated")
 
 if __name__ == "__main__":
     heartbeat = pc_monitor_client((40,60),(75,90))
     heartbeat.begin()
-    while raw_input("press enter to show status, q to quit") != 'q':
+    while input("press enter to show status, q to quit") != 'q':
         addr, heartbeat_status, warning = heartbeat.read()
-        print addr, heartbeat_status, warning
+        print(addr, heartbeat_status, warning)
         time.sleep(1)
     heartbeat.fin()
     time.sleep(1)

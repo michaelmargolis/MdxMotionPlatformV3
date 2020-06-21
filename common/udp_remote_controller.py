@@ -11,9 +11,9 @@ import time
 try:
     from queue import Queue
 except ImportError:
-    from Queue import Queue
+    from queue import Queue
     
-import Tkinter as tk
+import tkinter as tk
 import traceback
 
 from pc_monitor import pc_monitor_client
@@ -102,27 +102,27 @@ class UdpRemoteController(object):
             self._sleep_func(0.5)
 
     def dispatch(self):
-        print "dispatch"
+        print("dispatch")
         self.send("dispatch")
 
     def pause(self):
-        print "pause"
+        print("pause")
         self.send("pause")
         
     def reset(self):
-        print "reset"
+        print("reset")
         self.send("reset")
         
     def activate(self):
-        print "activate"
+        print("activate")
         self.send("activate")
          
     def deactivate(self):
-       print "deactivate"
+       print("deactivate")
        self.send("deactivate")
 
     def quit(self):
-        print "quit"
+        print("quit")
         self.send("quit")
         
     def send(self, msg):
@@ -135,21 +135,21 @@ class UdpRemoteController(object):
                 event = self.eventQ.get()
                 if "state" in event:
                     event = event.split(",") 
-                    print event[1]
+                    print(event[1])
                     self.coaster_status_label.config(text=event[1], fg="black")
                 elif "time" in event:
                     event = event.split(",")
                     percent = float(event[1]) / float(event[2])
-                    print int(percent * 100), event[1], event[2]
+                    print(int(percent * 100), event[1], event[2])
 
         except:  
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print "service error", e, s
+            print("service error", e, s)
 
     def start_listening(self, server_address):
         try:
-            print "opening socket on", "", 10013
+            print("opening socket on", "", 10013)
             self.client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.client_sock.bind(("", 10013)) # todo make port const
             t = threading.Thread(target=self.listener_thread, args = (self.client_sock, self.eventQ,))
@@ -158,7 +158,7 @@ class UdpRemoteController(object):
         except:
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print "thread init err", e, s
+            print("thread init err", e, s)
 
 
     def update_heartbeat(self):
@@ -167,7 +167,7 @@ class UdpRemoteController(object):
         except:
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print "update heartbeat err", e, s
+            print("update heartbeat err", e, s)
        
     def check_heartbeat(self):
         addr, heartbeat_status, warning = heartbeat.read()
@@ -176,7 +176,7 @@ class UdpRemoteController(object):
             self.prev_heartbeat = time.time()
             if not self.server_address or self.server_address != addr[0]:
                 self.server_address = addr[0]
-                print "first time connection to server @", self.server_address
+                print("first time connection to server @", self.server_address)
                 self.start_listening(self.server_address)
             # print format("heartbeat {%s:%s} {%s} {%s}" % (addr[0], addr[1], heartbeat_status, warning))
             self.temperature_status_Label.config( text=heartbeat_status,fg=colors[warning])
@@ -186,7 +186,7 @@ class UdpRemoteController(object):
         #    print "heartbeat dur:", duration
         if duration > 3.2: # if no heartbeat after three seconds
             self.temperature_status_Label.config(text="Lost heartbeat with server", fg="red")
-            print "Lost heartbeat with server"
+            print("Lost heartbeat with server")
             return False
         elif duration > 2.2: # if no heartbeat after two seconds
             self.temperature_status_Label.config(text="Missed Heartbeat from Server", fg="orange")
@@ -211,7 +211,7 @@ class UdpRemoteController(object):
             except:
                 e = sys.exc_info()[0]
                 s = traceback.format_exc()
-                print "listener err", e, s
+                print("listener err", e, s)
                 break
 
 root = None

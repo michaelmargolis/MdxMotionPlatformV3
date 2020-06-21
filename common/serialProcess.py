@@ -55,7 +55,7 @@ class SerialProcess(object):
                         return True
             else:
                 log.warning("%s port already open\n", port)
-        except Exception, e:
+        except Exception as e:
             log.error("Serial error: %s", e)
         return False
 
@@ -118,10 +118,10 @@ if __name__ == "__main__":
     sp = SerialProcess()
     ports = sp.list_ports()
     for p in ports:
-        print str(p)
+        print(str(p))
     sp.open_port("COM29", 57600)
     while True:
-        msg = raw_input('\nType msg to send')
+        msg = input('\nType msg to send')
         if len(msg) < 2:
             break
         sp.write(msg)

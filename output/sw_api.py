@@ -16,7 +16,7 @@ swAllConfiguration = 2
 def modify_equation(index, name, value):
     ret = eqMgr.SetEquationAndConfigurationOption(index,  format('"%s" = %d' % (name, value)), swAllConfiguration, "")
     if ret  != 1:
-        print  "Failed to modify a dimension equation:", format('"%s" = %d' % (name, value))
+        print("Failed to modify a dimension equation:", format('"%s" = %d' % (name, value)))
     
 def set_strut(index, value):
 

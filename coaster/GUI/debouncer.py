@@ -41,7 +41,7 @@ class Debounce(object):
                 self.callback(self.keys[idx]) 
 
 def test(key):
-    print key
+    print(key)
 
 if __name__ == "__main__":
     debounce = Debounce([17,18,27], ["sw 17", "sw 18", "sw 27"], test, input_mode = 'pullup' )

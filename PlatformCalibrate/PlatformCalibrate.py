@@ -136,7 +136,7 @@ class MainWindow(QtGui.QMainWindow):
         ser.combo.addItems(ports)
         if ser.desc in serial_defaults.dict:
             port = serial_defaults.dict[ser.desc]
-            print ser.desc, "port is ", port
+            print(ser.desc, "port is ", port)
             index = ser.combo.findText(port, QtCore.Qt.MatchFixedString)
             if index >= 0:
                 ser.combo.setCurrentIndex(index)
@@ -226,15 +226,15 @@ class MainWindow(QtGui.QMainWindow):
             fname = str(self.ui.txt_delta_fname.text())
             self.delta_file =  open(fname, 'a')
             if  self.delta_file.closed:
-                print "unable to open", fname
+                print("unable to open", fname)
             else:
-                print "opened", fname
+                print("opened", fname)
                 encoder_data,timestamp = self.encoder.sp.read()
                 if encoder_data == None:
-                    print "no encoder data, has the port been started?"
+                    print("no encoder data, has the port been started?")
                 else:
                     if self.muscle_output.up_indices == None:
-                        print "muscle curve files have not been loaded and calibrated"
+                        print("muscle curve files have not been loaded and calibrated")
                     else:
                         self.delta_timer.start(50)
         else:
@@ -254,7 +254,7 @@ class MainWindow(QtGui.QMainWindow):
                      data = ','.join(map(str, self.muscle_output.distances)) + ","  + ','.join(map(str, delta)) + "\n"
                      self.delta_file.write(data)
                 else:
-                    print "no encoder data"
+                    print("no encoder data")
              
  
 
@@ -288,12 +288,12 @@ class MainWindow(QtGui.QMainWindow):
             if 0 < len(port) and port != "Ignore":
                 if ser.sp.open_port(port, ser.baud):
                     ser.label.setStyleSheet('QLabel  {color: green;}')
-                    print "opened", ser.desc, "serial port"
+                    print("opened", ser.desc, "serial port")
                     self.open_ports += 1
                 else:
-                    print ser.desc, "port is not available"
+                    print(ser.desc, "port is not available")
             else:
-                print ser.desc, "port was not opened"
+                print(ser.desc, "port was not opened")
 
     def close_port(self, ser):
         ser.label.setStyleSheet('QLabel  {color: black;}')
@@ -329,7 +329,7 @@ class MainWindow(QtGui.QMainWindow):
             self.is_calibrating = False
             self.ride.abort()
             self.ui.btn_estop.setText("Press to Clear")
-            print "todo lower platform"
+            print("todo lower platform")
 
     def progress_callback(self, percent):
         self.ui.progressBar.setValue(percent)
@@ -371,7 +371,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def calibrate(self):
         if self.is_calibrating:
-            print "aborting calibration"
+            print("aborting calibration")
             self.ui.CalibrateGroupBox.setStyleSheet('QGroupBox  {color: black;}')
             self.is_calibrating = False
             self.stop_capture()
@@ -384,13 +384,13 @@ class MainWindow(QtGui.QMainWindow):
                 
             try:
                weight =  float(self.ui.txt_weight.text())
-               print "starting calibration using weight", weight
+               print("starting calibration using weight", weight)
             except ValueError:
                 QtGui.QMessageBox.question(self, 'Missing Weight!',
                                 "A valid weight is needed in Data Capture 'Load kg' field")
                 return 
                 
-            print "todo reset encoders to zero"
+            print("todo reset encoders to zero")
             self.ui.CalibrateGroupBox.setStyleSheet('QGroupBox  {color: red;}')
             self.ui.btn_calibrate.setText("Cancel")
             end_step = 6000  # step pressure
@@ -463,7 +463,7 @@ class MainWindow(QtGui.QMainWindow):
                 header = fp.readline()
                 if 'weight=' in header:
                     weights.append(int(header.split('=')[1]))
-                    print weights
+                    print(weights)
                     up = fp.readline()
                     values = [int(round(float(i))) for i in up.split(',')]
                     up_d_to_p.append(values)
@@ -484,7 +484,7 @@ class MainWindow(QtGui.QMainWindow):
                 for i in range (len(weights)*2):  # write up then down
                     fp.write( ','.join(str(n) for n in combined_d_to_p[i] ) + '\n')
         else:
-           print "no valid d to p files found"
+           print("no valid d to p files found")
 
 
     def load_d_to_p(self):
@@ -503,7 +503,7 @@ class MainWindow(QtGui.QMainWindow):
         self.muscle_output.slow_pressure_move(0, up_pressure, dur)
         time.sleep(.5)
         encoder_data,timestamp = self.encoder.sp.read()
-        print "TODO, using hard coded encoder data"
+        print("TODO, using hard coded encoder data")
         encoder_data = np.array([123,125,127,129,133,136])
         self.DtoP.set_DtoP_index(up_pressure, encoder_data, 'up' )
         self.ui.txt_up_index.setText(str(self.DtoP.up_curve_idx))
@@ -519,7 +519,7 @@ class MainWindow(QtGui.QMainWindow):
     def step_platform(self, pressure, step_delay, step, dir, repeat):
         pressures = [pressure]*6
         self.muscle_output.send_pressures(pressures)
-        print "Step:", pressure, step, dir, repeat, step_delay
+        print("Step:", pressure, step, dir, repeat, step_delay)
         start_time = time.time()
         while len(self.distances) == 0 and time.time() - start_time < 0.1:
             app.processEvents()
@@ -541,7 +541,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def move(self):
         if self.is_calibrating or self.estopped or self.ride.is_running:
-            print "Manual mode disabled while another activity is active"
+            print("Manual mode disabled while another activity is active")
         else:
             percent =  self.ui.sld_percent.value()
             idx = self.move_btn_group.checkedId() 
@@ -549,7 +549,7 @@ class MainWindow(QtGui.QMainWindow):
             request[idx] = percent*.01
             request = self.dynam.filter(request) # convert normalized to real values
             percents = self.k.actuator_percents(request)
-            print "in move", percents
+            print("in move", percents)
             self.muscle_output.move_percent(percents)
 
     def data_update(self):
@@ -558,7 +558,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             encoder_data,timestamp = self.encoder.sp.read()
             if timestamp != 0:
-                #print encoder_data, len(encoder_data)
+                #print(encoder_data, len(encoder_data))
                 for i in range(len(self.encoder_values)):
                     self.encoder_values[i].setText(encoder_data[i]) 
                 if self.is_capturing_data:
@@ -566,7 +566,7 @@ class MainWindow(QtGui.QMainWindow):
                     if timestamp != 0 and self.prev_timestamp != 0:
                         # check for missing messages
                         if timestamp-self.prev_timestamp > 10:
-                            print "missing message at timestamp", timestamp, "prev was", self.prev_timestamp, "diff=", timestamp-self.prev_timestamp
+                            print("missing message at timestamp", timestamp, "prev was", self.prev_timestamp, "diff=", timestamp-self.prev_timestamp)
                     self.activity_labels.append(self.activity_label)
                     self.distances.append(encoder_data)
                     out_pressures = self.muscle_output.festo.out_pressures
@@ -580,23 +580,23 @@ class MainWindow(QtGui.QMainWindow):
         except:
             e = sys.exc_info()[0]
             s = traceback.format_exc()
-            print "error reading serial data", e, s
+            print("error reading serial data", e, s)
 
         self.muscle_output.get_pressures()  # cache value for next update
 
     def check_fname(self, desc, fname, base):
         try:
             fname = str(fname)
-            print format("checking(%s) using base(%s)" % (fname, base))
+            print(format("checking(%s) using base(%s)" % (fname, base)))
             if fname.startswith(base):
                 t = fname.split('.')
                 if len(t) == 2:
                     t1  = t[0].split('_')
-                    print t1
+                    print(t1)
                     if t[1] == 'csv' and len(t1) == 2 and t1[1].isdigit():
                         return fname
         except:
-            print sys.exc_info()[0], traceback.format_exc()
+            print(sys.exc_info()[0], traceback.format_exc())
         QtGui.QMessageBox.question(self, 'Invalid ' + desc + " file name!",
                 format("Name must begin with %s followed by integer weight.\n  example: %s40.csv" %(base,base)))
         return ""
@@ -623,7 +623,7 @@ class MainWindow(QtGui.QMainWindow):
         except:
             s = traceback.format_exc()
             e = sys.exc_info()[0]
-            print "Error saving data file, is it already open?\n", e, s
+            print("Error saving data file, is it already open?\n", e, s)
             
 
     def save_raw_data(self):
@@ -637,7 +637,7 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     imu_data = [0,0,0]
                 line = [self.activity_labels[i]] + [self.time[i]] + self.distances[i] + self.target_pressures[i] + self.pressure_deltas[i] + imu_data
-                #print ','.join(str(n) for n in line)            
+                #print(','.join(str(n) for n in line))
                 self.outfile.write(','.join(str(n) for n in line) +'\n')
             self.outfile.close()
             # if len(self.ui.txt_p_to_d_fname.text()) < 1:
@@ -646,7 +646,7 @@ class MainWindow(QtGui.QMainWindow):
         except:
             s = traceback.format_exc()
             e = sys.exc_info()[0]
-            print "Error saving data file, is it already open?\n", e, s
+            print("Error saving data file, is it already open?\n", e, s)
                     
 
 def start_logging(level):

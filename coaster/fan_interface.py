@@ -5,15 +5,15 @@ Sends percent fan speed to serial port
 
 """
 
-from __future__ import print_function
+
 import sys
 import time
 import traceback
 import serial
 import serial.tools.list_ports
 from nl2_telemetry_only import *
-import interpolate
-import fan_config as fan_cfg
+from . import interpolate
+from . import fan_config as fan_cfg
 
 def scale(val, src, dst) :  # the Arduino 'map' function written in python
     return (val - src[0]) * (dst[1] - dst[0]) / (src[1] - src[0])  + dst[0]
@@ -90,7 +90,7 @@ class FanController():
                     for i in range(len(ports)):
                        print(format(" (%d) %s" % (i+1, ports[i]))),
                     print()
-                    index = raw_input("Enter the index of the desired port (or 0 to exit)")
+                    index = input("Enter the index of the desired port (or 0 to exit)")
                     print(index)
                     if(index == '0'):
                         is_selected = False
@@ -101,7 +101,7 @@ class FanController():
                         if is_selected:
                             break
                 else:
-                    port = raw_input(format("unable to connect to %s\nConnect controller and hit enter, or enter another port " % (fan_cfg.com_port)))
+                    port = input(format("unable to connect to %s\nConnect controller and hit enter, or enter another port " % (fan_cfg.com_port)))
                     if port != "":
                         fan_cfg.com_port = port
             except SystemExit:
