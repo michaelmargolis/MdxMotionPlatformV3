@@ -245,7 +245,7 @@ class Packet(object):
             try:
                 return unpack(payload_format, self.payload[:count*2])
             except Exception as e:
-                raise PayloadDecodingException("Failed to decode payload with format='%s'" % payload_format, e), None, sys.exc_info()[2]
+                raise PayloadDecodingException("Failed to decode payload with format='%s'" % payload_format, e).with_traceback(sys.exc_info()[2])
                 
     
     

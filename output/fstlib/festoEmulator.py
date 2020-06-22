@@ -8,9 +8,9 @@ from festo_emulator_gui_defs import *
 
 log = logging.getLogger(__name__)
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, app):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.app = app
@@ -36,7 +36,7 @@ class MainWindow(QtGui.QMainWindow):
             try:
                 self.display_pressure_bars(pressures)
             except TypeError as e:
-                print pressures, e
+                print(pressures, e)
 
     def show_disconnected(self):
         self.display_pressure_bars((0,0,0,0,0,0))
@@ -61,7 +61,7 @@ class MainWindow(QtGui.QMainWindow):
                 #     sys.exit()
                 resp = easyip.Packet(data)
                 values = resp.decode_payload(easyip.Packet.DIRECTION_SEND)
-                # log.info("received msg %s from %s", data, addr)
+                log.debug("received msg %s from %s", data, addr)
                 self.show_pressures(values)
                 self.ui.lbl_connection.setText("Connected to " + addr[0])
                 self.send_response(resp, addr)
@@ -82,7 +82,7 @@ class MainWindow(QtGui.QMainWindow):
 
 def main():
     log.info("starting festo emulator")
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     win = MainWindow(app)
     win.show()
     win.receive()

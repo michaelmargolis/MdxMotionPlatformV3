@@ -14,13 +14,11 @@ import time
 try:
     from queue import Queue
 except ImportError:
-    from queue import Queue
+    from Queue import Queue
 
 import traceback
 import csv,os
 import win32gui
-
-from .space_coaster_gui_defs import *
 
 import logging
 log = logging.getLogger(__name__)
@@ -28,6 +26,7 @@ log = logging.getLogger(__name__)
 import ctypes # for mouse
 import numpy as np  # for scaling telemetry data
 
+from space_coaster_gui_defs import *
  
 sys.path.insert(0, '../common')
 from ride_state import RideState
@@ -205,8 +204,8 @@ class InputInterface(object):
         self.xyzrpyQ = Queue()
         self.cmdQ = Queue()
         while True:
-            print("test version ignores test for space coaster")
-            break
+            # print("test version ignores test for space coaster")
+            # break
             try:
                 log.debug("attempting to set focus")
                 self.set_focus("UnityWndClass","Coaster MSU")
@@ -214,10 +213,10 @@ class InputInterface(object):
                 self.left_mouse_click()
                 break
             except:
-                reply =  QtGui.QMessageBox.question(self.frame, 'Coaster Connection Error!',
+                reply =  QtWidgets.QMessageBox.question(self.frame, 'Coaster Connection Error!',
                         "Coaster not found, Start CoasterMSU and try again?" ,
-                          QtGui.QMessageBox.Yes,  QtGui.QMessageBox.No)
-                if reply == QtGui.QMessageBox.No:
+                          QtWidgets.QMessageBox.Yes,  QtWidgets.QMessageBox.No)
+                if reply == QtWidgets.QMessageBox.No:
                     raise ConnectionException("User aborted")
         log.info("Starting client listener thread")
         self.is_coaster_connected = -1
@@ -227,8 +226,8 @@ class InputInterface(object):
         
         self.report_connection_status("Connecting to Coaster", "orange") 
         while self.is_coaster_connected < 0:
-            print("test version ignores test for space coaster")
-            break
+            #  print("test version ignores test for space coaster")
+            #  break
             self.sleep_func(5)
             if self.is_coaster_connected != 1:
                log.warning("Coaster not connected - Is CoasterMSU running?")
@@ -490,14 +489,15 @@ class LocalClient(QtWidgets.QMainWindow):
         sys.exit()
  
 if __name__ == "__main__":
-    from .local_client_gui_defs import *
-    from . import tcp_server
+    from local_client_gui_defs import *
+    import tcp_server
     sys.path.insert(0, '../output')
     import importlib  
     
     log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
-
+    log.info("Python: %s, qt version %s", sys.version[0:5], QtCore.QT_VERSION_STR)
+    
     # platform_selection = 'ConfigV3'
     platform_selection = 'configNextgen'
     cfg = importlib.import_module(platform_selection).PlatformConfig()

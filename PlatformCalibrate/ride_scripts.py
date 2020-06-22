@@ -3,7 +3,6 @@
 # format is: motion,percent,duration
 # percent ranges from -100 to 100, duration is in seconds
 
-import  muscle_output
 import time # only for debug
 
 class RideMacros(object):
@@ -69,6 +68,9 @@ class RideMacros(object):
             return None
     
 if __name__ == '__main__':
+
+    from muscle_output import MuscleOutput
+
     muscle_output = muscle_output.MuscleOutput()  
     muscle_output.configure_distance_csv()
     ride = RideMacros(muscle_output)

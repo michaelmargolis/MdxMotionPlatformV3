@@ -58,11 +58,13 @@ class TwistedEasyS(protocol.DatagramProtocol):
     def startProtocol(self):
         pass
     
-    def sendMsg(self, packet, (host, port)):
+    def sendMsg(self, packet, xxx_todo_changeme):
+        (host, port) = xxx_todo_changeme
         self.log.debug('Sending data')
         self.transport.write(packet.pack(), (host, port))
             
-    def datagramReceived(self, datagram, (host,port)):
+    def datagramReceived(self, datagram, xxx_todo_changeme1):
+        (host,port) = xxx_todo_changeme1
         packet = easyip.Packet(datagram)
         response = self.react(packet)
         if response:

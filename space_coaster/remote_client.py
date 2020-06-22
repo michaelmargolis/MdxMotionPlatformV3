@@ -13,12 +13,12 @@ import time
 try:
     from queue import Queue
 except ImportError:
-    from queue import Queue
+    from Queue import Queue
 
 import csv,os
 
-from .tcp_client import SockClient
-from .remote_client_gui_defs import *
+from tcp_client import SockClient
+from remote_client_gui_defs import *
 
 
 import logging
