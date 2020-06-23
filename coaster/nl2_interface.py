@@ -15,25 +15,17 @@ import socket
 from time import time,sleep
 from struct import *
 import collections
-#from quaternion_to_euler import Quaternion
-from my_quaternion import Quaternion
-#from pyquaternion import Quaternion
-#import quaternion  # for mobile/quaternion
-
 from math import pi, degrees, sqrt
 import sys
 import threading
-from Queue import Queue
 import ctypes #  for bit fields
 import os
-#import pc_address  # address of pc running NL2
-from coaster_state import SystemStatus 
-##from moving_average import MovingAverage
-
 import  binascii  # only for debug
 import traceback
-
 import numpy as np # only for yaw test
+
+from coaster.my_quaternion import Quaternion
+from coaster.coaster_state import SystemStatus 
 
 import logging
 log = logging.getLogger(__name__)
@@ -231,32 +223,32 @@ class CoasterInterface():
         self.pause_mode = isPaused
 
     def reset_park(self, start_paused):
-        msg = pack('>?', start_paused) # start paused if arg is True
+        msg = pack(b'>?', start_paused) # start paused if arg is True
         r = self._create_NL2_message(self.N_MSG_RESET_PARK, self._get_msg_id(), msg)
         #  print "reset park msg", binascii.hexlify(r)
         self._send(r)
 
     def select_seat(self, seat):
-        msg = pack('>iiii', 0, 0, 0, seat)  # coaster, train, car, seat 
+        msg = pack(b'>iiii', 0, 0, 0, seat)  # coaster, train, car, seat 
         r = self._create_NL2_message(self.N_MSG_SELECT_SEAT, self._get_msg_id(), msg)
         # print "select seat msg", seat, binascii.hexlify(msg),len(msg), "full", binascii.hexlify(r)
         self._send(r)
 
     def set_attraction_mode(self, state):
-        msg = pack('>?', state)   # enable mode if state True
+        msg = pack(b'>?', state)   # enable mode if state True
         r = self._create_NL2_message(self.N_MSG_SET_ATTRACTION_MODE, self._get_msg_id(), msg)
         # print("set attraction mode msg", binascii.hexlify(r))
         self._send(r)
 
     #  see NL2TelemetryClient.java in NL2 distribution for message format
     def _create_simple_message(self, msgId, requestId):  # message with no data
-        result = pack('>cHIHc', 'N', msgId, requestId, 0, 'L')
+        result = pack(b'>cHIHc', b'N', msgId, requestId, 0, b'L')
         return result
 
     def _create_NL2_message(self, msgId, requestId, msg):  # message is packed
         #  fields are: N Message Id, reqest Id, data size, L
-        start = pack('>cHIH', 'N', msgId, requestId, len(msg))
-        end = pack('>c', 'L')
+        start = pack(b'>cHIH', b'N', msgId, requestId, len(msg))
+        end = pack(b'>c', b'L')
         result = start + msg + end
         return result
 
@@ -283,7 +275,7 @@ class CoasterInterface():
         for i in range(10):
             sleep(.1)            
             self.service()
-            if self.nl2_version != None:                            
+            if self.nl2_version != None:
                 return self.nl2_version
         return None  # NL2 did not respone
 

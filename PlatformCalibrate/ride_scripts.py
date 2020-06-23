@@ -37,7 +37,7 @@ class RideMacros(object):
 
     def abort(self):
         self.is_running = False
-        print "Ride stopped"
+        print("Ride stopped")
 
     def percent_completed(self):
         if  self.total_dur == 0:

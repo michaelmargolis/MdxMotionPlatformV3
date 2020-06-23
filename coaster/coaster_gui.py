@@ -6,7 +6,9 @@ This version requires NoLimits attraction license and NL ver 2.5.3.4 or later
 
 import os
 import sys
-from coaster_gui_defs import *
+#  from coaster_gui_defs import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+from coaster.coaster_gui_defs import Ui_Frame
 
 sys.path.insert(0, './common')
 from ride_state import RideState
@@ -63,7 +65,7 @@ class CoasterGui(object):
                     p = p[len(p)-1]
                     #  print p,
                     self.park_name.append(p.split('.')[0])
-            log.info("Available parks are: %s", self.park_name)
+            log.info("Available parks are:\n  %s", self.park_name)
             self.ui.cmb_park_listbox.addItems(self.park_name)
             self.ui.cmb_park_listbox.currentIndexChanged.connect(self._park_selection_changed)
         except:

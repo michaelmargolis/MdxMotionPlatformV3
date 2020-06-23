@@ -13,29 +13,21 @@ import ctypes
 import os
 
 #from coaster_interface import CoasterInterface
-from nl2_interface import CoasterInterface
-from coaster_gui import CoasterGui
+from coaster.nl2_interface import CoasterInterface
+from coaster.coaster_gui import CoasterGui
 
-sys.path.insert(0, '../common')
-from ride_state import RideState
+# sys.path.insert(0, '../common')
+from common.ride_state import RideState
 
 import logging
 log = logging.getLogger(__name__)
 
 import platform_config as cfg
 
-IS_RASPBERRYPI = False # this will be set True if software is running on pi
-if os.name == 'posix':
-    if os.uname()[1] == 'raspberrypi':
-        # for now assumes running on raspberry pi
-        import local_control_itf
-        IS_RASPBERRYPI = True
-
-
-from telemetry_logger import TelemetryLogger
+from coaster.telemetry_logger import TelemetryLogger
 telemetry_log = TelemetryLogger(False)
 
-from pc_monitor import pc_monitor_client
+from coaster.pc_monitor import pc_monitor_client
 # see pc_monitor.py for information on heartbeat server
 
 
@@ -150,18 +142,8 @@ class InputInterface(object):
         self.heartbeat = pc_monitor_client((40, 60), (75, 90))
         self.prev_heartbeat = 0
         self.server_address = None # set on receipt of hearbeat from server
-        if IS_RASPBERRYPI and cfg.USE_PI_SWITCHES:
-            self.local_control = local_control_itf.LocalControlItf(actions)
-        else:
-            self.local_control = None
-        self.USE_UDP_MONITOR = False
 
     def init_gui(self, frame):
-        if self.local_control != None:
-            if self.local_control.is_activated():
-                 log.warning("todo - move check for estop at startup to controller")
-                 # while  self.local_control.is_activated():
-                 # tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
         self.gui.init_gui(frame)
 
     def connection_msgbox(self, msg):
@@ -444,9 +426,6 @@ class InputInterface(object):
 
     def service(self):
         self.check_heartbeat()
-        if self.local_control:
-            self.local_control.service()
-        # self.RemoteControl.service()
         if self.connect():
             self.coaster.service()
             self.show_coaster_status()

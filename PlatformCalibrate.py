@@ -17,20 +17,18 @@ import csv
 import operator  # for map sub
 import traceback
 
-from calibration_gui_defs import *
+from PlatformCalibrate.calibration_gui_defs import *
 
-sys.path.insert(0, '../common')
-from serialSensors import SerialContainer, Encoder, IMU, Scale, ServoModel
-from dynamics import Dynamics
-import ride_scripts
-import serial_defaults
+from common.serialSensors import SerialContainer, Encoder, IMU, Scale, ServoModel
+from common.dynamics import Dynamics
+import PlatformCalibrate.ride_scripts as ride_scripts
+import common.serial_defaults as serial_defaults
 
-sys.path.insert(0, '../output')
-from kinematicsV2 import Kinematics
-from configNextgen import *
-#  from ConfigV3 import *
-import d_to_p
-from muscle_output import MuscleOutput
+from output.kinematicsV2 import Kinematics
+from output.configNextgen import *
+#  from output.ConfigV3 import *
+import output.d_to_p as d_to_p
+from output.muscle_output import MuscleOutput
 
 DATA_PERIOD = 10  # ms between samples
 MINUTES = 10  # size of buffer in mins 
@@ -154,8 +152,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.txt_p_to_d_fname.setText("PtoD_.csv")
         self.ui.txt_d_to_p_fname_2.setText("DtoP_.csv")
         
-        self.ui.txt_merged_d_to_p_fname.setText("..\\output\\DtoP.csv")
-        self.ui.txt_d_to_p_fname.setText("..\\output\\DtoP.csv")
+        self.ui.txt_merged_d_to_p_fname.setText("output\\DtoP.csv")
+        self.ui.txt_d_to_p_fname.setText("output\\DtoP.csv")
         
         self.ui.txt_up_pressure.setText("3000")
         self.ui.txt_down_pressure.setText("2000")

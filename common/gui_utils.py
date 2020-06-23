@@ -1,4 +1,5 @@
 # gui_utils
+from PyQt5 import QtCore
 
 def set_text(widget, text, color= None):
     widget.setText(text)

@@ -4,7 +4,10 @@
 
 from client_api import ClientApi
 
-from simple_input_gui_defs import *
+#  from simple_input_gui_defs import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+from client.simple_input_gui_defs import Ui_Frame
+
 
 
 InputParmType = 'normalized'
@@ -34,11 +37,11 @@ class InputInterface(ClientApi):
         self.ui.btn_mid_pos.clicked.connect(self.set_mid_pos)
 
     def move_slider_changed(self, sender_id):
-        value = self.sliders[sender_id].value()
-        print("slider", sender_id, "value is ", value *.01)
-        if sender_id < 6:
+        try:
+            value = self.sliders[sender_id].value()
             self.levels[sender_id] = float(value) *.01
-            print(self.levels)
+        except Exception as e:
+            log.error("Client input error: %s", e)
 
     def update_sliders(self):
         for idx, val in enumerate(self.levels):
@@ -53,5 +56,6 @@ class InputInterface(ClientApi):
         self.move_func = move_func
         self.limits = limits  # note limits are in mm and radians
 
-
-
+    def service(self):
+        if self.move_func:
+            self.move_func(self.levels)

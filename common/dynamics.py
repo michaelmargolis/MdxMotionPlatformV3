@@ -2,7 +2,9 @@
 
 import traceback
 import numpy as np
-from dynamics_gui_defs import *
+# from dynamics_gui_defs import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+from common.dynamics_gui_defs import Ui_Frame
 
 import logging
 log = logging.getLogger(__name__)

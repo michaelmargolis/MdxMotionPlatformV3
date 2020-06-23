@@ -18,17 +18,18 @@ except ImportError:
 import csv,os
 
 from tcp_client import SockClient
-from remote_client_gui_defs import *
+
+#  from remote_client_gui_defs import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+from space_coaster.remote_client_gui_defs import Ui_Frame
 
 
 import logging
 log = logging.getLogger(__name__)
-# import logging.handlers
 
-sys.path.insert(0, '../common')
-from ride_state import RideState
-
-import gui_utils as gutil
+# sys.path.insert(0, '../common')
+from common.ride_state import RideState
+import common.gui_utils as gutil
 
 import ctypes # for mouse
 import numpy as np  # for scaling telemetry data

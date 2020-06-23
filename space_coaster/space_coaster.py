@@ -26,11 +26,14 @@ log = logging.getLogger(__name__)
 import ctypes # for mouse
 import numpy as np  # for scaling telemetry data
 
-from space_coaster_gui_defs import *
+#  from space_coaster_gui_defs import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+from space_coaster.space_coaster_gui_defs import Ui_Frame
+
  
-sys.path.insert(0, '../common')
-from ride_state import RideState
-import gui_utils as gutil
+# sys.path.insert(0, '../common')
+from common.ride_state import RideState
+import common.gui_utils as gutil
 
 class SC_State:  # these are space coaster specific states
     initializing, waiting, ready, running, completed = list(range(0,5))

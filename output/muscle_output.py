@@ -14,8 +14,8 @@ import time
 import numpy as np
 import traceback
 
-import festo_itf
-import gui_utils as gutil
+import output.festo_itf as festo_itf
+import common.gui_utils as gutil
 
 import logging
 log = logging.getLogger(__name__)

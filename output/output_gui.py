@@ -6,7 +6,9 @@ display muscle lengths and platform orientation
 
 SHOW_CHAIR_IMAGES = False
 
-from output_gui_defs import *
+#  from output_gui_defs import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+from output.output_gui_defs import Ui_Frame
 
 import copy
 from math import degrees

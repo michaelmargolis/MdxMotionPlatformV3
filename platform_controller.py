@@ -16,21 +16,21 @@ import numpy as np
 
 import importlib
 from main_gui import *
-
-sys.path.insert(0, './common')
-from serialSensors import Encoder, ServoModel
-import serial_defaults
-import gui_utils as gutil
-from ride_state import RideState
-from RemoteControl import RemoteControl
-
-sys.path.insert(0, './output')
-from kinematicsV2 import Kinematics
-from dynamics import Dynamics
-from muscle_output import MuscleOutput
-import output_gui
-import d_to_p
 from  platform_config import *
+
+from common.serialSensors import Encoder, ServoModel
+import common.serial_defaults as serial_defaults
+import common.gui_utils as gutil
+from common.ride_state import RideState
+from common.dynamics import Dynamics
+
+from RemoteControls.RemoteControl import RemoteControl
+
+
+from output.kinematicsV2 import Kinematics
+from output.muscle_output import MuscleOutput
+import output.output_gui as output_gui
+import output.d_to_p as d_to_p
 
 log = logging.getLogger(__name__)
 
@@ -53,8 +53,8 @@ class Controller(QtWidgets.QMainWindow):
             self.dynam.init_gui(self.ui.frm_dynamics)
             self.dynam.begin(cfg.limits_1dof, "gains.cfg")
             self.set_intensity(10)  # default intensity at max
-            self.RemoteControl = RemoteControl(self, client.set_rc_label)
             log.warning("Dynamics module has washout disabled, test if this is acceptable")
+            self.init_remote_controls()
             self.service_timer = QtCore.QTimer(self) # timer for telemetry data
             self.service_timer.timeout.connect(self.service)
             self.service_timer.start(int(self.FRAME_RATE*1000))
@@ -62,6 +62,24 @@ class Controller(QtWidgets.QMainWindow):
             log.info("Platform controller initializations complete")
         except:
             raise
+            
+    def init_remote_controls(self):
+        self.RemoteControl = RemoteControl(self, client.set_rc_label)
+        try:
+            self.local_control = None
+            if os.name == 'posix':
+                if os.uname()[1] == 'raspberrypi':
+                    import common.local_control_itf # This import will raise exception if not running on a pi
+                    if cfg.USE_PI_SWITCHES:
+                        self.local_control = local_control_itf.LocalControlItf(actions)
+                        log.info("using local hardware switch control")
+                        if self.local_control.is_activated():
+                            log.warning("todo - implement loop check for estop")
+                            # while  self.local_control.is_activated():
+                            # tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
+        except:
+            log.warning("local hardware switch control will not be used")  # self.local_control will be None
+        self.USE_UDP_MONITOR = False
 
     def init_kinematics(self):
         self.k = Kinematics()
@@ -357,6 +375,8 @@ class Controller(QtWidgets.QMainWindow):
 
     def service(self):
         self.RemoteControl.service()
+        if self.local_control:
+            self.local_control.service()
         client.service()
         if self.is_active:
             if self.platform_status != self.platform.get_output_status():

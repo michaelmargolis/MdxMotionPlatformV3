@@ -15,7 +15,7 @@ import time
 import traceback
 import threading
 from builtins import input
-from fstlib import easyip
+from output.fstlib import easyip
 import logging
 
 log = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class Festo(object):
 
     def _output_festo_packet(self, packet):
         data = packet.pack()
-        #  print "sending to", self.FST_addr
+        # print "sending to", self.FST_addr, packet
         resp = None
         self.FSTs.sendto(data, self.FST_addr)
         if self.wait:

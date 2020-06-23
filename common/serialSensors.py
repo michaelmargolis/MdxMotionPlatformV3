@@ -6,7 +6,7 @@ try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
-from serialProcess import SerialProcess
+from common.serialProcess import SerialProcess
 
 class SerialContainer(object):
     def __init__(self, sp, combo, desc, label, baud):

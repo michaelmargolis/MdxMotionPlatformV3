@@ -3,21 +3,17 @@
 """
 Uncomment one of the above to select the client
 """
-#  client_selection = 'coaster.coaster_client'  # for NoLimits2
+client_selection = 'coaster.coaster_client'  # for NoLimits2
 #  client_selection = 'space_coaster.space_coaster'
-client_selection = 'space_coaster.remote_client'
+#  client_selection = 'space_coaster.remote_client'
 #  client_selection = 'flight_sim.flight_sim_client'
-#  client_selection = 'client.simple_input'    # simple gui test 
-#  client_selection = 'client.platform_input_simple_UDP' #  UDP
-#  client_selection = 'client.platform_input_threadedUDP' #  threaded UDP'
-#  client_selection = 'client.elite'
+# client_selection = 'client.simple_input'    # simple gui test 
 
 """
 Uncomment one of the following to select the platform configuration
 """
-# platform_selection = 'ConfigV3'
-platform_selection = 'configNextgen'
-
+# platform_selection = 'output.ConfigV3'
+platform_selection = 'output.configNextgen'
 
 """
 The following default values should be changed only if you know what you are doing
