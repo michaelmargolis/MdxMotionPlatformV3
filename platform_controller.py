@@ -69,14 +69,21 @@ class Controller(QtWidgets.QMainWindow):
             self.local_control = None
             if os.name == 'posix':
                 if os.uname()[1] == 'raspberrypi':
-                    import common.local_control_itf # This import will raise exception if not running on a pi
-                    if cfg.USE_PI_SWITCHES:
-                        self.local_control = local_control_itf.LocalControlItf(actions)
-                        log.info("using local hardware switch control")
-                        if self.local_control.is_activated():
-                            log.warning("todo - implement loop check for estop")
-                            # while  self.local_control.is_activated():
-                            # tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
+                    try:
+                        import RPi.GPIO as GPIO 
+                        import RemoteControls.local_control_itf 
+                        if cfg.USE_PI_SWITCHES:
+                            self.local_control = local_control_itf.LocalControlItf(actions)
+                            log.info("using local hardware switch control")
+                            if self.local_control.is_activated():
+                                log.warning("todo - implement loop check for estop")
+                                # while  self.local_control.is_activated():
+                                # tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
+                    except ImportError:
+                        qm = QtWidgets.QMessageBox
+                        result = qm.question(self, 'Raspberry Pi GPIO problem', "Unable to access GPIO hardware control\nDo you want to to continue?", qm.Yes | qm.No)
+                        if result != qm.Yes:
+                            raise
         except:
             log.warning("local hardware switch control will not be used")  # self.local_control will be None
         self.USE_UDP_MONITOR = False
