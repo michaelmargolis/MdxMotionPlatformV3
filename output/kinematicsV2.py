@@ -12,7 +12,6 @@ import math
 import traceback
 import copy
 import numpy as np
-from scipy.spatial.transform import Rotation as R
 
 import logging
 log = logging.getLogger(__name__)

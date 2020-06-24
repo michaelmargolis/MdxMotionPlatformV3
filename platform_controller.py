@@ -105,7 +105,7 @@ class Controller(QtWidgets.QMainWindow):
         assert cfg.MAX_ACTUATOR_RANGE == 200 # d to p files assume max range is 200
         log.info("Actuator range=%d mm", cfg.MAX_ACTUATOR_RANGE)
         self.DtoP = d_to_p.D_to_P(cfg.MAX_ACTUATOR_RANGE) # argument is max distance
-        if self.DtoP.load_DtoP(d_to_p_file):
+        if self.DtoP.load(d_to_p_file):
             assert self.DtoP.d_to_p_up.shape[1] == self.DtoP.d_to_p_down.shape[1]
             log.info("Loaded %d rows of distance to pressure files ", self.DtoP.rows)
             self.platform.set_d_to_p_curves(self.DtoP.d_to_p_up, self.DtoP.d_to_p_down) # pass curves to platform module
@@ -316,14 +316,14 @@ class Controller(QtWidgets.QMainWindow):
         encoder_data, timestamp = self.encoder.read()
         log.warning("TODO, using hard coded encoder data!")
         encoder_data = np.array([123, 125, 127, 129, 133, 136])
-        self.DtoP.set_DtoP_index(up_pressure, encoder_data, 'up')
+        self.DtoP.set_index(up_pressure, encoder_data, 'up')
         # self.ui.txt_up_index.setText(str(self.DtoP.up_curve_idx))
 
         self.platform.slow_pressure_move(up_pressure, down_pressure, dur/2)
         time.sleep(.5)
         encoder_data, timestamp = self.encoder.read()
         encoder_data = np.array([98, 100, 102, 104, 98, 106])
-        self.DtoP.set_DtoP_index(down_pressure, encoder_data, 'down')
+        self.DtoP.set_index(down_pressure, encoder_data, 'down')
         # self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
         self.platform.set_d_to_p_indices(self.DtoP.up_curve_idx, self.DtoP.down_curve_idx)
 

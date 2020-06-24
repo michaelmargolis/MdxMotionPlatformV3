@@ -27,7 +27,9 @@ import common.serial_defaults as serial_defaults
 from output.kinematicsV2 import Kinematics
 from output.configNextgen import *
 #  from output.ConfigV3 import *
+
 import output.d_to_p as d_to_p
+import output.d_to_p_prep as d_to_p_prep
 from output.muscle_output import MuscleOutput
 
 DATA_PERIOD = 10  # ms between samples
@@ -182,6 +184,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cfg = cfg # only needed for plot
         
         self.DtoP = d_to_p.D_to_P(200) # argument is max distance 
+        self.DtoP_prep = d_to_p_prep.D_to_P_prep(200) # argument is max distance
         self.dynam = Dynamics()
         self.dynam.begin(cfg.limits_1dof,"shape.cfg")
 
@@ -435,8 +438,8 @@ class MainWindow(QtWidgets.QMainWindow):
         outfname = self.check_fname("Distance to Pressure", self.ui.txt_d_to_p_fname_2.text(), "DtoP_") 
         if outfname == "":
             return 
-        up,down, weight, pressure_step = self.DtoP.munge_file(infname)
-        d_to_p = self.DtoP.process_p_to_d(up, down, weight, pressure_step)
+        up,down, weight, pressure_step = self.DtoP_prep.munge_file(infname)
+        d_to_p = self.DtoP_prep.process_p_to_d(up, down, weight, pressure_step)
         info = format("weight=%d" % weight)        
         np.savetxt(outfname, d_to_p, delimiter=',', fmt='%0.1f', header= info)
 
@@ -488,7 +491,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def load_d_to_p(self):
         # load distance to pressure curves from file
         fname = str(self.ui.txt_d_to_p_fname.text())
-        if self.DtoP.load_DtoP(fname):
+        if self.DtoP.load(fname):
             self.ui.txt_nbr_indices.setText(str(self.DtoP.rows))
             self.muscle_output.set_d_to_p_curves(self.DtoP.d_to_p_up, self.DtoP.d_to_p_down) # pass curves to platform module
 
@@ -503,14 +506,14 @@ class MainWindow(QtWidgets.QMainWindow):
         encoder_data,timestamp = self.encoder.sp.read()
         print("TODO, using hard coded encoder data")
         encoder_data = np.array([123,125,127,129,133,136])
-        self.DtoP.set_DtoP_index(up_pressure, encoder_data, 'up' )
+        self.DtoP.set_index(up_pressure, encoder_data, 'up' )
         self.ui.txt_up_index.setText(str(self.DtoP.up_curve_idx))
  
         self.muscle_output.slow_pressure_move(up_pressure, down_pressure, dur/2)
         time.sleep(.5)
         encoder_data,timestamp = self.encoder.sp.read()
         encoder_data = np.array([98,100,102,104, 98,106])
-        self.DtoP.set_DtoP_index(down_pressure, encoder_data, 'down' )
+        self.DtoP.set_index(down_pressure, encoder_data, 'down' )
         self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
         self.muscle_output.set_d_to_p_indices(self.DtoP.up_curve_idx, self.DtoP.down_curve_idx)
 
