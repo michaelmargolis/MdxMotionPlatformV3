@@ -3,8 +3,8 @@
 import sys
 import time
 import os
-import RemoteControls.rotary_encoder
-import RemoteControls.buttons
+import RemoteControls.rotary_encoder as rotary_encoder
+import RemoteControls.buttons as buttons
 
 USE_PCB = True
 

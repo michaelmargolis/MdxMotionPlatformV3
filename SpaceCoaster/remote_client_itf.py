@@ -92,9 +92,6 @@ class ClientNetworkItf(object):
                    self.is_connected = False
                    print("socket error in send")
                    self.disconnect() # kill thread
-        else:
-            print("wha")
-
 
     def service(self):
         pass # 
@@ -123,7 +120,6 @@ class ClientNetworkItf(object):
             except Exception:
                 print(( "unhandled listener err", sys.exc_info()[0]))
                 print((traceback.format_exc()))
-        print("wha, killing thread")
         self.is_thr_running = False
 
 
@@ -166,6 +162,4 @@ if __name__ == "__main__":
             elif client.is_connected:
                 client.send_cmd(str(key))
         time.sleep(.5)
-        print("whwwww")
-                
     client.disconnect()

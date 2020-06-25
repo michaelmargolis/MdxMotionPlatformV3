@@ -12,11 +12,9 @@ import sys
 import os
 import time
 import numpy as np
-# from math import degrees
 
-import importlib
+
 from main_gui import *
-from  platform_config import *
 
 from common.serialSensors import Encoder, ServoModel
 import common.serial_defaults as serial_defaults
@@ -24,8 +22,13 @@ import common.gui_utils as gutil
 from common.ride_state import RideState
 from common.dynamics import Dynamics
 
-from RemoteControls.RemoteControl import RemoteControl
+# Importlib used to load configurations for client and platform as selected in platform_config.py
+import importlib
+from  platform_config import client_selection, platform_selection
+pfm = importlib.import_module(platform_selection).PlatformConfig()
+client = importlib.import_module(client_selection).InputInterface(gutil.sleep_qt)
 
+from RemoteControls.RemoteControl import RemoteControl
 
 from output.kinematicsV2 import Kinematics
 from output.muscle_output import MuscleOutput
@@ -47,11 +50,11 @@ class Controller(QtWidgets.QMainWindow):
             self.init_platform_parms()
             self.init_gui()
             self.init_kinematics()
-            client.begin(self.cmd_func, self.move_func, cfg.limits_1dof)
+            client.begin(self.cmd_func, self.move_func, pfm.limits_1dof)
             self.init_serial()
             self.dynam = Dynamics()
             self.dynam.init_gui(self.ui.frm_dynamics)
-            self.dynam.begin(cfg.limits_1dof, "gains.cfg")
+            self.dynam.begin(pfm.limits_1dof, "gains.cfg")
             self.set_intensity(10)  # default intensity at max
             log.warning("Dynamics module has washout disabled, test if this is acceptable")
             self.init_remote_controls()
@@ -70,9 +73,9 @@ class Controller(QtWidgets.QMainWindow):
             if os.uname()[1] == 'raspberrypi':
                 try:
                     import RPi.GPIO as GPIO 
-                    import RemoteControls.local_control_itf 
-                    if cfg.USE_PI_SWITCHES:
-                        self.local_control = local_control_itf.LocalControlItf(actions)
+                    import RemoteControls.local_control_itf as local_control_itf
+                    if USE_PI_SWITCHES:
+                        self.local_control = local_control_itf.LocalControlItf(self.RemoteControl.actions)
                         log.info("using local hardware switch control")
                         if self.local_control.is_activated():
                             log.warning("todo - implement loop check for estop")
@@ -91,27 +94,27 @@ class Controller(QtWidgets.QMainWindow):
     def init_kinematics(self):
         self.k = Kinematics()
         # cfg = PlatformConfig()
-        cfg.calculate_coords()
-        log.info("Starting %s as %s", cfg.PLATFORM_NAME, cfg.PLATFORM_TYPE)
-        # self.telemetry = Telemetry(self.telemetry_cb, cfg.limits_1dof)
-        self.k.set_geometry(cfg.BASE_POS, cfg.PLATFORM_POS)
+        pfm.calculate_coords()
+        log.info("Starting %s as %s", pfm.PLATFORM_NAME, pfm.PLATFORM_TYPE)
+        # self.telemetry = Telemetry(self.telemetry_cb, pfm.limits_1dof)
+        self.k.set_geometry(pfm.BASE_POS, pfm.PLATFORM_POS)
 
-        if cfg.PLATFORM_TYPE == "SLIDER":
+        if pfm.PLATFORM_TYPE == "SLIDER":
             self.is_slider = True
-            self.k.set_slider_params(cfg.joint_min_offset, cfg.joint_max_offset, cfg.strut_length,
-                                     cfg.slider_angles)
+            self.k.set_slider_params(pfm.joint_min_offset, pfm.joint_max_offset, pfm.strut_length,
+                                     pfm.slider_angles)
             self.actuator_lengths = [0] * 6   # muscles fully relaxed
             d_to_p_file = 'output/DtoP.csv'
         else:
             self.is_slider = False
-            self.k.set_platform_params(cfg.MIN_ACTUATOR_LEN, cfg.MAX_ACTUATOR_LEN, cfg.FIXED_LEN)
-            self.platform.set_platform_params(cfg.MIN_ACTUATOR_LEN, cfg.MAX_ACTUATOR_LEN, cfg.FIXED_LEN) ### temp only for testing
-            self.actuator_lengths = [cfg.PROPPING_LEN] * 6 # position for moving prop
+            self.k.set_platform_params(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.FIXED_LEN)
+            self.platform.set_platform_params(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.FIXED_LEN) ### temp only for testing
+            self.actuator_lengths = [pfm.PROPPING_LEN] * 6 # position for moving prop
             d_to_p_file = 'output/DtoP_v3.csv'
 
-        assert cfg.MAX_ACTUATOR_RANGE == 200 # d to p files assume max range is 200
-        log.info("Actuator range=%d mm", cfg.MAX_ACTUATOR_RANGE)
-        self.DtoP = d_to_p.D_to_P(cfg.MAX_ACTUATOR_RANGE) # argument is max distance
+        assert pfm.MAX_ACTUATOR_RANGE == 200 # d to p files assume max range is 200
+        log.info("Actuator range=%d mm", pfm.MAX_ACTUATOR_RANGE)
+        self.DtoP = d_to_p.D_to_P(pfm.MAX_ACTUATOR_RANGE) # argument is max distance
         if self.DtoP.load(d_to_p_file):
             assert self.DtoP.d_to_p_up.shape[1] == self.DtoP.d_to_p_down.shape[1]
             log.info("Loaded %d rows of distance to pressure files ", self.DtoP.rows)
@@ -120,11 +123,11 @@ class Controller(QtWidgets.QMainWindow):
             log.error("Failed to loaded %s file", d_to_p_file)
 
     def init_platform_parms(self):
-        # self.platform.begin(cfg.MIN_ACTUATOR_LEN, cfg.MAX_ACTUATOR_LEN, cfg.DISABLED_LEN, cfg.PROPPING_LEN, cfg.FIXED_LEN)
+        # self.platform.begin(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.DISABLED_LEN, pfm.PROPPING_LEN, pfm.FIXED_LEN)
         self.platform_disabled_pos = np.empty(6)   # position when platform is disabled
         self.platform_winddown_pos = np.empty(6)  # position for attaching stairs
-        self.platform_disabled_pos.fill(cfg.DISABLED_LEN)   # position when platform is disabled (propped)
-        self.platform_winddown_pos.fill(cfg.PROPPING_LEN)      # position for attaching stairs or moving prop
+        self.platform_disabled_pos.fill(pfm.DISABLED_LEN)   # position when platform is disabled (propped)
+        self.platform_winddown_pos.fill(pfm.PROPPING_LEN)      # position for attaching stairs or moving prop
 
     def init_gui(self):
         QtWidgets.QMainWindow.__init__(self)
@@ -135,8 +138,8 @@ class Controller(QtWidgets.QMainWindow):
         try:
             client.init_gui(self.ui.frm_input)
             self.output_gui = output_gui.OutputGui()
-            self.output_gui.init_gui(self.ui.frm_output, cfg.MIN_ACTUATOR_LEN, cfg.MAX_ACTUATOR_RANGE)
-            self.ui.lbl_platform.setText("Platform: " + cfg.PLATFORM_NAME)
+            self.output_gui.init_gui(self.ui.frm_output, pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_RANGE)
+            self.ui.lbl_platform.setText("Platform: " + pfm.PLATFORM_NAME)
             self.ui.lbl_client.setText("Client: " + client.name)
             self.ui.btn_exit.clicked.connect(self.quit)
             self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
@@ -302,6 +305,9 @@ class Controller(QtWidgets.QMainWindow):
         log.debug("Platform park state changed to %s", "parked" if state else "unparked")
 
     def set_intensity(self, intensity):
+        if type(intensity) == str and "intensity=" in intensity:
+            m, intensity = cmd.split('=', 2)
+        intensity = int(intensity)
         lower_payload_weight = 20  # todo - move these or replace with real time load cell readings
         upper_payload_weight = 90
         payload = self.scale((intensity), (0, 10), (lower_payload_weight, upper_payload_weight))
@@ -403,9 +409,6 @@ class Controller(QtWidgets.QMainWindow):
 
 
 app = QtWidgets.QApplication(sys.argv) 
-
-cfg = importlib.import_module(platform_selection).PlatformConfig()
-client = importlib.import_module(client_selection).InputInterface(gutil.sleep_qt)
 
 def man():
     parser = argparse.ArgumentParser(description='Platform Controller\nAMDX motion platform control application')

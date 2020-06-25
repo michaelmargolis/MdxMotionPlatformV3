@@ -1,5 +1,5 @@
 """
-  remote client for space_coaster_player for V3 software
+  remote client for space_coaster for V3 software
   
   This version controls two local clients with one or more running on remote pc
 
@@ -21,8 +21,7 @@ from tcp_client import SockClient
 
 #  from remote_client_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-from space_coaster.remote_client_gui_defs import Ui_Frame
-
+from SpaceCoaster.remote_client_gui_defs import Ui_Frame
 
 import logging
 log = logging.getLogger(__name__)

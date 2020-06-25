@@ -3,11 +3,11 @@
 """
 Uncomment one of the above to select the client
 """
-client_selection = 'coaster.coaster_client'  # for NoLimits2
-#  client_selection = 'space_coaster.space_coaster'
-#  client_selection = 'space_coaster.remote_client'
+#  client_selection = 'coaster.coaster_client'  # for NoLimits2
+#  client_selection = 'SpaceCoaster.space_coaster'
+client_selection = 'SpaceCoaster.remote_client'
 #  client_selection = 'flight_sim.flight_sim_client'
-# client_selection = 'client.simple_input'    # simple gui test 
+#  client_selection = 'client.simple_input'    # simple gui test 
 
 """
 Uncomment one of the following to select the platform configuration

@@ -28,7 +28,7 @@ import numpy as np  # for scaling telemetry data
 
 #  from space_coaster_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-from space_coaster.space_coaster_gui_defs import Ui_Frame
+from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
 
  
 # sys.path.insert(0, '../common')
@@ -377,7 +377,7 @@ class InputInterface(object):
 
     def read_telemetry(self):
         try:
-            path = os.path.abspath('space_coaster/chairGen_telemetry.csv')
+            path = os.path.abspath('SpaceCoaster/chairGen_telemetry.csv')
             if not os.path.isfile(path): path = 'chairGen_telemetry.csv'
             with open(path, 'rb') as csvfile:
                 log.info("opened space coaster telemetry file: chairGen_telemetry.csv")
