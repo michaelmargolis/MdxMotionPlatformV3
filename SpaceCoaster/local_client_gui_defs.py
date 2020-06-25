@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'space_coaster\local_client_gui.ui'
+# Form implementation generated from reading ui file 'local_client_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #

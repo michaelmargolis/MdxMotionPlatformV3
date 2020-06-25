@@ -18,15 +18,16 @@ platform_selection = 'output.configNextgen'
 """
 The following default values should be changed only if you know what you are doing
 """
-Festo_IP_ADDR = '192.168.0.10'
-Festo_Port = 995
+class cfg(object):
+    Festo_IP_ADDR = '192.168.0.10'
+    Festo_Port = 995
 
-# set the following to None if using auto discovery of NoLimits, otherwise set to static address of NoLimits PC
-HARD_CODED_IP = None  # default addr is '192.168.0.4'
-# note the default addr for optional computer running control software is 192.168.0.2
+    # set the following to None if using auto discovery of NoLimits, otherwise set to static address of NoLimits PC
+    HARD_CODED_IP = None  # default addr is '192.168.0.4'
+    # note the default addr for optional computer running control software is 192.168.0.2
 
-SHOW_CHAIR_IMAGES = False  # set True to display orientation of chair in GUI (Requires Python PIL lib)
+    SHOW_CHAIR_IMAGES = False  # set True to display orientation of chair in GUI (Requires Python PIL lib)
 
-USE_PI_SWITCHES = True # uses hardware switches on Pi if set true, ignored if controller is not running on Pi
+    USE_PI_SWITCHES = True # uses hardware switches on Pi if set true, ignored if controller is not running on Pi
 
-# see serial_remote.py module to change baud rate and driver name for serial remote control
+    # see serial_remote.py module to change baud rate and driver name for serial remote control

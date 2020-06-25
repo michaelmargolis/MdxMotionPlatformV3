@@ -24,7 +24,7 @@ from common.dynamics import Dynamics
 
 # Importlib used to load configurations for client and platform as selected in platform_config.py
 import importlib
-from  platform_config import client_selection, platform_selection
+from  platform_config import client_selection, platform_selection, cfg
 pfm = importlib.import_module(platform_selection).PlatformConfig()
 client = importlib.import_module(client_selection).InputInterface(gutil.sleep_qt)
 
@@ -74,7 +74,7 @@ class Controller(QtWidgets.QMainWindow):
                 try:
                     import RPi.GPIO as GPIO 
                     import RemoteControls.local_control_itf as local_control_itf
-                    if USE_PI_SWITCHES:
+                    if cfg.USE_PI_SWITCHES:
                         self.local_control = local_control_itf.LocalControlItf(self.RemoteControl.actions)
                         log.info("using local hardware switch control")
                         if self.local_control.is_activated():
@@ -306,7 +306,7 @@ class Controller(QtWidgets.QMainWindow):
 
     def set_intensity(self, intensity):
         if type(intensity) == str and "intensity=" in intensity:
-            m, intensity = cmd.split('=', 2)
+            m, intensity = intensity.split('=', 2)
         intensity = int(intensity)
         lower_payload_weight = 20  # todo - move these or replace with real time load cell readings
         upper_payload_weight = 90
