@@ -244,7 +244,7 @@ class Controller(QtWidgets.QMainWindow):
         self.set_activation_buttons(True)
         client.activate()
 
-    def disable_platform(self):        
+    def disable_platform(self):
         request = self.process_request(client.get_current_pos())
         actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(False, self.actuator_lengths)

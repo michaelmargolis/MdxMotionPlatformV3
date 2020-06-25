@@ -64,7 +64,7 @@ class LocalControlItf(object):   # was SerialRemote(object):
            self.park_inc += dir
     
     def button_callback(self, msg):
-        print('local control', msg)
+        #  print('local control', msg)
         if msg == 'enc_pushed':
              self.enc_pushed = True
              self.actions['show_parks']('True')
@@ -82,7 +82,7 @@ class LocalControlItf(object):   # was SerialRemote(object):
         self.buttons.service()
         if self.prev_intensity != self.intensity:
             msg = format("intensity=%d" % (self.intensity))
-            print(msg)
+            # print(msg)
             self.actions['intensity'](msg)
             self.prev_intensity = self.intensity
         if self.park_inc > 1:
