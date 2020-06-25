@@ -17,7 +17,7 @@ except ImportError:
 
 import csv,os
 
-from tcp_client import SockClient
+from common.tcp_client import SockClient
 
 #  from remote_client_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets

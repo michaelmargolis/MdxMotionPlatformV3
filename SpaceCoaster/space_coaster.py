@@ -28,12 +28,21 @@ import numpy as np  # for scaling telemetry data
 
 #  from space_coaster_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
+try:
+    # here if run as client of platform_controller
+    from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
+    from common.tcp_server import tcp_server
+    from common.ride_state import RideState
+    import common.gui_utils as gutil
+except:
+    # here if run as __main__
+    from space_coaster_gui_defs import Ui_Frame
+    from local_client_gui_defs import Ui_MainWindow
+    sys.path.insert(0, '../common')
+    import tcp_server
+    from ride_state import RideState
+    import gui_utils as gutil
 
- 
-# sys.path.insert(0, '../common')
-from common.ride_state import RideState
-import common.gui_utils as gutil
 
 class SC_State:  # these are space coaster specific states
     initializing, waiting, ready, running, completed = list(range(0,5))
@@ -492,11 +501,9 @@ class LocalClient(QtWidgets.QMainWindow):
         sys.exit()
  
 if __name__ == "__main__":
-    from local_client_gui_defs import *
-    import tcp_server
     sys.path.insert(0, '../output')
     import importlib  
-    
+
     log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     log.info("Python: %s, qt version %s", sys.version[0:5], QtCore.QT_VERSION_STR)
