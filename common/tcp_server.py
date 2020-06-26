@@ -66,7 +66,7 @@ class SockServer(threading.Thread):
         return IP
 
     def send(self, msg):
-        log.debug("sending: %s", msg)
+        #  log.debug("sending: %s", msg)
         self.out_queue.put(msg)
 
     def available(self):
@@ -133,7 +133,7 @@ class SockServerThread(threading.Thread):
                             except:
                                 log.debug("unable to append to tcp in_queue")
                             # Strip newlines just for output clarity
-                            log.debug('thread %d Received %s',  self.id, read_data.rstrip())
+                            #  log.debug('thread %d Received %s',  self.id, read_data.rstrip())
                     except socket.error as error:
                         if error.errno == socket.errno.WSAECONNRESET:
                             log.error("got disconnect error on connection to %s", self.client_addr)
@@ -164,11 +164,11 @@ class SockServerThread(threading.Thread):
 ###################  test code run from main ##################
 
 def main():
-    import msvcrt # for kbhit
+    from kbhit  import KBHit
 
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%H:%M:%S')
-
+    kb = KBHit()
     server = SockServer(port=10015)
     server.start()
     is_running = True
@@ -182,8 +182,8 @@ def main():
                     server.send(msg) # echo the message
             except Exception as e:
                 log.error("Error reading server que %s", e)
-        if msvcrt.kbhit():  
-            if ord(msvcrt.getch()) == 27: # esc
+        if kb.kbhit():  
+            if ord(kb.getch()) == 27: # esc
                 break
     server.close()
     server.join()

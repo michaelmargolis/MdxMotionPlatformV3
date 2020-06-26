@@ -216,7 +216,6 @@ class Controller(QtWidgets.QMainWindow):
             m, intensity = cmd.split('=', 2)
             self.set_intensity(int(intensity))
 
-
     def activate(self):
         """remote controls call this method"""
         self.enable_platform()
@@ -226,15 +225,6 @@ class Controller(QtWidgets.QMainWindow):
         self.disable_platform()
         
     def enable_platform(self):
-        """
-        enable sets flag to for output
-
-        
-        disable resets flag for output
-        calls client to reset
-        engages piston
-        drops platform to disabled pos
-        """
         # request = self.process_request(client.get_current_pos())
         # actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(True, self.actuator_lengths)
@@ -340,50 +330,21 @@ class Controller(QtWidgets.QMainWindow):
         # self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
         self.platform.set_d_to_p_indices(self.DtoP.up_curve_idx, self.DtoP.down_curve_idx)
 
-
     def scale(self, val, src, dst): # the Arduino 'map' function written in python
         return (val - src[0]) * (dst[1] - dst[0]) / (src[1] - src[0])  + dst[0]
 
-    def process_request(self, request):
-        #  print "in process", request
-        if client.is_normalized:
-            # print "pre regulate", request,
-            # request = shape.shape(request)  # adjust gain & washout and convert from norm to real
-            request = self.dynam.regulate(request)
-            #  print "post",request
-        return request
-
-    def move(self, position_request):
-        #  position_requests are in mm and radians (not normalized)
-        #start = time.time()
-        # print "req= " + " ".join('%0.2f' % item for item in position_request)
-        self.actuator_lengths = self.k.actuator_lengths(position_request)
-        if self.ui_tab == 2: # the output tab
-            self.output_gui.show_muscles(position_request, self.actuator_lengths)
-        ## if client.USE_UDP_MONITOR and client.USE_UDP_MONITOR == True:
-        ## self.platform.echo_requests_to_udp(position_request)
-        self.platform.move_distance(self.actuator_lengths)
-
-        #  print "dur =",  time.time() - start, "interval= ",  time.time() - self.prevT
-        #  self.prevT =  time.time()
-
-    def move_func(self, request): # move handler to position platform
-        #  print "request is translation/rotation list:", request
+    def move_func(self, request): 
+        """ method called by client with list of translation and rotation and translation values"""
         try:
             start = time.time()
-            r = self.process_request(np.array(request))
-
-            self.move(r)
-            """
-            if client.log:
-                r[3] = r[3]* 57.3  # convert to degrees
-                r[4] = r[4]* 57.3
-                r[5] = r[5]* 57.3
-                # client.log(r)
-            """
+            if client.is_normalized:
+                request = self.dynam.regulate(request)
+            self.actuator_lengths = self.k.actuator_lengths(np.array(request))
+            if self.ui_tab == 2: # the output tab
+                self.output_gui.show_muscles(request, self.actuator_lengths)
+            self.platform.move_distance(self.actuator_lengths)
             log.debug("processing duration = %d", time.time() - start)
-        except:
-            e = sys.exc_info()[0]  # report error
+        except Exception as e:
             log.error("error in move function %s", e)
 
     def service(self):

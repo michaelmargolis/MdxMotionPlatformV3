@@ -159,8 +159,8 @@ def latency_test(addr):
                 time.sleep(0.05)
                 client.send(str(millis()) + '\n')
                 
-        if msvcrt.kbhit(): 
-            key = msvcrt.getch()
+        if kb.kbhit(): 
+            key = kb.getch()
             if ord(key) == 27: # esc
                 break
     client.disconnect()
@@ -179,8 +179,8 @@ def coaster_test(addr):
                 client.service()
         except Exception as e:
             print( "err", str(e))
-        if msvcrt.kbhit(): 
-            key = msvcrt.getch()
+        if kb.kbhit(): 
+            key = kb.getch()
             if ord(key) == 27: # esc
                 return
             elif client.status.connected:
@@ -210,7 +210,7 @@ def man():
     return parser
     
 if __name__ == "__main__":
-    import msvcrt # for kbhit  
+    from kbhit  import KBHit
     import argparse
     args = man().parse_args()
     print(args)
@@ -222,6 +222,7 @@ if __name__ == "__main__":
         level = 'DEBUG'
     print(level, "logging level")
     log.setLevel(level)
+    kb = KBHit()
     if args.address:
         latency_test(args.address)
         # coaster_test(args.address)

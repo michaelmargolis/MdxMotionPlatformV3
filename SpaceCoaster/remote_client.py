@@ -17,18 +17,25 @@ except ImportError:
 
 import csv,os
 
-from common.tcp_client import SockClient
-
 #  from remote_client_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-from SpaceCoaster.remote_client_gui_defs import Ui_Frame
+
 
 import logging
 log = logging.getLogger(__name__)
 
-# sys.path.insert(0, '../common')
-from common.ride_state import RideState
-import common.gui_utils as gutil
+if __name__ == "__main__":
+    sys.path.insert(0, '../output')
+    sys.path.insert(0, '../common')
+    from remote_client_gui_defs import Ui_Frame
+    from tcp_client import SockClient
+    from ride_state import RideState
+    import gui_utils as gutil
+else:
+    from SpaceCoaster.remote_client_gui_defs import Ui_Frame
+    from common.tcp_client import SockClient
+    from common.ride_state import RideState
+    import common.gui_utils as gutil
 
 import ctypes # for mouse
 import numpy as np  # for scaling telemetry data
@@ -268,14 +275,15 @@ class RemoteClient(QtWidgets.QMainWindow):
  
 if __name__ == "__main__":
     sys.path.insert(0, '../output')
-    from .local_client_gui_defs import *
+    sys.path.insert(0, '../common')
+    from local_client_gui_defs import Ui_MainWindow
     import importlib  
    
    #start_logging(log.DEBUG)
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%H:%M:%S')
     log.info("Starting remote client")
-    
+
     # platform_selection = 'ConfigV3'
     platform_selection = 'configNextgen'
     cfg = importlib.import_module(platform_selection).PlatformConfig()

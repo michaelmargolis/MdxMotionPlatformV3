@@ -56,7 +56,7 @@ class InputInterface(object):
     
     def set_focus(self, window_class=None, window_title=None):
         guiHwnd = win32gui.FindWindow(window_class,window_title)
-        log.debug("gui Hwnd= %d", guiHwnd)
+        log.debug("window name=%s, class=%s, Hwnd= %d", window_title, window_class, guiHwnd)
         win32gui.SetForegroundWindow(guiHwnd)
         
     def left_mouse_click(self):
@@ -169,7 +169,8 @@ class InputInterface(object):
                 self.report_coaster_status("Coaster running", "green")
         elif self.state == RideState.RUNNING:
                 log.debug("Pausing coaster")
-                self.set_focus("QWidget") 
+                log.warning("if pause does not work, check space coaster local client MainWindow name")
+                self.set_focus("Qt5QWindowIcon", "MainWindow") 
                 self.is_paused = True
                 self.state = RideState.PAUSED
                 self.report_coaster_status("Coaster paused", "orange")
@@ -264,7 +265,6 @@ class InputInterface(object):
             self.report_connection_status("Space Coaster Connected", "green") 
         msg = None
         try:
-                    
             while  self.cmdQ.qsize() > 0:
                 sc_state = self.cmdQ.get()
                 self.process_state(sc_state)
@@ -276,7 +276,7 @@ class InputInterface(object):
                     log.warning("in service, setting is_paused to True because nothing in the coaster q")
                     self.is_paused = True
             else:
-                if self.state == SC_State.running and not self.is_paused:
+                if self.state == RideState.RUNNING:
                     try:
                         self.levels = self.telemetry[self.frame_number]
                     except IndexError:
