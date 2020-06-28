@@ -35,10 +35,10 @@ if __name__ == "__main__":
     from local_client_gui_defs import Ui_MainWindow
     sys.path.insert(0, '../common')
     from tcp_server import SockServer
-    from ride_state import RideState
     import gui_utils as gutil
     sys.path.insert(0, '../')
     from client_api import ClientApi
+    from ride_state import RideState
 else:
     # here if run as client of platform_controller
     from client_api import ClientApi

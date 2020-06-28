@@ -38,7 +38,6 @@ else:
     from ride_state import RideState
     from SpaceCoaster.remote_client_gui_defs import Ui_Frame
     from common.tcp_client import SockClient
-    from common.ride_state import RideState
     import common.gui_utils as gutil
 
 import ctypes # for mouse
@@ -148,7 +147,7 @@ class InputInterface(ClientApi):
 
     def begin(self, cmd_func, limits):
         # self.clients.append(SockClient('127.0.0.1', 10015))
-        self.clients.append(SockClient('192.168.1.23', 10015))
+        self.clients.append(SockClient('192.168.1.16', 10015))
         self.cmd_func = cmd_func
         self.limits = limits  # note limits are in mm and radians        
         if self.is_normalized:
@@ -175,7 +174,7 @@ class InputInterface(ClientApi):
     def service(self):
         if self.check_client_connections():
             for idx, client in enumerate(self.clients):
-                #print "sending telemetry request for client", idx
+                # print("sending telemetry request for client", idx)
                 client.send('telemetry\n')
                 while client.available() > 0:
                     event = client.receive()

@@ -61,6 +61,7 @@ class Controller(QtWidgets.QMainWindow):
             self.ma = MA(10)  # moving average for processing time diagnostics
             log.warning("Dynamics module has washout disabled, test if this is acceptable")
             self.init_remote_controls()
+            self.service()
             log.info("Platform controller initializations complete")
         except:
             raise
@@ -367,7 +368,7 @@ class Controller(QtWidgets.QMainWindow):
                     delta = t-self.FRAME_RATE_ms
                     if delta > -1:
                         self.prev_service = now
-                        self.f.write(format("%f, %f\n" % (t, delta)))
+                        #  self.f.write(format("%f, %f\n" % (t, delta)))
                         self.RemoteControl.service()
                         if self.local_control:
                             self.local_control.service()
@@ -380,7 +381,7 @@ class Controller(QtWidgets.QMainWindow):
                     log.warning("timing test exception %s", e)
             else:
                 self.prev_service = time.time()
-                self.f = open("timer_test.csv", "w")
+                # self.f = open("timer_test.csv", "w")
                 log.warning("starting service timing latency capture to file: timer_test.csv")
             QtCore.QTimer.singleShot(1, self.service)
         else:

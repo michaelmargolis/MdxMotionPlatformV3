@@ -174,10 +174,10 @@ class MuscleOutput(object):
         rate_mm = rate_cm_per_s *10
         interval = .05  # ms between steps
         distance = max(end - start, key=abs)
-        print "max distance=", distance
+        # print("max distance=", distance)
         dur = abs(distance) / rate_mm
         steps = int(dur / interval)
-        print "steps", steps, type(steps)
+        #print("steps", steps, type(steps))
         if steps < 1:
             self.move_distance(end)
         else:
