@@ -287,13 +287,13 @@ class Controller(QtWidgets.QMainWindow):
                 log.debug("TODO check if festo msg sent before delay")
                 gutil.sleep_qt(0.5)
             if pfm.HAS_BRAKE:
-                print "todo, set brake"
+                print("todo, set brake")
         else:  #  unpark
             if pfm.HAS_PISTON:
                 self.platform.set_pistion_flag(True)
                 log.debug("setting flag to activate piston to 1")
             if pfm.HAS_BRAKE:
-                print "todo, release brake"
+                print("todo, release brake")
         log.debug("Platform park state changed to %s", "parked" if do_park else "unparked")
 
     def set_intensity(self, intensity):
