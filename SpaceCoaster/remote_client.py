@@ -29,12 +29,13 @@ if __name__ == "__main__":
     sys.path.insert(0, '../common')
     from remote_client_gui_defs import Ui_Frame
     from tcp_client import SockClient
-    from ride_state import RideState
     import gui_utils as gutil
     sys.path.insert(0, '../')
     from client_api import ClientApi
+    from ride_state import RideState
 else:
     from client_api import ClientApi
+    from ride_state import RideState
     from SpaceCoaster.remote_client_gui_defs import Ui_Frame
     from common.tcp_client import SockClient
     from common.ride_state import RideState

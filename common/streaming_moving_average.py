@@ -20,4 +20,4 @@ if __name__ == '__main__':
     ma = StreamingMovingAverage(8)
     for val in values:
         avg = ma.next(val)
-        print val, avg, int(round(avg))
+        print(val, avg, int(round(avg)))
