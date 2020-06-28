@@ -2,9 +2,13 @@ import sys
 import socket
 import logging
 import traceback
+import time
 
 import easyip
 from festo_emulator_gui_defs import *
+
+sys.path.insert(0, '../../common')
+from streaming_moving_average import StreamingMovingAverage as MA
 
 log = logging.getLogger(__name__)
 
@@ -20,8 +24,10 @@ class MainWindow(QtWidgets.QMainWindow):
         host_name = socket.gethostname() 
         host_ip = socket.gethostbyname(host_name) 
         self.init_gui()
+        self.prev_message_time = 0
+        self.timeout_start_time = None
+        self.ma = MA(10)
         log.info("Festo emulator running on %s", host_ip)
-
 
     def init_gui(self):
         self.pressure_bars = [self.ui.muscle_0,self.ui.muscle_1,self.ui.muscle_2,self.ui.muscle_3,self.ui.muscle_4,self.ui.muscle_5]
@@ -31,18 +37,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_pressures(self, pressures):
         if pressures == 0:
-           self.show_disconnected()
+           self.show_timeout()
         else:
             try:
                 self.display_pressure_bars(pressures)
             except TypeError as e:
                 print(pressures, e)
 
-    def show_disconnected(self):
-        self.display_pressure_bars((0,0,0,0,0,0))
-        for t in self.txt_muscles:
-            t.setText('?')
-        self.ui.lbl_connection.setText("Not Connected")
+    def show_timeout(self):
+        self.ui.lbl_connection.setText("Idle")
+        log.debug("Festo emulator idle")
 
     def display_pressure_bars(self, pressures):
         for idx, p in enumerate(pressures):
@@ -57,18 +61,23 @@ class MainWindow(QtWidgets.QMainWindow):
         while True:
             try:
                 data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
-                # if 'quit" in data:
-                #     sys.exit()
+                t = time.time()
                 resp = easyip.Packet(data)
                 values = resp.decode_payload(easyip.Packet.DIRECTION_SEND)
                 log.debug("received msg %s from %s", data, addr)
                 self.show_pressures(values)
                 self.ui.lbl_connection.setText("Connected to " + addr[0])
+                if self.prev_message_time:
+                    avg = int(round(self.ma.next((t - self.prev_message_time) *1000)))
+                    self.ui.lbl_interval.setText(format("%d" % avg))
                 self.send_response(resp, addr)
+                self.prev_message_time = t
                 self.app.processEvents()
             except socket.timeout:
                 log.debug("festo emulator timeout")
-                self.show_disconnected()
+                self.show_timeout()
+                if self.prev_message_time:
+                    self.ui.lbl_interval.setText(format("%d" % (t - self.prev_message_time) *1000))
                 self.app.processEvents()
                 continue
             except Exception as e:

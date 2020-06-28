@@ -23,8 +23,7 @@ import traceback
 import logging
 log = logging.getLogger(__name__)
 
-sys.path.insert(0, '../')
-import platform_config as cfg
+from  platform_config import cfg
 
 deg = u"\N{DEGREE SIGN}"
 

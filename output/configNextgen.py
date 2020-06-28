@@ -34,9 +34,9 @@ class PlatformConfig(object):
         self.lower_origin = [] # slider coordinates closest to center 
 
         self.DISABLED_LEN = 0 # muscles fully relaxed
-        self.PROPPING_LEN = 0 # only used when platform has piston prop
-        self.HAS_PISTON = True  # True if platform has piston actuated prop
-        self.HAS_BRAKE = False # True if platform has electronic braking when parked
+        self.PROPPING_LEN = 0 # only used when platform has piston prop or stairs
+        self.HAS_PISTON = False  # True if platform has piston actuated prop
+        self.HAS_BRAKE = True # True if platform has electronic braking when parked
 
         #  the range in mm or radians from origin to max extent in a single DOF 
         self.limits_1dof = [60, 60, 75 , math.radians(12), math.radians(12), math.radians(12)]

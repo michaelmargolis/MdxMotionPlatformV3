@@ -28,21 +28,24 @@ import numpy as np  # for scaling telemetry data
 
 #  from space_coaster_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-try:
-    # here if run as client of platform_controller
-    from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
-    from common.tcp_server import tcp_server
-    from common.ride_state import RideState
-    import common.gui_utils as gutil
-except:
+
+if __name__ == "__main__":
     # here if run as __main__
     from space_coaster_gui_defs import Ui_Frame
     from local_client_gui_defs import Ui_MainWindow
     sys.path.insert(0, '../common')
-    import tcp_server
+    from tcp_server import SockServer
     from ride_state import RideState
     import gui_utils as gutil
-
+    sys.path.insert(0, '../')
+    from client_api import ClientApi
+else:
+    # here if run as client of platform_controller
+    from client_api import ClientApi
+    from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
+    from ride_state import RideState
+    from common.tcp_server import SockServer
+    import common.gui_utils as gutil
 
 class SC_State:  # these are space coaster specific states
     initializing, waiting, ready, running, completed = list(range(0,5))
@@ -50,10 +53,55 @@ class SC_State:  # these are space coaster specific states
 class ConnectionException(Exception):
     pass
 
-class InputInterface(object):
+class InputInterface(ClientApi):
     USE_GUI = True  # set True if using tkInter
     USE_UDP_MONITOR = False
-    
+
+    def __init__(self, is_local_client = False):
+        super(InputInterface, self).__init__()
+        self.sleep_func = gutil.sleep_qt
+        self.name = "Space Coaster"
+        self.is_local_client = is_local_client
+        self.log = None
+        self.is_normalized = True
+        self.expect_degrees = False # convert to radians if True
+        self.SC_HOST = "localhost"
+        self.SC_PORT = 10009 
+        self.max_values = [80, 80, 80, 0.4, 0.4, 0.4]
+        self.telemetry = []
+        self.start_frame = 30
+        self.cosmetic_frame = 0
+        self.frame_number = self.start_frame
+        self.coaster_status = "Waiting to complete initial run" 
+        self.connection_status = "Not yet set"
+       
+        self.sc_state_str = ("Initializing", "Waiting", "Ready", "Running", "Completed")
+        self.sc_state = -1 # this is the internal space coaster state
+        self.state = RideState.DISABLED  # this is the generic ride state used by all clients
+        self.is_paused = False
+
+        self.actions = {'detected remote': self.detected_remote, 'pause': self.pause,
+                        'dispatch': self.dispatch, 'reset': self.reset_vr,
+                        'emergency_stop': self.emergency_stop, 'intensity' : self.set_intensity,
+                        'info' : self.remote_info }
+        if self.is_local_client:
+           log.info("Starting as local client")
+
+    def init_gui(self, frame):
+        self.frame = frame
+        self.ui = Ui_Frame()
+        self.ui.setupUi(frame)
+
+        # configure signals
+        self.ui.btn_dispatch.clicked.connect(self.dispatch_pressed)
+        self.ui.btn_pause.clicked.connect(self.pause_pressed)
+        self.ui.btn_reset_rift.clicked.connect(self.reset_vr)
+
+        self.report_connection_status(self.connection_status, 'red')
+        self.report_coaster_status(self.coaster_status, 'black')
+        
+        log.info("Client GUI initialized")
+
     def set_focus(self, window_class=None, window_title=None):
         guiHwnd = win32gui.FindWindow(window_class,window_title)
         log.debug("window name=%s, class=%s, Hwnd= %d", window_title, window_class, guiHwnd)
@@ -71,54 +119,6 @@ class InputInterface(object):
         ctypes.windll.user32.SetCursorPos(100, 20)
         ctypes.windll.user32.mouse_event(8, 0, 0, 0,0) # right down
         ctypes.windll.user32.mouse_event(16, 0, 0, 0,0) # right up
-
-
-    def __init__(self, sleep_func, is_local_client = False):
-        self.sleep_func = sleep_func
-        self.name = "Space Coaster"
-        self.is_local_client = is_local_client
-        self.log = None
-        self.is_normalized = True
-        self.expect_degrees = False # convert to radians if True
-        self.SC_HOST = "localhost"
-        self.SC_PORT = 10009 
-        self.max_values = [80, 80, 80, 0.4, 0.4, 0.4]
-        self.levels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # pre normalized
-        
-        #  self.normalized = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.telemetry = []
-        self.start_frame = 30
-        self.cosmetic_frame = 0
-        self.frame_number = self.start_frame
-        self.coaster_status = "Waiting to complete initial run" 
-        self.connection_status = "Not yet set"
-       
-        self.sc_state_str = ("Initializing", "Waiting", "Ready", "Running", "Completed")
-        self.sc_state = -1 # this is the internal space coaster state
-        self.state = RideState.DISABLED  # this is the generic ride state used by all clients
-        self.is_paused = False
-
-        self.actions = {'detected remote': self.detected_remote, 'pause': self.pause,
-                        'dispatch': self.dispatch, 'reset': self.reset,
-                        'emergency_stop': self.emergency_stop, 'intensity' : self.set_intensity,
-                        'info' : self.remote_info }
-        if self.is_local_client:
-           log.info("Starting as local client")
-
-    def init_gui(self, frame):
-        self.frame = frame
-        self.ui = Ui_Frame()
-        self.ui.setupUi(frame)
-
-        # configure signals
-        self.ui.btn_dispatch.clicked.connect(self.dispatch_pressed)
-        self.ui.btn_pause.clicked.connect(self.pause_pressed)
-        self.ui.btn_reset_rift.clicked.connect(self.reset)
-
-        self.report_connection_status(self.connection_status, 'red')
-        self.report_coaster_status(self.coaster_status, 'black')
-        
-        log.info("Client GUI initialized")
 
     def set_rc_label(self, info):
         gutil.set_text(self.ui.lbl_remote_status, info[0], info[1])
@@ -142,7 +142,7 @@ class InputInterface(object):
     
     def form_telemetry_msg(self):
         # state,frame,is_paused;x,y,z,r,p,y;coaster_state;connection_state
-        xyzrpy = ",".join('%0.4f' % item for item in self.levels)
+        xyzrpy = ",".join('%0.4f' % item for item in self.get_transform())
         self.telemetry_msg = format("%d,%d,%d;%s;%s;%s\n" % (self.state,self.cosmetic_frame,self.is_paused,
                              xyzrpy, self.coaster_status_str,self.connection_status_str))
         return self.telemetry_msg
@@ -175,7 +175,7 @@ class InputInterface(object):
                 self.state = RideState.PAUSED
                 self.report_coaster_status("Coaster paused", "orange")
 
-    def reset(self):
+    def reset_vr(self):
         log.info("resetting Rift")
         self.right_mouse_click()
 
@@ -209,9 +209,8 @@ class InputInterface(object):
     def deactivate(self):
         pass
 
-    def begin(self, cmd_func, move_func, limits):
+    def begin(self, cmd_func, limits):
         self.cmd_func = cmd_func
-        self.move_func = move_func
         self.limits = limits  # note limits are in mm and radians
         self.read_telemetry()
         self.xyzrpyQ = Queue()
@@ -255,9 +254,6 @@ class InputInterface(object):
         # client exit code goes here
         pass
 
-    def get_current_pos(self):
-        return self.levels
-
     def service(self):
         if self.is_coaster_connected == 0:
             self.report_connection_status("Not connected to Coaster", "red") 
@@ -278,13 +274,11 @@ class InputInterface(object):
             else:
                 if self.state == RideState.RUNNING:
                     try:
-                        self.levels = self.telemetry[self.frame_number]
+                        self.set_transform(self.telemetry[self.frame_number])
                     except IndexError:
                          log.warning("Invalid telemetry frame, reset frame to 0")
                          self.frame_number = 0
-                    #  print "coaster running", self.frame_number, [ '%.2f' % elem for elem in self.levels]
-                    if self.move_func:
-                        self.move_func(self.levels)
+                    #  print "coaster running", self.frame_number, [ '%.2f' % elem for elem in self.transform]
                     cosmetic_frame = self.frame_number - self.start_frame
                     self.cosmetic_frame = cosmetic_frame 
                     if self.frame_number % 20 == 0:
@@ -444,18 +438,18 @@ class LocalClient(QtWidgets.QMainWindow):
         reset, dispatch, pause 
     
     """
-    def __init__(self, sleep_func):
+    def __init__(self):
         log.info("Starting space coaster local client")
         try:
             QtWidgets .QMainWindow.__init__(self)
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
             
-            self.client = InputInterface(sleep_func, True) 
+            self.client = InputInterface(True) 
             self.client.init_gui(self.ui.frame)
             limits = cfg.limits_1dof
-            self.client.begin(self.cmd_func, self.move_func, limits)
-            self.server = tcp_server.SockServer(port=10015)
+            self.client.begin(self.cmd_func, limits)
+            self.server = SockServer(port=10015)
             self.server.start()
             log.info("Started tcp server, this IP address is %s", self.server.get_local_ip())
             service_timer = QtCore.QTimer(self)
@@ -493,9 +487,6 @@ class LocalClient(QtWidgets.QMainWindow):
     def cmd_func(self, cmd):  # command handler function called from Platform input
         if cmd == "quit": self.quit()
 
-    def move_func(self, request):  # move handler to position platform as requested by Platform input
-        pass
-        
     def quit(self):
         log.info("Executing quit command")
         sys.exit()
@@ -504,7 +495,7 @@ if __name__ == "__main__":
     sys.path.insert(0, '../output')
     import importlib  
 
-    log_level = logging.INFO
+    log_level = logging.DEBUG
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     log.info("Python: %s, qt version %s", sys.version[0:5], QtCore.QT_VERSION_STR)
     
@@ -515,7 +506,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv) 
     
     try:       
-        local_client = LocalClient(gutil.sleep_qt)
+        local_client = LocalClient()
         local_client.show()
         app.exec_()
     except ConnectionException as error:

@@ -83,8 +83,8 @@ if __name__ == "__main__":
         print("pause")
     def dispatch():
         print("dispatch")
-    def reset():
-        print("reset")
+    def reset_vr():
+        print("reset vr")
     def deactivate():
         print("deactivate")
     def emergency_stop():

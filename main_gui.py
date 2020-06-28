@@ -91,7 +91,7 @@ class Ui_MainWindow(object):
         self.btn_deactivate.setFont(font)
         self.btn_deactivate.setObjectName("btn_deactivate")
         self.lbl_festo_status = QtWidgets.QLabel(self.frame_3)
-        self.lbl_festo_status.setGeometry(QtCore.QRect(480, 10, 7, 19))
+        self.lbl_festo_status.setGeometry(QtCore.QRect(480, 10, 311, 19))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.lbl_festo_status.setFont(font)

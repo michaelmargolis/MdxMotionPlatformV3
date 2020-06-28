@@ -31,7 +31,10 @@ if __name__ == "__main__":
     from tcp_client import SockClient
     from ride_state import RideState
     import gui_utils as gutil
+    sys.path.insert(0, '../')
+    from client_api import ClientApi
 else:
+    from client_api import ClientApi
     from SpaceCoaster.remote_client_gui_defs import Ui_Frame
     from common.tcp_client import SockClient
     from common.ride_state import RideState
@@ -44,18 +47,17 @@ import numpy as np  # for scaling telemetry data
 #    initializing, waiting, ready, running, completed = list(range(0,5))
 
 
-class InputInterface(object):
+class InputInterface(ClientApi):
     USE_UDP_MONITOR = False
 
-    def __init__(self, sleep_func):
-        self.sleep_func = sleep_func
+    def __init__(self):
+        super(InputInterface, self).__init__()
+        self.sleep_func = gutil.sleep_qt
         self.name = "Remote Client"
         self.is_normalized = True
         self.expect_degrees = False # convert to radians if True
 
         self.max_values = [80, 80, 80, 0.4, 0.4, 0.4]
-        self.levels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # pre normalized
-        
         self.normalized = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.previous_msg_time = 0;
         self.telemetry = []
@@ -110,7 +112,7 @@ class InputInterface(object):
             for client in self.clients:
                 client.send('pause\n')
 
-    def reset(self):
+    def reset_vr(self):
         log.info("reset all rifts")
         for client in self.clients:
             client.send('reset\n')
@@ -143,11 +145,10 @@ class InputInterface(object):
     def deactivate(self):
         pass
 
-    def begin(self, cmd_func, move_func, limits):
+    def begin(self, cmd_func, limits):
         # self.clients.append(SockClient('127.0.0.1', 10015))
         self.clients.append(SockClient('192.168.1.23', 10015))
         self.cmd_func = cmd_func
-        self.move_func = move_func
         self.limits = limits  # note limits are in mm and radians        
         if self.is_normalized:
             log.info('Platform Input is Remote Client with normalized parms, %d clients connected', len(self.clients))
@@ -169,9 +170,6 @@ class InputInterface(object):
     def fin(self):
         # client exit code goes here
         pass
-
-    def get_current_pos(self):
-        return self.levels
 
     def service(self):
         if self.check_client_connections():
@@ -195,12 +193,10 @@ class InputInterface(object):
                             self.frame = frame
                             self.is_paused = is_paused
                             try:
-                                self.levels =[float(i) for i in msg[1].split(',')]
+                                self.transform =[float(i) for i in msg[1].split(',')]
                                 log.debug("telemetry: %s",  msg[1])
                             except:
                                 log.error("Unable to process telemetry %s", msg[1])
-                            if self.move_func:
-                               self.move_func(self.levels)
                         else:
                             if state != self.state:
                                 log.debug("state mismatch with idx %d", idx)
@@ -291,7 +287,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv) 
     
     try:       
-        remote_client = RemoteClient(gutil.sleep_qt)
+        remote_client = RemoteClient()
         remote_client.show()
         app.exec_()
         app.exit()

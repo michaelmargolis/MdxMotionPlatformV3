@@ -20,3 +20,5 @@ Note that the system needs most of the 50ms interval between service requests to
 This version uses pyqt instead of tkinter for the user interface
 
 The new 'flying' platform is supported in addition to the existing chairs
+
+Client classes are derived from client_api module

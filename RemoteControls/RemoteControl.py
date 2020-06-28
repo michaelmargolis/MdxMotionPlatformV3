@@ -15,7 +15,7 @@ class RemoteControl(object):
         self.UDP = UDP
         self.actions = {'detected remote': self.detected_remote, 'activate': self.controller.activate,
                    'deactivate': self.controller.deactivate, 'pause': self.controller.pause,
-                   'dispatch': self.controller.dispatch, 'reset': self.controller.reset,
+                   'dispatch': self.controller.dispatch, 'reset': self.controller.reset_vr,
                    'emergency_stop': self.controller.emergency_stop, 'intensity' : self.controller.set_intensity
                    # ,'show_parks' : self.show_parks,'scroll_parks' : self.scroll_parks}
                    }
@@ -35,8 +35,6 @@ class RemoteControl(object):
             self.SerialRemoteControl.service()
         if self.UDP:
             self.UdpRemoteControl.service() 
-
-
 
     def detected_remote(self, info):
         if "Detected Remote" in info:

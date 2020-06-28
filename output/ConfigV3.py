@@ -44,7 +44,7 @@ class PlatformConfig(object):
         MID_ACTUATOR_LEN = self.MIN_ACTUATOR_LEN + (self.MAX_ACTUATOR_RANGE/2)
 
         self.DISABLED_LEN = self.MAX_ACTUATOR_LEN *.95
-        self.PROPPING_LEN = self.MAX_ACTUATOR_LEN *.92  # length for stairs or piston prop
+        self.PROPPING_LEN = self.MAX_ACTUATOR_LEN *.92  # length for attaching stairs or moving prop
         self.HAS_PISTON = True  # True if platform has piston actuated prop
         self.HAS_BRAKE = False # True if platform has electronic braking when parked
 

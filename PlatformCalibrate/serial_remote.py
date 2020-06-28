@@ -166,8 +166,8 @@ if __name__ == "__main__":
         print "pause"
     def dispatch():
         print "dispatch"
-    def reset():
-        print "reset"
+    def reset_vr():
+        print "reset vr"
     def deactivate():
         print "deactivate"
     def emergency_stop():
@@ -177,7 +177,7 @@ if __name__ == "__main__":
             
     actions = {'detected remote': detected_remote, 'activate': activate,
                'deactivate': deactivate, 'pause': pause, 'dispatch': dispatch,
-               'reset': reset, 'emergency_stop': emergency_stop, 'intensity' : set_intensity}
+               'reset': reset_vr, 'emergency_stop': emergency_stop, 'intensity' : set_intensity}
  
     RemoteControl = SerialRemote(actions)
     while True:

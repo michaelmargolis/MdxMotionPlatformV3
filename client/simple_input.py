@@ -1,25 +1,20 @@
 """
   simple_input.py
 """
-
-from client_api import ClientApi
-
+import sys
 #  from simple_input_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from client.simple_input_gui_defs import Ui_Frame
 
-
-
-InputParmType = 'normalized'
-
+sys.path.insert(0, '../')
+from client_api import ClientApi
 
 class InputInterface(ClientApi):
 
-    def __init__(self, sleep_func):
-        super(InputInterface, self).__init__(sleep_func)
+    def __init__(self):
+        super(InputInterface, self).__init__()
         self.name  = "Simple test Client"
-        if InputParmType == 'normalized':
-            self.is_normalized = True
+        self.is_normalized = True # transform value extents are -1 to +1
 
     def init_gui(self, frame):
         self.ui = Ui_Frame()
@@ -39,23 +34,19 @@ class InputInterface(ClientApi):
     def move_slider_changed(self, sender_id):
         try:
             value = self.sliders[sender_id].value()
-            self.levels[sender_id] = float(value) *.01
+            self.transform[sender_id] = float(value) *.01
         except Exception as e:
             log.error("Client input error: %s", e)
 
     def update_sliders(self):
-        for idx, val in enumerate(self.levels):
-            self.sliders[idx].setValue(int(self.levels[idx]*100))
+        for idx, val in enumerate(self.transform):
+            self.sliders[idx].setValue(int(self.transform[idx]*100))
 
     def set_mid_pos(self):
-        self.levels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.transform = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.update_sliders()
 
-    def begin(self, cmd_func, move_func, limits):
+    def begin(self, cmd_func, limits):
         self.cmd_func = cmd_func
-        self.move_func = move_func
         self.limits = limits  # note limits are in mm and radians
 
-    def service(self):
-        if self.move_func:
-            self.move_func(self.levels)

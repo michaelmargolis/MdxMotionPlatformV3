@@ -49,7 +49,7 @@ class UdpRemoteController(object):
         self.pause_button.grid(row=1, column=2, padx=(30))
 
         self.reset_button = tk.Button(master, height=2, width=16, text="Reset Rift",
-                                      command=self.reset, underline=0)
+                                      command=self.reset_vr, underline=0)
         self.reset_button.grid(row=1, column=3, padx=(24))
 
         label_frame = tk.Frame(master, pady=20)
@@ -109,8 +109,8 @@ class UdpRemoteController(object):
         print("pause")
         self.send("pause")
         
-    def reset(self):
-        print("reset")
+    def reset_vr(self):
+        print("reset vr")
         self.send("reset")
         
     def activate(self):

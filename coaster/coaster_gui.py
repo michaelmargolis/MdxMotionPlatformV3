@@ -19,10 +19,10 @@ log = logging.getLogger(__name__)
 
 class CoasterGui(object):
 
-    def __init__(self, dispatch, pause, reset):
+    def __init__(self, dispatch, pause, reset_vr):
         self.dispatch = dispatch
         self.pause = pause
-        self.reset = reset
+        self.reset_vr = reset_vr
         # self.activate_callback_request = activate_callback_request
         # self.quit = quit_callback
         self.park_path = []
@@ -40,7 +40,7 @@ class CoasterGui(object):
         # configure signals
         self.ui.btn_dispatch.clicked.connect(self.dispatch)
         self.ui.btn_pause.clicked.connect(self.pause)
-        self.ui.btn_reset_rift.clicked.connect(self.reset)
+        self.ui.btn_reset_rift.clicked.connect(self.reset_vr)
 
         self.read_parks()  # load cmb_park_listbox
         # self.set_button_style(self.ui.btn_deactivate, False, True, "Deactivated")  # disabled, checked
@@ -144,7 +144,7 @@ class CoasterGui(object):
         print("pressed", repr(event.char))
         if event.char == 'd':  self.dispatch()
         if event.char == 'p':  self.pause()
-        if event.char == 'r':  self.reset()
+        if event.char == 'r':  self.reset_vr()
         if event.char == 'e':  self.emergency_stop()
 
     def process_state_change(self, new_state, isActivated):

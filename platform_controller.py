@@ -15,18 +15,19 @@ import numpy as np
 
 
 from main_gui import *
+from ride_state import RideState
 
 from common.serialSensors import Encoder, ServoModel
 import common.serial_defaults as serial_defaults
 import common.gui_utils as gutil
-from common.ride_state import RideState
 from common.dynamics import Dynamics
+from common.streaming_moving_average import StreamingMovingAverage as MA
 
 # Importlib used to load configurations for client and platform as selected in platform_config.py
 import importlib
 from  platform_config import client_selection, platform_selection, cfg
 pfm = importlib.import_module(platform_selection).PlatformConfig()
-client = importlib.import_module(client_selection).InputInterface(gutil.sleep_qt)
+client = importlib.import_module(client_selection).InputInterface()
 
 from RemoteControls.RemoteControl import RemoteControl
 
@@ -41,7 +42,8 @@ class Controller(QtWidgets.QMainWindow):
 
     def __init__(self, festo_ip):
         try:
-            self.FRAME_RATE = 0.05
+            self.FRAME_RATE_ms = 50
+            self.prev_service = None
             # self.prevT = 0 # for debug
             self.platform = MuscleOutput(festo_ip)
             self.platform_status = None
@@ -50,18 +52,15 @@ class Controller(QtWidgets.QMainWindow):
             self.init_platform_parms()
             self.init_gui()
             self.init_kinematics()
-            client.begin(self.cmd_func, self.move_func, pfm.limits_1dof)
+            client.begin(self.cmd_func, pfm.limits_1dof)
             self.init_serial()
             self.dynam = Dynamics()
             self.dynam.init_gui(self.ui.frm_dynamics)
             self.dynam.begin(pfm.limits_1dof, "gains.cfg")
             self.set_intensity(10)  # default intensity at max
+            self.ma = MA(10)  # moving average for processing time diagnostics
             log.warning("Dynamics module has washout disabled, test if this is acceptable")
             self.init_remote_controls()
-            self.service_timer = QtCore.QTimer(self) # timer for telemetry data
-            self.service_timer.timeout.connect(self.service)
-            self.service_timer.start(int(self.FRAME_RATE*1000))
-            log.info("Service timer started with interval of %d ms", int(self.FRAME_RATE*1000))
             log.info("Platform controller initializations complete")
         except:
             raise
@@ -108,7 +107,6 @@ class Controller(QtWidgets.QMainWindow):
         else:
             self.is_slider = False
             self.k.set_platform_params(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.FIXED_LEN)
-            self.platform.set_platform_params(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.FIXED_LEN) ### temp only for testing
             self.actuator_lengths = [pfm.PROPPING_LEN] * 6 # position for moving prop
             d_to_p_file = 'output/DtoP_v3.csv'
 
@@ -125,9 +123,9 @@ class Controller(QtWidgets.QMainWindow):
     def init_platform_parms(self):
         # self.platform.begin(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.DISABLED_LEN, pfm.PROPPING_LEN, pfm.FIXED_LEN)
         self.platform_disabled_pos = np.empty(6)   # position when platform is disabled
-        self.platform_winddown_pos = np.empty(6)  # position for attaching stairs
-        self.platform_disabled_pos.fill(pfm.DISABLED_LEN)   # position when platform is disabled (propped)
-        self.platform_winddown_pos.fill(pfm.PROPPING_LEN)      # position for attaching stairs or moving prop
+        self.platform_propping_pos = np.empty(6)  # position for attaching stairs
+        self.platform_disabled_pos.fill(pfm.DISABLED_LEN)  # position when platform is disabled (propped)
+        self.platform_propping_pos.fill(pfm.PROPPING_LEN)  # position for attaching stairs or moving prop
 
     def init_gui(self):
         QtWidgets.QMainWindow.__init__(self)
@@ -145,12 +143,19 @@ class Controller(QtWidgets.QMainWindow):
             self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
             self.ui.btn_activate.clicked.connect(self.enable_platform)
             self.ui.btn_deactivate.clicked.connect(self.disable_platform)
-            # self.output_gui.show_muscles([0,0,30,0,0,.5], [800,850,900,950, 800, 1000]) # testing
             return True
         except:
             e = sys.exc_info()[0]  # report error
             log.error("error in init gui %s, %s", e, traceback.format_exc())
         return False
+
+    def set_activation_buttons(self, isEnabled): 
+        if isEnabled:
+            gutil.set_button_style(self.ui.btn_activate, True, True, "Activated", checked_color='green')  # enabled, checked
+            gutil.set_button_style(self.ui.btn_deactivate, True, False, "Deactivate")  # enabled, checked
+        else:
+            gutil.set_button_style(self.ui.btn_activate, True, False, "Activate")  # enabled, not checked
+            gutil.set_button_style(self.ui.btn_deactivate, True, True, "Deactivated")  # enabled, checked
 
     def festo_check(self, state):
         if state == QtCore.Qt.Checked:
@@ -193,8 +198,9 @@ class Controller(QtWidgets.QMainWindow):
         else:
             log.warning("Unable to dispatch because platform not enabled")
 
-    def reset(self):
-       print("reset here")
+    def reset_vr(self):
+       log.info("request to reset vr")
+       client.reset_vr()
 
     def emergency_stop(self):
        print("estop here")
@@ -225,7 +231,7 @@ class Controller(QtWidgets.QMainWindow):
         self.disable_platform()
         
     def enable_platform(self):
-        # request = self.process_request(client.get_current_pos())
+        # request = self.process_request(client.get_transform())
         # actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(True, self.actuator_lengths)
         if not self.is_output_enabled:
@@ -235,7 +241,7 @@ class Controller(QtWidgets.QMainWindow):
         client.activate()
 
     def disable_platform(self):
-        request = self.process_request(client.get_current_pos())
+        request = self.process_request(client.get_transform())
         actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(False, self.actuator_lengths)
         if self.is_output_enabled:
@@ -246,53 +252,49 @@ class Controller(QtWidgets.QMainWindow):
         self.set_activation_buttons(False)
         client.deactivate()
 
-    def set_activation_buttons(self, isEnabled): 
-        if isEnabled:
-            gutil.set_button_style(self.ui.btn_activate, True, True, "Activated", checked_color='green')  # enabled, checked
-            gutil.set_button_style(self.ui.btn_deactivate, True, False, "Deactivate")  # enabled, checked
-        else:
-            gutil.set_button_style(self.ui.btn_activate, True, False, "Activate")  # enabled, not checked
-            gutil.set_button_style(self.ui.btn_deactivate, True, True, "Deactivated")  # enabled, checked
-
     def move_to_idle(self):
         log.debug("move to idle")
-        # request = self.process_request(client.get_current_pos())
+        # request = self.process_request(client.get_transform())
         # actuator_lengths  = self.k.actuator_lengths(request)
         actuator_lengths = self.platform.prev_distances
-        ##pos = client.get_current_pos() # was used to get z pos (pos[2])
-        self.park_platform(True)  # added 25 Sep as backstop to prop when coaster state goes idle
+        ##pos = client.get_transform() # was used to get z pos (pos[2])
+        self.park_platform(True)  # backstop to prop when coaster state goes idle
         self.platform.slow_move(actuator_lengths, self.platform_disabled_pos, 10) # rate is cm per sec
 
     def move_to_ready(self):
-        #  request = self.process_request(client.get_current_pos())
+        #  request = self.process_request(client.get_transform())
         #  actuator_lengths  = self.k.actuator_lengths(request)
-        ##pos = client.get_current_pos() # was used to get z pos
+        ##pos = client.get_transform() # was used to get z pos
         log.warning("move to ready - TODO, pressure curves are hard coded!")
         log.debug("move to ready")
-        self.run_lookup()
+        if pfm.PLATFORM_TYPE == "SLIDER":
+            self.run_lookup()
 
     def swell_for_access(self):
-        if not self.is_slider:
+        if pfm.PROPPING_LEN > 0:
             #Briefly raises platform high enough to insert access stairs and activate piston
             log.debug("Start swelling for access")
-            self.platform.slow_move(self.platform_disabled_pos, self.platform_winddown_pos, 10)
+            self.platform.slow_move(self.platform_disabled_pos, self.platform_propping_pos, 10)
             gutil.sleep_qt(3) # time in seconds in up pos
-            self.platform.slow_move(self.platform_winddown_pos, self.platform_disabled_pos, 10)
+            self.platform.slow_move(self.platform_propping_pos, self.platform_disabled_pos, 10)
             log.debug("Finished swelling for access")
 
-    def park_platform(self, state):
-        if state:
-            self.platform.set_pistion_flag(False)
-            log.debug("Setting flag to activate piston to 0")
-        else:
-            self.platform.set_pistion_flag(True)
-            log.debug("setting flag to activate piston to 1")
-        log.debug("Sending last requested pressure with new piston state")
-        # self._send(self.requested_pressures[:6])  # current prop state will be appended in _send
-        if state:
-            gutil.sleep_qt(0.5)
-        # Todo check if more delay is needed
-        log.debug("Platform park state changed to %s", "parked" if state else "unparked")
+    def park_platform(self, do_park):
+        if do_park:
+            if pfm.HAS_PISTON:
+                self.platform.set_pistion_flag(False)
+                log.debug("Setting flag to activate piston to 0")
+                log.debug("TODO check if festo msg sent before delay")
+                gutil.sleep_qt(0.5)
+            if pfm.HAS_BRAKE:
+                print "todo, set brake"
+        else:  #  unpark
+            if pfm.HAS_PISTON:
+                self.platform.set_pistion_flag(True)
+                log.debug("setting flag to activate piston to 1")
+            if pfm.HAS_BRAKE:
+                print "todo, release brake"
+        log.debug("Platform park state changed to %s", "parked" if do_park else "unparked")
 
     def set_intensity(self, intensity):
         if type(intensity) == str and "intensity=" in intensity:
@@ -315,7 +317,7 @@ class Controller(QtWidgets.QMainWindow):
         dur = 2
 
         self.platform.slow_pressure_move(0, up_pressure, dur)
-        time.sleep(.5)
+        gutil.sleep_qt(.5)
         encoder_data, timestamp = self.encoder.read()
         log.warning("TODO, using hard coded encoder data!")
         encoder_data = np.array([123, 125, 127, 129, 133, 136])
@@ -323,7 +325,7 @@ class Controller(QtWidgets.QMainWindow):
         # self.ui.txt_up_index.setText(str(self.DtoP.up_curve_idx))
 
         self.platform.slow_pressure_move(up_pressure, down_pressure, dur/2)
-        time.sleep(.5)
+        gutil.sleep_qt(.5)
         encoder_data, timestamp = self.encoder.read()
         encoder_data = np.array([98, 100, 102, 104, 98, 106])
         self.DtoP.set_index(down_pressure, encoder_data, 'down')
@@ -333,29 +335,54 @@ class Controller(QtWidgets.QMainWindow):
     def scale(self, val, src, dst): # the Arduino 'map' function written in python
         return (val - src[0]) * (dst[1] - dst[0]) / (src[1] - src[0])  + dst[0]
 
-    def move_func(self, request): 
-        """ method called by client with list of translation and rotation and translation values"""
+    def process_request(self, transform):
+        """ converts request to real world values if normalized"""
+        if client.is_normalized:
+            transform = self.dynam.regulate(transform)
+        return transform
+
+    def do_transform(self, transform): 
+        """ method to move platform to position corresponding to client transform"""
         try:
             start = time.time()
-            if client.is_normalized:
-                request = self.dynam.regulate(request)
-            self.actuator_lengths = self.k.actuator_lengths(np.array(request))
-            if self.ui_tab == 2: # the output tab
-                self.output_gui.show_muscles(request, self.actuator_lengths)
+            processed_xform = self.process_request(transform)
+            self.actuator_lengths = self.k.actuator_lengths(np.array(processed_xform))
             self.platform.move_distance(self.actuator_lengths)
-            log.debug("processing duration = %d", time.time() - start)
+            processing_dur = int(round((time.time() - start) * 1000))
+            if processing_dur > 4:
+                log.warning("Longer than expected transform processing duration: %d ms", processing_dur)
+            if self.ui_tab == 2: # the output tab
+                processing_dur = self.ma.next(processing_dur)
+                self.output_gui.show_muscles(processed_xform, self.actuator_lengths, processing_dur)
+            self.prev_start = start
         except Exception as e:
             log.error("error in move function %s", e)
 
     def service(self):
-        self.RemoteControl.service()
-        if self.local_control:
-            self.local_control.service()
-        client.service()
         if self.is_active:
-            if self.platform_status != self.platform.get_output_status():
-                self.platform_status = self.platform.get_output_status()
-                gutil.set_text(self.ui.lbl_festo_status, self.platform_status[0], self.platform_status[1])
+            now = time.time()
+            if  self.prev_service != None:
+                try:
+                    t =  (now - self.prev_service) * 1000
+                    delta = t-self.FRAME_RATE_ms
+                    if delta > -1:
+                        self.prev_service = now
+                        self.f.write(format("%f, %f\n" % (t, delta)))
+                        self.RemoteControl.service()
+                        if self.local_control:
+                            self.local_control.service()
+                        client.service()
+                        self.do_transform(client.get_transform())
+                        if self.platform_status != self.platform.get_output_status():
+                            self.platform_status = self.platform.get_output_status()
+                            gutil.set_text(self.ui.lbl_festo_status, self.platform_status[0], self.platform_status[1])
+                except Exception as e:
+                    log.warning("timing test exception %s", e)
+            else:
+                self.prev_service = time.time()
+                self.f = open("timer_test.csv", "w")
+                log.warning("starting service timing latency capture to file: timer_test.csv")
+            QtCore.QTimer.singleShot(1, self.service)
         else:
             client.fin()
             # self.platform.fin()

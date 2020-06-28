@@ -95,7 +95,7 @@ class InputInterface(object):
         
         actions = {'detected remote': self.detected_remote, 'activate': self.activate,
            'deactivate': self.deactivate, 'pause': self.pause, 'dispatch': self.dispatch,
-           'reset': self.reset, 'emergency_stop': self.emergency_stop, 'intensity' : self.set_intensity}
+           'reset': self.reset_vr, 'emergency_stop': self.emergency_stop, 'intensity' : self.set_intensity}
         self.RemoteControl = SerialRemote(actions)
 
         #  self.read_telemetry()
@@ -119,7 +119,7 @@ class InputInterface(object):
         self.pause_button.grid(row=1, column=2, padx=(30))
 
         self.reset_button = tk.Button(master, height=2, width=16, text="Reset Rift",
-                                      command=self.reset, underline=0)
+                                      command=self.reset_vr, underline=0)
         self.reset_button.grid(row=1, column=3, padx=(24))
 
         label_frame = tk.Frame(master, pady=20)
@@ -194,7 +194,7 @@ class InputInterface(object):
     def pause(self):
         self.command("swellForStairs")
         
-    def reset(self):
+    def reset_vr(self):
          self.right_mouse_click()
 
     def set_intensity(self, intensity_msg):

@@ -27,7 +27,6 @@ class MuscleOutput(object):
         self.festo = festo_itf.Festo(FST_ip)
         self.in_pressures = [0]*6
         self.echo_method = None  # if set, percents passed to this method
-        self.UPDATE_FRAME_RATE = 50  # ms between updates
         self.up_indices = [0]*6
         self.up_curves = None
         self.down_indices = [0]*6
@@ -36,7 +35,6 @@ class MuscleOutput(object):
         self.prev_distances = [0]*6
         self.percent_factor = 2 #  divide distance by this factor to get percent
         log.warning("TODO, replace hard coded percent divisor in muscle_output")
-        log.info("muscle_output started with %d ms frame rate", self.UPDATE_FRAME_RATE )
 
     def set_d_to_p_curves(self, up_curves, down_curves):
         self.up_curves = up_curves
@@ -171,11 +169,15 @@ class MuscleOutput(object):
         self.slow_pressure_move(0,3000, 1000)
 
     def slow_move(self, start, end, rate_cm_per_s):
-        # moves from the given start lengths/percents to the end values at the given duration       
+        # moves from the given start to end lengths at the given duration
         #  caution, this moves even if disabled
-        log.debug("in slow move, max dist in cm = %d",  max(end-start)/10)
-        interval = 50  # time between steps in ms
-        steps = (max(end-start)/10) / interval
+        rate_mm = rate_cm_per_s *10
+        interval = .05  # ms between steps
+        distance = max(end - start, key=abs)
+        print "max distance=", distance
+        dur = abs(distance) / rate_mm
+        steps = int(dur / interval)
+        print "steps", steps, type(steps)
         if steps < 1:
             self.move_distance(end)
         else:
@@ -183,12 +185,33 @@ class MuscleOutput(object):
             print("moving from", start, "to", end, "steps", steps)
             # print "percent", (end[0]/start[0]) * 100
             delta = [float(e - s)/steps for s, e in zip(start, end)]
-            print("move_func todo in step!!!!!!!!!!!")
             for step in range(steps):
                 current = [x + y for x, y in zip(current, delta)]
+                current = np.clip(current, 0, 6000)
                 self.move_distance(current)
-                gutil.sleep_qt(interval / 1000.0)
-                
+                gutil.sleep_qt(interval)
+    """
+        def slow_move(self, start, end, rate_cm_per_s):
+            # moves from the given start lengths/percents to the end values at the given duration
+            #  caution, this moves even if disabled
+            log.debug("in slow move, max dist in cm = %d",  max(end-start)/10)
+            interval = 50  # time between steps in ms
+            steps = (max(end-start)/10) / interval
+            print "steps", steps, type(steps)
+            if steps < 1:
+                self.move_distance(end)
+            else:
+                current = start
+                print("moving from", start, "to", end, "steps", steps)
+                # print "percent", (end[0]/start[0]) * 100
+                delta = [float(e - s)/steps for s, e in zip(start, end)]
+                print("move_func todo in step!!!!!!!!!!!")
+                for step in range(steps):
+                    current = [x + y for x, y in zip(current, delta)]
+                    self.move_distance(current)
+                    gutil.sleep_qt(interval / 1000.0)
+    """
+
     def slow_pressure_move(self, start_pressure, end_pressure, duration_ms):
         #  caution, this moves even if disabled
         interval = 50  # time between steps in ms
