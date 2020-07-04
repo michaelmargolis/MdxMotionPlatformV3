@@ -569,7 +569,7 @@
      <property name="geometry">
       <rect>
        <x>112</x>
-       <y>22</y>
+       <y>26</y>
        <width>16</width>
        <height>21</height>
       </rect>
@@ -585,9 +585,9 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>30</y>
+       <y>33</y>
        <width>200</width>
-       <height>20</height>
+       <height>10</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -608,7 +608,7 @@
   <widget class="QLabel" name="label_9">
    <property name="geometry">
     <rect>
-     <x>525</x>
+     <x>524</x>
      <y>315</y>
      <width>46</width>
      <height>13</height>

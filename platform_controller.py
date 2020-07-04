@@ -45,6 +45,9 @@ class Controller(QtWidgets.QMainWindow):
             self.FRAME_RATE_ms = 50
             self.prev_service = None
             # self.prevT = 0 # for debug
+            if festo_ip == '':
+                # use ip from config file of not overridden on cmd line
+                festo_ip = cfg.Festo_IP_ADDR
             self.platform = MuscleOutput(festo_ip)
             self.platform_status = None
             self.is_active = True  # set False to terminate
@@ -132,6 +135,7 @@ class Controller(QtWidgets.QMainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowIcon(QtGui.QIcon('platform_icon.png'))
         self.ui.tabWidget.currentChanged.connect(self.tab_changed)
         self.ui_tab = 0
         try:

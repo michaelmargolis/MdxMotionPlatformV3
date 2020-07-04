@@ -269,7 +269,7 @@ class InputInterface(ClientApi):
                 status = "Stopped at telemetry frame %d" % (self.frame_number - self.start_frame)
                 self.report_coaster_status(status, "orange")
                 if not self.is_paused:
-                    log.warning("in service, setting is_paused to True because nothing in the coaster q")
+                    log.warning("in service, setting is_paused True because coaster q is empty")
                     self.is_paused = True
             else:
                 if self.state == RideState.RUNNING:
@@ -285,7 +285,6 @@ class InputInterface(ClientApi):
                                 status = format("Running frame %d, time %d" % (cosmetic_frame, cosmetic_frame/20))
                                 self.report_coaster_status(status, "green") 
                     self.frame_number += 1
-
         except:
             e = sys.exc_info()[0]
             s = traceback.format_exc()
@@ -345,21 +344,16 @@ class InputInterface(ClientApi):
 
     def listener_thread(self, HOST, PORT, ):
         try:
-            self.MAX_MSG_LEN = 100
-            client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            client.bind((HOST, PORT))
+            MAX_MSG_LEN = 100
+            sc_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sc_sock.bind((HOST, PORT))
             log.info("opening space coaster socket on port %d", PORT)
-        except:
-            e = sys.exc_info()[0]
-            s = traceback.format_exc()
-            log.error("Space coaster connection thread init err %s,%s", e, s)
-            self.is_coaster_connected = 0
-        while True:
-            try:
-                msg = client.recv(self.MAX_MSG_LEN).rstrip()
-                self.is_coaster_connected = 1
-                if msg is not None:
+            while True:
+                try:
+                    msg = sc_sock.recv(MAX_MSG_LEN)
+                    self.is_coaster_connected = 1
                     # print msg
+                    msg = msg.rstrip()
                     if msg.find("accel") == 0: 
                         msg = msg.replace(" ", "") # remove whitespace
                         accel = msg.split(',')
@@ -371,12 +365,19 @@ class InputInterface(ClientApi):
                     elif "command" in msg:
                         #print msg
                         pass
-            except:
-                e = sys.exc_info()[0]
-                s = traceback.format_exc()
-                log.error("listener err %s,%s, msg(%s)", e, s, msg)
-                self.is_coaster_connected = 0
-                self.report_connection_status("Coaster connection error", "red") 
+                except:
+                    e = sys.exc_info()[0]
+                    s = traceback.format_exc()
+                    if msg:
+                        log.error("listener err %s,%s, msg(%s)", e, s, msg)
+                    else:
+                        log.error("listener err %s,%s", e, s)
+                    self.is_coaster_connected = 0
+                    self.report_connection_status("Coaster connection error", "red")
+        except Exception as e:
+            s = traceback.format_exc()
+            log.fatal("Space coaster connection thread init err %s,%s", e, s)
+            self.is_coaster_connected = 0
 
     def read_telemetry(self):
         try:
@@ -454,38 +455,60 @@ class LocalClient(QtWidgets.QMainWindow):
             log.info("Started tcp server, this IP address is %s", self.server.get_local_ip())
             service_timer = QtCore.QTimer(self)
             service_timer.timeout.connect(self.service)
-            log.info("Starting service timer")
-            service_timer.start(50) 
+            self.prev_service = None
+            self.FRAME_RATE_ms = 50
+            # log.info("Starting service timer")
+            # service_timer.start(50) 
+            self.service()
         except:
             e = sys.exc_info()[0]  # report error
             s = traceback.format_exc()
             log.error("Space coaster local client %s %s", e, s)
  
     def service(self):
-        self.client.service()
-        self.server.send(self.client.form_telemetry_msg())
-        self.server.service()
-        if self.server.connected_clients() > 0:
-            self.client.detected_remote("Detected Remote Client Connection")
+        time_to_svc = int(self.FRAME_RATE_ms/2)  # default
+        now = time.time()
+        if self.prev_service != None:
+            elapsed =  (now - self.prev_service) * 1000
+            to_go = self.FRAME_RATE_ms - elapsed
+            if to_go < 1:
+                if to_go < -1:
+                    log.warning("Service interval was %d ms", elapsed)
+                self.prev_service = now
+                self.client.service()
+                self.server.send(self.client.form_telemetry_msg())
+                self.server.service()
+                if self.server.connected_clients() > 0:
+                    self.client.detected_remote("Detected Remote Client Connection")
+                else:
+                     self.client.detected_remote("Remote client not Connected, this IP is: " + self.server.get_local_ip())
+                while self.server.available():
+                    try:
+                        msg = self.server.receive()
+                        if msg:
+                            event = msg.split("\n")
+                            for e in event:
+                                e = e.rstrip()
+                                # print format("[%s], %d" % (e, len(e)))
+                                if e in self.client.actions:
+                                    log.info("got remote client cmd %s", e)
+                                    self.client.actions[e]()
+                    except IndexError:
+                        log.warning("client queue index error")
+            else:
+                time_to_svc = int(max(to_go/2, 1))
+                # print "tp go=", to_go, "tts=", time_to_svc
+                
         else:
-             self.client.detected_remote("Remote client not Connected, this IP is: " + self.server.get_local_ip())
-        while self.server.available():
-            try:
-                msg = self.server.receive()
-                if msg:
-                    event = msg.split("\n")
-                    for e in event:
-                        e = e.rstrip()
-                        # print format("[%s], %d" % (e, len(e)))
-                        if e in self.client.actions:
-                            log.info("got remote client cmd %s", e)
-                            self.client.actions[e]()
-            except IndexError:
-                log.warning("client queue index error")
-        return True
-
+            self.prev_service = time.time()
+            # self.f = open("timer_test.csv", "w")
+            log.warning("starting service timing latency capture to file: timer_test.csv")
+        QtCore.QTimer.singleShot(time_to_svc, self.service)
+            
     def cmd_func(self, cmd):  # command handler function called from Platform input
         if cmd == "quit": self.quit()
+        elif cmd == "dispatch": self.client.dispatch()
+        elif cmd == "pause": self.client.pause()
 
     def quit(self):
         log.info("Executing quit command")
