@@ -46,7 +46,7 @@
       <x>410</x>
       <y>10</y>
       <width>321</width>
-      <height>251</height>
+      <height>161</height>
      </rect>
     </property>
     <property name="title">
@@ -59,7 +59,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>144</y>
+       <y>90</y>
        <width>200</width>
        <height>16</height>
       </rect>
@@ -81,7 +81,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>182</y>
+       <y>110</y>
        <width>200</width>
        <height>16</height>
       </rect>
@@ -103,7 +103,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>220</y>
+       <y>130</y>
        <width>200</width>
        <height>16</height>
       </rect>
@@ -125,7 +125,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>106</y>
+       <y>70</y>
        <width>200</width>
        <height>16</height>
       </rect>
@@ -147,7 +147,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>68</y>
+       <y>50</y>
        <width>200</width>
        <height>16</height>
       </rect>
@@ -201,7 +201,7 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>68</y>
+       <y>50</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -214,7 +214,7 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>106</y>
+       <y>70</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -227,7 +227,7 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>144</y>
+       <y>90</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -240,7 +240,7 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>182</y>
+       <y>110</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -253,7 +253,7 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>220</y>
+       <y>130</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -268,17 +268,17 @@
      <rect>
       <x>40</x>
       <y>10</y>
-      <width>311</width>
-      <height>121</height>
+      <width>141</width>
+      <height>331</height>
      </rect>
     </property>
     <property name="title">
-     <string>Request</string>
+     <string>Request Transform</string>
     </property>
     <widget class="QLineEdit" name="txt_xform_0">
      <property name="geometry">
       <rect>
-       <x>100</x>
+       <x>60</x>
        <y>40</y>
        <width>51</width>
        <height>20</height>
@@ -296,24 +296,11 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>81</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Translation</string>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="txt_xform_3">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>70</y>
+       <x>60</x>
+       <y>130</y>
        <width>51</width>
        <height>20</height>
       </rect>
@@ -330,24 +317,11 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="label_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>81</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Rotation</string>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="txt_xform_1">
      <property name="geometry">
       <rect>
-       <x>170</x>
-       <y>40</y>
+       <x>60</x>
+       <y>70</y>
        <width>51</width>
        <height>20</height>
       </rect>
@@ -367,8 +341,8 @@
     <widget class="QLineEdit" name="txt_xform_2">
      <property name="geometry">
       <rect>
-       <x>240</x>
-       <y>40</y>
+       <x>60</x>
+       <y>100</y>
        <width>51</width>
        <height>20</height>
       </rect>
@@ -388,8 +362,8 @@
     <widget class="QLineEdit" name="txt_xform_4">
      <property name="geometry">
       <rect>
-       <x>170</x>
-       <y>70</y>
+       <x>60</x>
+       <y>160</y>
        <width>51</width>
        <height>20</height>
       </rect>
@@ -409,8 +383,8 @@
     <widget class="QLineEdit" name="txt_xform_5">
      <property name="geometry">
       <rect>
-       <x>240</x>
-       <y>70</y>
+       <x>60</x>
+       <y>190</y>
        <width>51</width>
        <height>20</height>
       </rect>
@@ -430,8 +404,8 @@
     <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>106</x>
-       <y>94</y>
+       <x>10</x>
+       <y>130</y>
        <width>41</width>
        <height>16</height>
       </rect>
@@ -446,8 +420,8 @@
     <widget class="QLabel" name="label_4">
      <property name="geometry">
       <rect>
-       <x>175</x>
-       <y>94</y>
+       <x>10</x>
+       <y>160</y>
        <width>41</width>
        <height>16</height>
       </rect>
@@ -462,8 +436,8 @@
     <widget class="QLabel" name="label_5">
      <property name="geometry">
       <rect>
-       <x>244</x>
-       <y>94</y>
+       <x>10</x>
+       <y>190</y>
        <width>41</width>
        <height>16</height>
       </rect>
@@ -478,8 +452,8 @@
     <widget class="QLabel" name="label_6">
      <property name="geometry">
       <rect>
-       <x>243</x>
-       <y>18</y>
+       <x>10</x>
+       <y>100</y>
        <width>41</width>
        <height>16</height>
       </rect>
@@ -494,8 +468,8 @@
     <widget class="QLabel" name="label_7">
      <property name="geometry">
       <rect>
-       <x>105</x>
-       <y>18</y>
+       <x>10</x>
+       <y>40</y>
        <width>41</width>
        <height>16</height>
       </rect>
@@ -510,8 +484,8 @@
     <widget class="QLabel" name="label_8">
      <property name="geometry">
       <rect>
-       <x>174</x>
-       <y>18</y>
+       <x>10</x>
+       <y>70</y>
        <width>41</width>
        <height>16</height>
       </rect>
@@ -524,27 +498,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>140</y>
-      <width>311</width>
-      <height>191</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="gb_processing_dur">
     <property name="geometry">
      <rect>
       <x>410</x>
-      <y>270</y>
+      <y>283</y>
       <width>321</width>
       <height>61</height>
      </rect>
@@ -569,7 +527,7 @@
      <property name="geometry">
       <rect>
        <x>112</x>
-       <y>26</y>
+       <y>24</y>
        <width>16</width>
        <height>21</height>
       </rect>
@@ -603,20 +561,501 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
+    <widget class="QLabel" name="label_9">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>45</y>
+       <width>46</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>10 ms</string>
+     </property>
+    </widget>
    </widget>
-  </widget>
-  <widget class="QLabel" name="label_9">
-   <property name="geometry">
-    <rect>
-     <x>524</x>
-     <y>315</y>
-     <width>46</width>
-     <height>13</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>10 ms</string>
-   </property>
+   <widget class="QGroupBox" name="bg_load_indices">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>180</y>
+      <width>321</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Loaded Indices</string>
+    </property>
+    <widget class="QLabel" name="label_10">
+     <property name="geometry">
+      <rect>
+       <x>47</x>
+       <y>20</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_up_idx_0">
+     <property name="geometry">
+      <rect>
+       <x>45</x>
+       <y>40</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_up_idx_1">
+     <property name="geometry">
+      <rect>
+       <x>75</x>
+       <y>40</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_11">
+     <property name="geometry">
+      <rect>
+       <x>77</x>
+       <y>20</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>1</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_up_idx_2">
+     <property name="geometry">
+      <rect>
+       <x>105</x>
+       <y>40</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_up_idx_3">
+     <property name="geometry">
+      <rect>
+       <x>135</x>
+       <y>40</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_12">
+     <property name="geometry">
+      <rect>
+       <x>107</x>
+       <y>20</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>2</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_13">
+     <property name="geometry">
+      <rect>
+       <x>137</x>
+       <y>20</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>3</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_up_idx_4">
+     <property name="geometry">
+      <rect>
+       <x>165</x>
+       <y>40</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_up_idx_5">
+     <property name="geometry">
+      <rect>
+       <x>195</x>
+       <y>40</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_14">
+     <property name="geometry">
+      <rect>
+       <x>167</x>
+       <y>20</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>4</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_15">
+     <property name="geometry">
+      <rect>
+       <x>197</x>
+       <y>20</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>5</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_down_idx_4">
+     <property name="geometry">
+      <rect>
+       <x>165</x>
+       <y>65</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_down_idx_2">
+     <property name="geometry">
+      <rect>
+       <x>105</x>
+       <y>65</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_down_idx_0">
+     <property name="geometry">
+      <rect>
+       <x>45</x>
+       <y>65</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_down_idx_5">
+     <property name="geometry">
+      <rect>
+       <x>195</x>
+       <y>65</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_down_idx_3">
+     <property name="geometry">
+      <rect>
+       <x>135</x>
+       <y>65</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_down_idx_1">
+     <property name="geometry">
+      <rect>
+       <x>75</x>
+       <y>65</y>
+       <width>25</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0.0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rb_manual">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>30</y>
+       <width>71</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Manual</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rb_encoders">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>60</y>
+       <width>71</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Encoders</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_16">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>42</y>
+       <width>31</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Up</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_17">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>67</y>
+       <width>31</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Down</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>208</x>
+      <y>16</y>
+      <width>181</width>
+      <height>325</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="Line" name="line_10">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>64</y>
+       <width>118</width>
+       <height>3</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="line_11">
+     <property name="geometry">
+      <rect>
+       <x>85</x>
+       <y>0</y>
+       <width>20</width>
+       <height>321</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="line_12">
+     <property name="geometry">
+      <rect>
+       <x>36</x>
+       <y>164</y>
+       <width>118</width>
+       <height>3</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="line_13">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>263</y>
+       <width>118</width>
+       <height>3</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_front_view">
+     <property name="geometry">
+      <rect>
+       <x>49</x>
+       <y>20</y>
+       <width>90</width>
+       <height>90</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap>images/front.png</pixmap>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="lbl_top_view">
+    <property name="geometry">
+     <rect>
+      <x>258</x>
+      <y>236</y>
+      <width>90</width>
+      <height>90</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>images/top.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_side_view">
+    <property name="geometry">
+     <rect>
+      <x>258</x>
+      <y>136</y>
+      <width>90</width>
+      <height>90</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>images/side.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

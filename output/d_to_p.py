@@ -120,5 +120,5 @@ if __name__ == "__main__":
     d_to_p = D_to_P(200)
     curves = [[1,2,3,4,5],[6,7,8,9,10], [11,12,13,14,15],  [21,22,23,24,25]]
     d_to_p.rows = len(curves)
-    print d_to_p.interpolate(0.9, 1, curves)
+    print(d_to_p.interpolate(0.9, 1, curves))
       

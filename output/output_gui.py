@@ -3,7 +3,6 @@ Copyright Michael Margolis, Middlesex University 2019; see LICENSE for software 
 
 display muscle lengths and platform orientation
 """
-
 SHOW_CHAIR_IMAGES = False
 
 #  from output_gui_defs import *
@@ -26,15 +25,47 @@ class OutputGui(object):
         self.txt_xforms = [self.ui.txt_xform_0,self.ui.txt_xform_1,self.ui.txt_xform_2,self.ui.txt_xform_3,self.ui.txt_xform_4,self.ui.txt_xform_5]
         self.actuator_bars = [self.ui.muscle_0,self.ui.muscle_1,self.ui.muscle_2,self.ui.muscle_3,self.ui.muscle_4,self.ui.muscle_5]
         self.txt_muscles = [self.ui.txt_muscle_0,self.ui.txt_muscle_1,self.ui.txt_muscle_2,self.ui.txt_muscle_3,self.ui.txt_muscle_4,self.ui.txt_muscle_5]
+        self.txt_up_indices = [self.ui.txt_up_idx_0,self.ui.txt_up_idx_1,self.ui.txt_up_idx_2,self.ui.txt_up_idx_3,self.ui.txt_up_idx_4,self.ui.txt_up_idx_5]
+        self.txt_down_indices = [self.ui.txt_down_idx_0,self.ui.txt_down_idx_1,self.ui.txt_down_idx_2,self.ui.txt_down_idx_3,self.ui.txt_down_idx_4,self.ui.txt_down_idx_5]
+        self.front_pixmap = QtGui.QPixmap('images/front.png')
+        self.side_pixmap = QtGui.QPixmap('images/side.png')
+        self.top_pixmap = QtGui.QPixmap('images/top.png')
+        self.front_pos =  self.ui.lbl_front_view.pos()
+        self.side_pos = self.ui.lbl_side_view.pos()
+        self.top_pos = self.ui.lbl_top_view.pos()
 
-    def draw_crosshair(self, obj, x, y):
-        w =  obj.width()
-        h =  obj.height()  
-        """           
-        self.chair_img_canvas.create_line(x + w/2, y, x + w/2, y + h, dash=(4, 2))
-        self.chair_img_canvas.create_line(x, y+h/2, x + w, y+h/2, dash=(4, 2))
-        """
-        
+    def encoders_is_enabled(self):
+        return self.ui.rb_encoders.isChecked()
+
+    def encoders_set_enabled(self, state):
+        if state:
+            self.ui.rb_encoders.setChecked(True)
+        else:
+            self.ui.rb_manual.setChecked(True)
+
+    def do_transform(self, widget, pixmap, pos,  x, y, angle):
+        widget.move(x + pos.x(), y + pos.y())
+        xform = QtGui.QTransform().rotate(angle)  # front view: roll
+        xformed_pixmap = pixmap.transformed(xform, QtCore.Qt.SmoothTransformation)
+        widget.setPixmap(xformed_pixmap)
+        # widget.adjustSize()
+
+    def show_transform(self, transform):
+        for idx, x in enumerate(transform):
+            if idx < 3:
+                self.txt_xforms[idx].setText(format("%d" % x))
+            else:
+                angle = x * 57.3
+                self.txt_xforms[idx].setText(format("%0.1f" % angle))
+            
+        x = int(transform[0] / 4) 
+        y = int(transform[1] / 4)
+        z = -int(transform[2] / 4)
+
+        self.do_transform(self.ui.lbl_front_view, self.front_pixmap, self.front_pos, y,z, transform[3] * 57.3) # front view: roll
+        self.do_transform(self.ui.lbl_side_view, self.side_pixmap, self.side_pos, x,z, transform[4] * 57.3) # side view: pitch
+        self.do_transform(self.ui.lbl_top_view, self.top_pixmap, self.top_pos,  y,x, transform[5] * 57.3)  # top view: yaw
+
     def show_muscles(self, transform, muscles, processing_dur):  # was passing  pressure_percent
         for i in range(6):
            rect =  self.actuator_bars[i].rect()
@@ -43,12 +74,7 @@ class OutputGui(object):
            self.actuator_bars[i].setFrameRect(rect)
            contraction = self.MAX_ACTUATOR_RANGE - width
            self.txt_muscles[i].setText(format("%d mm" % contraction ))
-        for idx, x in enumerate(transform):
-            if idx < 3:
-                self.txt_xforms[idx].setText(format("%d" % x))
-            else:
-                angle = x * 57.3
-                self.txt_xforms[idx].setText(format("%0.1f" % angle))
+        self.show_transform(transform) 
         #  processing_dur = int(time.time() % 20) # for testing, todo remove
         self.ui.txt_processing_dur.setText(str(processing_dur))
         rect =  self.ui.rect_dur.rect()
