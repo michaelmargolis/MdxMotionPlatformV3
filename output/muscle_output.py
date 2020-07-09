@@ -23,30 +23,14 @@ log = logging.getLogger(__name__)
 PRINT_MUSCLES = True # for testing
 
 class MuscleOutput(object):
-    def __init__(self, FST_ip = '192.168.0.10'):
+    def __init__(self, d_to_p_func, FST_ip = '192.168.0.10'):
+        self.distance_to_pressure = d_to_p_func
         self.festo = festo_itf.Festo(FST_ip)
         self.in_pressures = [0]*6
         self.echo_method = None  # if set, percents passed to this method
-        self.up_indices = [0]*6
-        self.up_curves = None
-        self.down_indices = [0]*6
-        self.down_curves = None
         self.progress_callback = None
-        self.prev_distances = [0]*6
         self.percent_factor = 2 #  divide distance by this factor to get percent
         log.warning("TODO, replace hard coded percent divisor in muscle_output")
-
-    def set_d_to_p_curves(self, up_curves, down_curves):
-        self.up_curves = up_curves
-        self.down_curves = down_curves
-        self.nbr_distance_columns = up_curves.shape[1]
-
-    def set_d_to_p_indices(self, up_indices, down_indices):
-        self.up_indices = up_indices
-        self.down_indices = down_indices
-        up_str = ','.join("%d" % i for i in up_indices)
-        down_str = ','.join("%d" % i for i in down_indices)
-        log.info("Dist to Pressure up idx = %s, down = %s", up_str, down_str)
 
     def set_echo_method(self, echo): 
         # if provided, the output request message is echoed to this method
@@ -77,7 +61,8 @@ class MuscleOutput(object):
             self.activate_piston_flag = 0
 
     def set_payload(self, payload_kg):
-        #  set total weight in killograms
+        #  set total weight in kilograms
+        #  Todo - was used on platforms without encoders, not yet supported in V3
         self.loaded_weight = payload_kg
 
     def get_output_status(self):
@@ -140,30 +125,7 @@ class MuscleOutput(object):
 
     def move_percent(self, percents):
         self.move_distance(percents * self.percent_factor) 
-   
-    def distance_to_pressure(self, distances):
-        pressures = []
-        for i in range(6):
-            # todo check if we need to ignore case where distance does not change
-            # self.distances[i] = int(round(np.clip(2*percent[i],0,199)))  # todo improve accuracy of percent to distance
-            try: 
-                if distances[i] >= self.nbr_distance_columns:
-                    distances[i] = self.nbr_distance_columns-1
-                if distances[i] <= self.prev_distances[i]: # moving down
-                    # print self.down_indices[i], self.down_curves[self.down_indices[i]][distance]
-                    p = self.down_curves[self.down_indices[i]][int(distances[i])]
-                else:  # moving up
-                    p = self.up_curves[self.up_indices[i]][int(distances[i])]
-                pressures.append(p)
-            except:
-                print("error in distance_to_pressure", sys.exc_info()[0], traceback.format_exc())
-                print(distances, "\ni=", i)
 
-        # print pressures
-        self.prev_distances = distances
-        return pressures
-
-        
     def calibrate(self):
         # moves platform to mid pressure to determine best d_to_p files
         self.slow_pressure_move(0,3000, 1000)

@@ -540,5 +540,5 @@ if __name__ == "__main__":
         log.error("space coaster main %s %s", e, s)
       
     app.exit()
-    log.info("Exiting Platform Controller\n")
+    log.info("Exiting Space Coaster\n")
     

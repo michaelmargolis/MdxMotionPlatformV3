@@ -48,13 +48,13 @@ class Controller(QtWidgets.QMainWindow):
             if festo_ip == '':
                 # use ip from config file of not overridden on cmd line
                 festo_ip = cfg.Festo_IP_ADDR
-            self.platform = MuscleOutput(festo_ip)
+            self.init_gui()
+            self.init_kinematics()
+            self.platform = MuscleOutput(self.DtoP.distance_to_pressure, festo_ip)
             self.platform_status = None
             self.is_active = True  # set False to terminate
             self.is_output_enabled = False
             self.init_platform_parms()
-            self.init_gui()
-            self.init_kinematics()
             client.begin(self.cmd_func, pfm.limits_1dof)
             self.init_serial()
             self.dynam = Dynamics()
@@ -120,7 +120,6 @@ class Controller(QtWidgets.QMainWindow):
         if self.DtoP.load(d_to_p_file):
             assert self.DtoP.d_to_p_up.shape[1] == self.DtoP.d_to_p_down.shape[1]
             log.info("Loaded %d rows of distance to pressure files ", self.DtoP.rows)
-            self.platform.set_d_to_p_curves(self.DtoP.d_to_p_up, self.DtoP.d_to_p_down) # pass curves to platform module
         else:
             log.error("Failed to loaded %s file", d_to_p_file)
 
@@ -178,6 +177,11 @@ class Controller(QtWidgets.QMainWindow):
                 log.info("Attempting connect to encoders on port %s", port)
                 if self.encoder.open_port(port, 115200):
                     log.info("Encoders connected on %s", port)
+                else:
+                    QtWidgets.QMessageBox.warning(self, 'Encoder Connection Error!',
+                        "Unable to connect to encoders\nPlatform load must be set manually" ,
+                          QtWidgets.QMessageBox.Ok)
+                    self.output_gui.encoders_set_enabled(False)
         self.servo_model = ServoModel() # 57600 baud
         if 'model' in serial_defaults.dict:
             port = serial_defaults.dict['model']
@@ -273,7 +277,8 @@ class Controller(QtWidgets.QMainWindow):
         log.warning("move to ready - TODO, pressure curves are hard coded!")
         log.debug("move to ready")
         if pfm.PLATFORM_TYPE == "SLIDER":
-            self.run_lookup()
+            if self.output_gui.encoders_is_enabled():
+                self.run_lookup()
 
     def swell_for_access(self):
         if pfm.PROPPING_LEN > 0:
@@ -302,17 +307,26 @@ class Controller(QtWidgets.QMainWindow):
         log.debug("Platform park state changed to %s", "parked" if do_park else "unparked")
 
     def set_intensity(self, intensity):
+        # if called while waiting-for-dispatch and if encoders are not enabled, scales and sets d to P index:
+        # otherwise sets value in dynamics module to scale output values
+        # payload weight passed to platform for deprecated method only used in old platform code
+        
         if type(intensity) == str and "intensity=" in intensity:
             m, intensity = intensity.split('=', 2)
-        intensity = int(intensity)
-        lower_payload_weight = 20  # todo - move these or replace with real time load cell readings
-        upper_payload_weight = 90
+        lower_payload_weight = pfm.LOAD_RANGE[0]
+        upper_payload_weight = pfm.LOAD_RANGE[1]
         payload = self.scale((intensity), (0, 10), (lower_payload_weight, upper_payload_weight))
         #  print "payload = ", payload
         self.platform.set_payload(payload)
-        intensity = intensity * 0.1
-        self.dynam.set_intensity(intensity)
-        status = format("%d percent Intensity, (Weight %d kg)" % (self.dynam.get_overall_intensity() * 100, payload))
+        if self.output_gui.encoders_is_enabled() or client.get_ride_state() != RideState.READY_FOR_DISPATCH :
+            intensity = intensity * 0.1
+            self.dynam.set_intensity(intensity)
+            status = format("%d percent Intensity, (Weight %d kg)" % (self.dynam.get_overall_intensity() * 100, payload))
+        else:
+            if client.get_ride_state() == RideState.READY_FOR_DISPATCH:
+                index = intensity *.1 * self.DtoP.rows
+                print("index=", index)
+                status = format("Intensity = %d, index = %.1f" % (intensity, index))
         client.intensity_status_changed((status, "green"))
 
     def run_lookup(self):
@@ -335,7 +349,7 @@ class Controller(QtWidgets.QMainWindow):
         encoder_data = np.array([98, 100, 102, 104, 98, 106])
         self.DtoP.set_index(down_pressure, encoder_data, 'down')
         # self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
-        self.platform.set_d_to_p_indices(self.DtoP.up_curve_idx, self.DtoP.down_curve_idx)
+
 
     def scale(self, val, src, dst): # the Arduino 'map' function written in python
         return (val - src[0]) * (dst[1] - dst[0]) / (src[1] - src[0])  + dst[0]
@@ -354,7 +368,7 @@ class Controller(QtWidgets.QMainWindow):
             self.actuator_lengths = self.k.actuator_lengths(np.array(processed_xform))
             self.platform.move_distance(self.actuator_lengths)
             processing_dur = int(round((time.time() - start) * 1000))
-            if processing_dur > 4:
+            if processing_dur > 9: # anything less than 20 is acceptable but should average under 9 on raspberry pi
                 log.warning("Longer than expected transform processing duration: %d ms", processing_dur)
             if self.ui_tab == 2: # the output tab
                 processing_dur = self.ma.next(processing_dur)
@@ -383,6 +397,7 @@ class Controller(QtWidgets.QMainWindow):
                             gutil.set_text(self.ui.lbl_festo_status, self.platform_status[0], self.platform_status[1])
                 except Exception as e:
                     log.warning("timing test exception %s", e)
+                    print(traceback.format_exc())
             else:
                 self.prev_service = time.time()
                 # self.f = open("timer_test.csv", "w")

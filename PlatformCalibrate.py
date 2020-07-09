@@ -45,8 +45,9 @@ class MainWindow(QtWidgets.QMainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
-        self.muscle_output = MuscleOutput()  
+        
+        self.configure_kinematics()
+        self.muscle_output = MuscleOutput(self.DtoP.distance_to_pressure)  
         self.muscle_output.poll_pressures = False # enable background polling of actual pressures
         self.muscle_output.set_progress_callback(self.progress_callback)
 
@@ -84,7 +85,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configure_serial()
         self.configure_defaults()
         self.configure_button_groups()
-        self.configure_kinematics()
+
 
     def configure_timers(self):
         self.timer_data_update = QtCore.QTimer(self) # timer services muscle pressures and data
@@ -493,7 +494,6 @@ class MainWindow(QtWidgets.QMainWindow):
         fname = str(self.ui.txt_d_to_p_fname.text())
         if self.DtoP.load(fname):
             self.ui.txt_nbr_indices.setText(str(self.DtoP.rows))
-            self.muscle_output.set_d_to_p_curves(self.DtoP.d_to_p_up, self.DtoP.d_to_p_down) # pass curves to platform module
 
     def run_lookup(self):
         # find closest curves for each muscle at the current load
@@ -515,7 +515,6 @@ class MainWindow(QtWidgets.QMainWindow):
         encoder_data = np.array([98,100,102,104, 98,106])
         self.DtoP.set_index(down_pressure, encoder_data, 'down' )
         self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
-        self.muscle_output.set_d_to_p_indices(self.DtoP.up_curve_idx, self.DtoP.down_curve_idx)
 
     def step_platform(self, pressure, step_delay, step, dir, repeat):
         pressures = [pressure]*6

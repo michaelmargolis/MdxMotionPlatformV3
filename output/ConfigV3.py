@@ -34,10 +34,11 @@ class PlatformConfig(object):
     def __init__(self):
         self.PLATFORM_UNLOADED_WEIGHT = 25  # weight of moving platform without 'passenger' in killograms
         DEFAULT_PAYLOAD_WEIGHT = 65    # weight of 'passenger'
-        TOTAL_WEIGHT = self.PLATFORM_UNLOADED_WEIGHT + DEFAULT_PAYLOAD_WEIGHT
-        MAX_MUSCLE_LEN = 800           # length of muscle at minimum pressure
+        LOAD_RANGE = (20,90) # in Kg
+
+        MAX_MUSCLE_LEN = 800  # length of muscle at minimum pressure
         MIN_MUSCLE_LEN = MAX_MUSCLE_LEN * .75 # length of muscle at maximum pressure
-        self.FIXED_LEN = 200                #  length of fixing hardware
+        self.FIXED_LEN = 200  #  length of fixing hardware
         self.MIN_ACTUATOR_LEN = MIN_MUSCLE_LEN + self.FIXED_LEN  # total min actuator distance including fixing hardware
         self.MAX_ACTUATOR_LEN = MAX_MUSCLE_LEN + self.FIXED_LEN # total max actuator distance including fixing hardware
         self.MAX_ACTUATOR_RANGE = self.MAX_ACTUATOR_LEN - self.MIN_ACTUATOR_LEN
@@ -49,10 +50,10 @@ class PlatformConfig(object):
         self.HAS_BRAKE = False # True if platform has electronic braking when parked
 
         #  the max movement in a single DOF
-        self.limits_1dof = [100, 122, 140, math.radians(15), math.radians(20), math.radians(12)]
+        self.limits_1dof = (100, 122, 140, math.radians(15), math.radians(20), math.radians(12)]
 
         # limits at extremes of movement
-        self.limits_6dof = [80, 80, 80, math.radians(12), math.radians(12), math.radians(10)]
+        self.limits_6dof = (80, 80, 80, math.radians(12), math.radians(12), math.radians(10))
 
 
     def calculate_coords(self):

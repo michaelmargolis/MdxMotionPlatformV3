@@ -20,6 +20,7 @@ class PlatformConfig(object):
         self.center_to_lower_outer_joint = 585
 
         self.PLATFORM_MID_HEIGHT = 302  #
+        self.LOAD_RANGE = (20,90) # in Kg
 
         self.is_slider = True
         self.joint_min_offset = 130 # min distance from ball joint to slider center
