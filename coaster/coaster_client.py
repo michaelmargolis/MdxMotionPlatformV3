@@ -430,6 +430,8 @@ class InputInterface(ClientApi):
                 self.coaster.is_train_in_station()
                 bit_train_in_station = 0x800
                 bit_current_train_in_station = 0x1000
+                if self.coaster.system_status.is_in_play_mode == False:
+                    return
                 speed, transform = self.coaster.get_telemetry(.1)
                 if speed != None:
                     #  here if valid telemetry data

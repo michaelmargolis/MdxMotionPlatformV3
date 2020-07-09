@@ -73,15 +73,15 @@ else:
             #   print "in read()"
             while not self.inQ.empty():
                 payload = self.inQ.get()
-                #  print "in Q, payload", payload, "..."
             try:
                 # todo remove messages that do not contain valid payload, for now just ignore
                 if payload != None:
-                    #print "payload", payload, payload[0], payload[0].rstrip()
+                    # print "payload", payload
                     data = payload[0].rstrip()
-                    addr = payload[1]
-                    # print "addr=", addr
-                    #  print format("data {%s}, addr [%s] [%s]" % (data, addr[0], addr[1]))
+                    addr = payload[1].strip("'()")
+                    addr = addr.split(',')
+                    addr[0] = addr[0].strip("'")
+                    # print(format("data {%s}, addr [%s] [%s]" % (data, addr[0], addr[1])))
                     try:
                         if 'GPU' in data:
                             vals = data.split(',',1)
@@ -174,8 +174,7 @@ else:
                 while self.is_running:
                     try:
                         msg, addr = sock.recvfrom(MAX_MSG_LEN)
-                        # print msg, addr
-                        self.inQ.put((msg,addr))
+                        self.inQ.put((str(msg),str(addr)))
                     except:
                         e = sys.exc_info()[0]
                         s = traceback.format_exc()

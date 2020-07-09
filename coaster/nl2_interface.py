@@ -318,16 +318,20 @@ class CoasterInterface():
         return self.telemetry_err_str
 
     def get_telemetry(self, timeout):
-        self._send(self._create_simple_message(self.N_MSG_GET_TELEMETRY,self._get_msg_id()))
-        start = time()
-        self.telemetry_data = None
-        while time() - start < timeout:
-            self.service()
-            if self.telemetry_data != None:
-                #  print(self.telemetry_data)
-                # print "in get_telemetry, latency=", time() - start 
-                return self.telemetry_data
-        log.debug("timeout in get_telemetry")
+        try:
+            self._send(self._create_simple_message(self.N_MSG_GET_TELEMETRY,self._get_msg_id()))
+            start = time()
+            self.telemetry_data = None
+            while time() - start < timeout:
+                self.service()
+                if self.telemetry_data != None:
+                    #  print(self.telemetry_data)
+                    # print "in get_telemetry, latency=", time() - start 
+                    return self.telemetry_data
+            log.debug("timeout in get_telemetry")
+        except Exception as e:
+            log.error("error in get_telemetry: %s", e)
+            print(traceback.format_exc())
         return None
 
     def service(self):
@@ -511,15 +515,16 @@ class CoasterInterface():
         while self.system_status.is_nl2_connected:
             try:
                 if self.system_status.is_nl2_connected:
-                    header[0] = sock.recv(1)
-                    if header[0] != 0x4e:
+                    header = bytearray(sock.recv(1))
+                    if header != b'N':
                         print("sock header error:",  header[0], hex(header[0]))
                         continue
                     for i in range(8):
-                        header[i+1] = sock.recv(1)
+                        b = bytearray(sock.recv(1))
+                        header.extend(b)
                     msg, requestId, size = (unpack('>HIH', header[1:9]))
-                    data = sock.recv(size)
-                    if sock.recv(1) != 'L':
+                    data = bytearray(sock.recv(size))
+                    if bytearray(sock.recv(1)) != b'L':
                         print("Invalid message received")
                         continue
                     #  print("got valid msg, len=", len(data), ":".join("{:02x}".format(ord(c)) for c in data))

@@ -307,24 +307,25 @@ class Controller(QtWidgets.QMainWindow):
         log.debug("Platform park state changed to %s", "parked" if do_park else "unparked")
 
     def set_intensity(self, intensity):
+        # argument is either string as: "intensity=n"  where n is 0-10 or an int 0-10
         # if called while waiting-for-dispatch and if encoders are not enabled, scales and sets d to P index:
         # otherwise sets value in dynamics module to scale output values
         # payload weight passed to platform for deprecated method only used in old platform code
         
         if type(intensity) == str and "intensity=" in intensity:
             m, intensity = intensity.split('=', 2)
-        lower_payload_weight = pfm.LOAD_RANGE[0]
-        upper_payload_weight = pfm.LOAD_RANGE[1]
+        intensity = float(intensity) * 0.1
+        lower_payload_weight = int(pfm.LOAD_RANGE[0])
+        upper_payload_weight = int(pfm.LOAD_RANGE[1])
         payload = self.scale((intensity), (0, 10), (lower_payload_weight, upper_payload_weight))
         #  print "payload = ", payload
         self.platform.set_payload(payload)
         if self.output_gui.encoders_is_enabled() or client.get_ride_state() != RideState.READY_FOR_DISPATCH :
-            intensity = intensity * 0.1
             self.dynam.set_intensity(intensity)
             status = format("%d percent Intensity, (Weight %d kg)" % (self.dynam.get_overall_intensity() * 100, payload))
         else:
             if client.get_ride_state() == RideState.READY_FOR_DISPATCH:
-                index = intensity *.1 * self.DtoP.rows
+                index = intensity * self.DtoP.rows
                 print("index=", index)
                 status = format("Intensity = %d, index = %.1f" % (intensity, index))
         client.intensity_status_changed((status, "green"))
