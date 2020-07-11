@@ -20,8 +20,6 @@ import common.gui_utils as gutil
 import logging
 log = logging.getLogger(__name__)
 
-PRINT_MUSCLES = True # for testing
-
 class MuscleOutput(object):
     def __init__(self, d_to_p_func, FST_ip = '192.168.0.10'):
         self.distance_to_pressure = d_to_p_func
@@ -119,9 +117,9 @@ class MuscleOutput(object):
                 for d in distances:
                      percents.append(d / self.percent_factor)
                 self.echo_method(percents)
-        except:
-            print("error in move distance", sys.exc_info()[0], traceback.format_exc(),distances)
-            log.error("error in move_distancet %s", sys.exc_info()[0])
+        except Exception as e:
+            print("error in move distance", str(e), traceback.format_exc(),distances)
+            log.error("error in move_distance %s, %s", e, sys.exc_info()[0])
 
     def move_percent(self, percents):
         self.move_distance(percents * self.percent_factor) 
@@ -152,27 +150,6 @@ class MuscleOutput(object):
                 current = np.clip(current, 0, 6000)
                 self.move_distance(current)
                 gutil.sleep_qt(interval)
-    """
-        def slow_move(self, start, end, rate_cm_per_s):
-            # moves from the given start lengths/percents to the end values at the given duration
-            #  caution, this moves even if disabled
-            log.debug("in slow move, max dist in cm = %d",  max(end-start)/10)
-            interval = 50  # time between steps in ms
-            steps = (max(end-start)/10) / interval
-            print "steps", steps, type(steps)
-            if steps < 1:
-                self.move_distance(end)
-            else:
-                current = start
-                print("moving from", start, "to", end, "steps", steps)
-                # print "percent", (end[0]/start[0]) * 100
-                delta = [float(e - s)/steps for s, e in zip(start, end)]
-                print("move_func todo in step!!!!!!!!!!!")
-                for step in range(steps):
-                    current = [x + y for x, y in zip(current, delta)]
-                    self.move_distance(current)
-                    gutil.sleep_qt(interval / 1000.0)
-    """
 
     def slow_pressure_move(self, start_pressure, end_pressure, duration_ms):
         #  caution, this moves even if disabled
@@ -222,7 +199,7 @@ class MuscleOutput(object):
         if distDelta < 0:
             #  pressure = 30 * percent*percent + 12 * percent + .01  # assume 25 Newtons for now
             pressure = 35 * percent*percent + 15 * percent + .03  # assume 25 Newtons for now
-            if PRINT_MUSCLES:
+            if False # PRINT_MUSCLES:
                 print("muscle %d contracting %.1f mm to %.1f, pressure is %.2f"
                       % (idx, distDelta, muscle_len, pressure))
         else:

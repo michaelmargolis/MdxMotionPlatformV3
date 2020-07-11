@@ -142,8 +142,7 @@ class UdpRemoteController(object):
                     percent = float(event[1]) / float(event[2])
                     print(int(percent * 100), event[1], event[2])
 
-        except:  
-            e = sys.exc_info()[0]
+        except Exception as e:  
             s = traceback.format_exc()
             print("service error", e, s)
 
@@ -155,8 +154,7 @@ class UdpRemoteController(object):
             t = threading.Thread(target=self.listener_thread, args = (self.client_sock, self.eventQ,))
             t.daemon = True
             t.start()
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             print("thread init err", e, s)
 
@@ -164,8 +162,7 @@ class UdpRemoteController(object):
     def update_heartbeat(self):
         try:
             self.check_heartbeat()
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             print("update heartbeat err", e, s)
        
@@ -208,8 +205,7 @@ class UdpRemoteController(object):
                 if msg is not None:
                     # print msg 
                     eventQ.put(msg)
-            except:
-                e = sys.exc_info()[0]
+            except Exception as e:
                 s = traceback.format_exc()
                 print("listener err", e, s)
                 break

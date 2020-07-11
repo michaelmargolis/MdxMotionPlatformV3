@@ -1,8 +1,7 @@
-""" Platform Controller connects a selected client to chair.
+""" Platform Controller connects a selected client to motion platform.
 
 Copyright Michael Margolis, Middlesex University 2019; see LICENSE for software rights.
 
-This version requires NoLimits attraction license and NL ver 2.5.3.4 or later
 note actuator lengths now expressed as muscle compression in mm (prev was total muscle length)
 """
 import logging
@@ -22,6 +21,7 @@ import common.serial_defaults as serial_defaults
 import common.gui_utils as gutil
 from common.dynamics import Dynamics
 from common.streaming_moving_average import StreamingMovingAverage as MA
+from common.dialog import ModelessDialog
 
 # Importlib used to load configurations for client and platform as selected in platform_config.py
 import importlib
@@ -44,7 +44,6 @@ class Controller(QtWidgets.QMainWindow):
         try:
             self.FRAME_RATE_ms = 50
             self.prev_service = None
-            # self.prevT = 0 # for debug
             if festo_ip == '':
                 # use ip from config file of not overridden on cmd line
                 festo_ip = cfg.Festo_IP_ADDR
@@ -60,9 +59,9 @@ class Controller(QtWidgets.QMainWindow):
             self.dynam = Dynamics()
             self.dynam.init_gui(self.ui.frm_dynamics)
             self.dynam.begin(pfm.limits_1dof, "gains.cfg")
+            log.warning("Dynamics module has washout disabled, test if this is acceptable")
             self.set_intensity(10)  # default intensity at max
             self.ma = MA(10)  # moving average for processing time diagnostics
-            log.warning("Dynamics module has washout disabled, test if this is acceptable")
             self.init_remote_controls()
             self.service()
             log.info("Platform controller initializations complete")
@@ -81,35 +80,34 @@ class Controller(QtWidgets.QMainWindow):
                         self.local_control = local_control_itf.LocalControlItf(self.RemoteControl.actions)
                         log.info("using local hardware switch control")
                         if self.local_control.is_activated():
-                            log.warning("todo - implement loop check for estop")
-                            # while  self.local_control.is_activated():
-                            # tkMessageBox.showinfo("EStop must be Down",  "Flip Emergency Stop Switch down and press Ok to proceed")
+                            self.dialog.setWindowTitle('Emergency Stop must be down')
+                            self.dialog.txt_info.setText("Flip Emergency Stop Switch down and press Ok to proceed")
+                            self.dialog.show()
+                            gutil.sleep_qt(5)
+                            self.dialog.close()
+                            while self.local_control.is_activated():
+                                gutil.sleep_qt(.5)
                 except ImportError:
                     qm = QtWidgets.QMessageBox
                     result = qm.question(self, 'Raspberry Pi GPIO problem', "Unable to access GPIO hardware control\nDo you want to to continue?", qm.Yes | qm.No)
                     if result != qm.Yes:
                         raise
                     else:
-                        log.warning("local hardware switch control will not be used")  # self.local_control will be None
-
+                        log.warning("local hardware switch control will not be used")
         self.USE_UDP_MONITOR = False
 
     def init_kinematics(self):
         self.k = Kinematics()
-        # cfg = PlatformConfig()
         pfm.calculate_coords()
         log.info("Starting %s as %s", pfm.PLATFORM_NAME, pfm.PLATFORM_TYPE)
-        # self.telemetry = Telemetry(self.telemetry_cb, pfm.limits_1dof)
         self.k.set_geometry(pfm.BASE_POS, pfm.PLATFORM_POS)
 
         if pfm.PLATFORM_TYPE == "SLIDER":
-            self.is_slider = True
             self.k.set_slider_params(pfm.joint_min_offset, pfm.joint_max_offset, pfm.strut_length,
                                      pfm.slider_angles)
             self.actuator_lengths = [0] * 6   # muscles fully relaxed
             d_to_p_file = 'output/DtoP.csv'
         else:
-            self.is_slider = False
             self.k.set_platform_params(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.FIXED_LEN)
             self.actuator_lengths = [pfm.PROPPING_LEN] * 6 # position for moving prop
             d_to_p_file = 'output/DtoP_v3.csv'
@@ -147,9 +145,10 @@ class Controller(QtWidgets.QMainWindow):
             self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
             self.ui.btn_activate.clicked.connect(self.enable_platform)
             self.ui.btn_deactivate.clicked.connect(self.disable_platform)
+            
+            self.dialog = ModelessDialog(self)
             return True
-        except:
-            e = sys.exc_info()[0]  # report error
+        except Exception as e:
             log.error("error in init gui %s, %s", e, traceback.format_exc())
         return False
 
@@ -170,7 +169,7 @@ class Controller(QtWidgets.QMainWindow):
             self.platform.set_wait(False)
 
     def init_serial(self):
-        if self.is_slider:
+        if pfm.PLATFORM_TYPE == "SLIDER":
             self.encoder = Encoder()
             if 'encoder' in serial_defaults.dict:
                 port = serial_defaults.dict['encoder']
@@ -274,7 +273,6 @@ class Controller(QtWidgets.QMainWindow):
         #  request = self.process_request(client.get_transform())
         #  actuator_lengths  = self.k.actuator_lengths(request)
         ##pos = client.get_transform() # was used to get z pos
-        log.warning("move to ready - TODO, pressure curves are hard coded!")
         log.debug("move to ready")
         if pfm.PLATFORM_TYPE == "SLIDER":
             if self.output_gui.encoders_is_enabled():
@@ -318,7 +316,6 @@ class Controller(QtWidgets.QMainWindow):
         lower_payload_weight = int(pfm.LOAD_RANGE[0])
         upper_payload_weight = int(pfm.LOAD_RANGE[1])
         payload = self.scale((intensity), (0, 10), (lower_payload_weight, upper_payload_weight))
-        #  print "payload = ", payload
         self.platform.set_payload(payload)
         if self.output_gui.encoders_is_enabled() or client.get_ride_state() != RideState.READY_FOR_DISPATCH :
             self.dynam.set_intensity(intensity)
@@ -326,12 +323,14 @@ class Controller(QtWidgets.QMainWindow):
         else:
             if client.get_ride_state() == RideState.READY_FOR_DISPATCH:
                 index = intensity * self.DtoP.rows
-                print("index=", index)
-                status = format("Intensity = %d, index = %.1f" % (intensity, index))
+                self.d_to_p.up_curve_idx = [index]*6
+                self.d_to_p.down_curve_idx = [index]*6
+                status = format("Intensity = %d, index = %.1f" % (intensity*10, index))
         client.intensity_status_changed((status, "green"))
 
     def run_lookup(self):
         # find closest curves for each muscle at the current load
+        log.warning("todo - set pressures for lookup in config files")
         up_pressure = 3000
         down_pressure = 2000
         dur = 2
@@ -339,18 +338,14 @@ class Controller(QtWidgets.QMainWindow):
         self.platform.slow_pressure_move(0, up_pressure, dur)
         gutil.sleep_qt(.5)
         encoder_data, timestamp = self.encoder.read()
-        log.warning("TODO, using hard coded encoder data!")
-        encoder_data = np.array([123, 125, 127, 129, 133, 136])
+        #  encoder_data = np.array([123, 125, 127, 129, 133, 136]) hard coded data only for testing 
         self.DtoP.set_index(up_pressure, encoder_data, 'up')
-        # self.ui.txt_up_index.setText(str(self.DtoP.up_curve_idx))
 
         self.platform.slow_pressure_move(up_pressure, down_pressure, dur/2)
         gutil.sleep_qt(.5)
         encoder_data, timestamp = self.encoder.read()
-        encoder_data = np.array([98, 100, 102, 104, 98, 106])
+        #  encoder_data = np.array([98, 100, 102, 104, 98, 106]) 
         self.DtoP.set_index(down_pressure, encoder_data, 'down')
-        # self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
-
 
     def scale(self, val, src, dst): # the Arduino 'map' function written in python
         return (val - src[0]) * (dst[1] - dst[0]) / (src[1] - src[0])  + dst[0]
@@ -457,8 +452,7 @@ def main():
 
     except SystemExit:
         log.error("user abort")
-    except:
-        e = sys.exc_info()[0]  # report error
+    except Exception as e:
         log.error("error in main %s, %s", e, traceback.format_exc())
 
     if controller:

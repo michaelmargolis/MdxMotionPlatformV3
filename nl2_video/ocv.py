@@ -179,12 +179,11 @@ class MainWindow(QtGui.QMainWindow):
             ser.combo.setCurrentIndex(ser.combo.count() - 1)
 
     def configure_festo(self):    
-        self.muscle_output = muscle_output.MuscleOutput()  
+        self.muscle_output = muscle_output.MuscleOutput(self.DtoP.distance_to_pressure)  
         self.muscle_output.poll_pressures = False # enable background polling of actual pressures
         self.xyzrpy = [0,0,0,0,0,0]
-        if self.DtoP.load_DtoP('..\output\DtoP.csv'):
+        if self.DtoP.load('..\output\DtoP.csv'):
             log.info("Loaded %d rows of distance to pressure files ", self.DtoP.rows)
-            self.muscle_output.set_d_to_p_curves(self.DtoP.d_to_p_up, self.DtoP.d_to_p_down) # pass curves to platform module
         else:
             log.error("Unable to read distance to pressure files")
  
@@ -199,16 +198,15 @@ class MainWindow(QtGui.QMainWindow):
         encoder_data,timestamp = self.encoder.sp.read()
         print "TODO, using hard coded encoder data"
         encoder_data = np.array([123,125,127,129,133,136])
-        self.DtoP.set_DtoP_index(up_pressure, encoder_data, 'up' )
+        self.DtoP.set_index(up_pressure, encoder_data, 'up' )
         # self.ui.txt_up_index.setText(str(self.DtoP.up_curve_idx))
  
         self.muscle_output.slow_pressure_move(up_pressure, down_pressure, dur/2)
         time.sleep(.5)
         encoder_data,timestamp = self.encoder.sp.read()
         encoder_data = np.array([98,100,102,104, 98,106])
-        self.DtoP.set_DtoP_index(down_pressure, encoder_data, 'down' )
+        self.DtoP.set_index(down_pressure, encoder_data, 'down' )
         # self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
-        self.muscle_output.set_d_to_p_indices(self.DtoP.up_curve_idx, self.DtoP.down_curve_idx)
         self.ui.gb_adjust.setStyleSheet(" background-color: 'black';\n")
 
     def draw_chair_frame(self):

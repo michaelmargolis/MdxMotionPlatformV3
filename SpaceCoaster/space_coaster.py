@@ -285,8 +285,7 @@ class InputInterface(ClientApi):
                                 status = format("Running frame %d, time %d" % (cosmetic_frame, cosmetic_frame/20))
                                 self.report_coaster_status(status, "green") 
                     self.frame_number += 1
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             log.error("SC service error %s, %s, frame=%d", e, s, self.frame_number)
 
@@ -365,8 +364,7 @@ class InputInterface(ClientApi):
                     elif "command" in msg:
                         #print msg
                         pass
-                except:
-                    e = sys.exc_info()[0]
+                except Exception as e:
                     s = traceback.format_exc()
                     if msg:
                         log.error("listener err %s,%s, msg(%s)", e, s, msg)
@@ -409,8 +407,7 @@ class InputInterface(ClientApi):
                 self.telemetry = np.asarray(self.telemetry, dtype=np.float32)
                 # np.set_printoptions(precision=3,suppress=T
                 # print self.telemetry
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             log.error("Error reading telemetry file %s %s", e,s)
             
@@ -460,8 +457,7 @@ class LocalClient(QtWidgets.QMainWindow):
             # log.info("Starting service timer")
             # service_timer.start(50) 
             self.service()
-        except:
-            e = sys.exc_info()[0]  # report error
+        except Exception as e:
             s = traceback.format_exc()
             log.error("Space coaster local client %s %s", e, s)
  
@@ -534,8 +530,7 @@ if __name__ == "__main__":
         app.exec_()
     except ConnectionException as error:
         log.error("User aborted because space coaster not found") 
-    except:
-        e = sys.exc_info()[0]  # report error
+    except Exception as e:
         s = traceback.format_exc()
         log.error("space coaster main %s %s", e, s)
       

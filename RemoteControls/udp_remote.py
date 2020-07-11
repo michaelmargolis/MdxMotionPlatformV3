@@ -33,8 +33,7 @@ class UdpRemote(object):
             t = threading.Thread(target=self.listener_thread, args=(self.inQ, self.sock))
             t.daemon = True
             t.start()
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             print(("thread init err", e, s))
 
@@ -46,8 +45,7 @@ class UdpRemote(object):
                 msg, self.address = sock.recvfrom(MAX_MSG_LEN)
                 #  print "udp remote msg:", msg
                 inQ.put(msg)
-            except:
-                e = sys.exc_info()[0]
+            except Exception as e:
                 s = traceback.format_exc()
                 print(("listener err", e, s))
 

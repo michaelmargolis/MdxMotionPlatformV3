@@ -1,4 +1,4 @@
-# this version does does not use seperate start to open port
+# this version does does not use separate start to open port
 # port open moved from thread to open method
 
 # mm added alternate term char mm may 2020

@@ -101,6 +101,7 @@ class D_to_P(object):
     def interpolate(self, index, distance, curves):
         # return the pressure for the given distance interpolated by the index value
         if index < self.rows:
+            distance = int(distance)
             if index == int(index) or index >= self.rows -1:
                 return curves[int(index)][distance]
             else:

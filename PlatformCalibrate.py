@@ -577,8 +577,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.imu_data.append(self.imu.sp.read())
                     #self.ui.txt_pressure_delta.setText(str(delta))
                     #self.ui.txt_measured_pos.setText(value[1]) # todo ??
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             print("error reading serial data", e, s)
 
@@ -595,8 +594,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     print(t1)
                     if t[1] == 'csv' and len(t1) == 2 and t1[1].isdigit():
                         return fname
-        except:
-            print(sys.exc_info()[0], traceback.format_exc())
+        except Exception as e:
+            print(str(e), traceback.format_exc())
         QtWidgets.QMessageBox.question(self, 'Invalid ' + desc + " file name!",
                 format("Name must begin with %s followed by integer weight.\n  example: %s40.csv" %(base,base)))
         return ""
@@ -620,9 +619,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 line = ','.join(str(n) for n in data)
                 self.outfile.write(line + "\n")
             self.ui.btn_save_step_data.setEnabled(False)
-        except:
+        except Exception as e:
             s = traceback.format_exc()
-            e = sys.exc_info()[0]
             log.error("Error saving data file, is it already open? %s %s", e, s)
 
     def save_raw_data(self):
@@ -642,9 +640,8 @@ class MainWindow(QtWidgets.QMainWindow):
             # if len(self.ui.txt_p_to_d_fname.text()) < 1:
             #     self.ui.txt_p_to_d_fname.setText(self.ui.txt_capture_fname.text())
 
-        except:
+        except Exception as e:
             s = traceback.format_exc()
-            e = sys.exc_info()[0]
             log.error("Error saving data file, is it already open? %s %s", e, s)
                     
 

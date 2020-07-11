@@ -251,8 +251,7 @@ class RemoteClient(QtWidgets.QMainWindow):
             service_timer.timeout.connect(self.client.service)
             log.info("Starting client service timer")
             service_timer.start(50) 
-        except:
-            e = sys.exc_info()[0]  # report error
+        except Exception as e:
             log.error("error starting remote client %s", e)
 
     def cmd_func(self, cmd):  # command handler function called from Platform input
