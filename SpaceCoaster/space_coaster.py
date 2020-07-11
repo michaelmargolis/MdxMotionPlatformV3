@@ -39,6 +39,7 @@ if __name__ == "__main__":
     sys.path.insert(0, '../')
     from client_api import ClientApi
     from ride_state import RideState
+    from platform_config import cfg
 else:
     # here if run as client of platform_controller
     from client_api import ClientApi
@@ -46,6 +47,7 @@ else:
     from ride_state import RideState
     from common.tcp_server import SockServer
     import common.gui_utils as gutil
+    from platform_config import cfg
 
 class SC_State:  # these are space coaster specific states
     initializing, waiting, ready, running, completed = list(range(0,5))
@@ -66,7 +68,7 @@ class InputInterface(ClientApi):
         self.is_normalized = True
         self.expect_degrees = False # convert to radians if True
         self.SC_HOST = "localhost"
-        self.SC_PORT = 10009 
+        self.SC_PORT = cfg.SPACE_COASTER_PORT
         self.max_values = [80, 80, 80, 0.4, 0.4, 0.4]
         self.telemetry = []
         self.start_frame = 30
@@ -445,9 +447,9 @@ class LocalClient(QtWidgets.QMainWindow):
             
             self.client = InputInterface(True) 
             self.client.init_gui(self.ui.frame)
-            limits = cfg.limits_1dof
+            limits = pfm.limits_1dof
             self.client.begin(self.cmd_func, limits)
-            self.server = SockServer(port=10015)
+            self.server = SockServer(port=cfg.REMOTE_CLIENT_PORT)
             self.server.start()
             log.info("Started tcp server, this IP address is %s", self.server.get_local_ip())
             service_timer = QtCore.QTimer(self)
@@ -520,7 +522,7 @@ if __name__ == "__main__":
     
     # platform_selection = 'ConfigV3'
     platform_selection = 'configNextgen'
-    cfg = importlib.import_module(platform_selection).PlatformConfig()
+    pfm = importlib.import_module(platform_selection).PlatformConfig()
 
     app = QtWidgets.QApplication(sys.argv) 
     

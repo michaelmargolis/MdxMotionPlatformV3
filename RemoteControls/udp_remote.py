@@ -21,7 +21,7 @@ class UdpRemote(object):
         values are the functons to be called for the given key.
         """
         self.HOST = ""
-        self.PORT = 10013
+        self.PORT = 10013 # this must match TCP_UDP_REMOTE_CONTROL_PORT defined in platform config
         self.sock = None
         self.address = None
         self.inQ = Queue()

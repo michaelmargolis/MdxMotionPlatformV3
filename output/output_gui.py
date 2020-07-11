@@ -3,7 +3,6 @@ Copyright Michael Margolis, Middlesex University 2019; see LICENSE for software 
 
 display muscle lengths and platform orientation
 """
-SHOW_CHAIR_IMAGES = False
 
 #  from output_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -87,73 +86,6 @@ class OutputGui(object):
             self.ui.rect_dur.setStyleSheet("color: rgb(255, 0, 0)")
         self.ui.rect_dur.setFrameRect(rect)
 
-        """
-        for idx, m in enumerate(muscles):
-            n = copy.copy(self.normalize(m))                       
-            new_y1 = self.max_rectlen +((n+1) * self.max_rectlen * 0.125)
-            _percent = int((n+1) * 50)
-            #print m,n, _percent, new_y1
-            x0, y0, x1, y1 = self.muscle_canvas.coords(self.muscle_rect[idx])           
-            self.muscle_canvas.coords(self.muscle_rect[idx], x0, y0, x1, new_y1)
-            info = "L %d is %-3dmm (%d)%% [P err%%=%d]" % (idx, int(m-200), _percent,  pressure_percent[idx])
-            if _percent < -100 or _percent > 100:
-                color = "red"
-            else:
-                color = "black"
-            self.muscle_labels[idx].config(text=info, fg=color)
-
-        pos = copy.copy(position_request)
-        x = pos[0] / 10
-        y = pos[1] / 10
-        z = 50 - pos[2] / 10
-        r = degrees(pos[3])
-        p = degrees(pos[4])
-        yaw = degrees(pos[5])
-        #  print pos
-
-        if cfg.SHOW_CHAIR_IMAGES:
-            self.chair_img_canvas.delete(self.front_canvas_obj)
-            self.chair_front_img = ImageTk.PhotoImage(self.chair_front.rotate(r))
-            self.front_canvas_obj = self.chair_img_canvas.create_image(
-                65 + y, z + self.muscle_canvas_height/2, image=self.chair_front_img)
-
-            self.chair_img_canvas.delete(self.side_canvas_obj)
-            self.chair_side_img = ImageTk.PhotoImage(self.chair_side.rotate(p))
-            self.side_canvas_obj = self.chair_img_canvas.create_image(
-                195 + x, z + self.muscle_canvas_height/2, image=self.chair_side_img)
-
-            self.chair_img_canvas.delete(self.chair_top_img)
-            self.chair_top_img = ImageTk.PhotoImage(self.chair_top.rotate(yaw))
-            self.top_canvas_obj = self.chair_img_canvas.create_image(
-                130, 50 + x, image=self.chair_top_img)
-                
-            self.draw_crosshair( self.chair_side_img, 25, 105)  
-            self.draw_crosshair( self.chair_front_img, 155, 105)
-            self.draw_crosshair( self.chair_top_img, 95, 20)
-
-        info = "Orientation: X=%-4d Y=%-4d Z=%-4d  Roll=%-3d Pitch=%-3d Yaw=%-3d" % (pos[0], pos[1], pos[2], r, p, yaw)
-        self.request_fields_lbl.config(text=info)
-        
-        self.master.update_idletasks()
-        self.master.update()
-
-                platform.show_muscles(position_request, self.actuator_lengths)
-                percents = ((self.actuator_lengths -cfg.MIN_ACTUATOR_LEN ) / cfg.MAX_ACTUATOR_RANGE) * 100
-                print "show muscles", position_request, percents , cfg.MAX_ACTUATOR_RANGE
-                for i in range(6):
-                   #self.actuator_bars[i].setValue(percents[i])
-                   #self.actuator_bars[i].setWidth(percents[i])
-                   pass
-        """
-        """
-        platform.show_muscles(position_request, self.actuator_lengths)
-        percents = ((self.actuator_lengths -cfg.MIN_ACTUATOR_LEN ) / cfg.MAX_ACTUATOR_RANGE) * 100
-        print "show muscles", position_request, percents , cfg.MAX_ACTUATOR_RANGE
-        for i in range(6):
-           #self.actuator_bars[i].setValue(percents[i])
-           #self.actuator_bars[i].setWidth(percents[i])
-        """
-        
     def normalize(self, item):
         i = 2 * (item - self.MIN_ACTUATOR_LEN) / (self.MAX_ACTUATOR_LEN - self.MIN_ACTUATOR_LEN)
         return i-1

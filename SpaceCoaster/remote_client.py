@@ -33,12 +33,14 @@ if __name__ == "__main__":
     sys.path.insert(0, '../')
     from client_api import ClientApi
     from ride_state import RideState
+    from platform_config import cfg
 else:
     from client_api import ClientApi
     from ride_state import RideState
     from SpaceCoaster.remote_client_gui_defs import Ui_Frame
     from common.tcp_client import SockClient
     import common.gui_utils as gutil
+    from platform_config import cfg
 
 import ctypes # for mouse
 import numpy as np  # for scaling telemetry data
@@ -146,8 +148,8 @@ class InputInterface(ClientApi):
         pass
 
     def begin(self, cmd_func, limits):
-        # self.clients.append(SockClient('127.0.0.1', 10015))
-        self.clients.append(SockClient('192.168.1.16', 10015))
+        # self.clients.append(SockClient('127.0.0.1', cfg.REMOTE_CLIENT_PORT))
+        self.clients.append(SockClient('192.168.1.16', cfg.REMOTE_CLIENT_PORT))
         self.cmd_func = cmd_func
         self.limits = limits  # note limits are in mm and radians        
         if self.is_normalized:

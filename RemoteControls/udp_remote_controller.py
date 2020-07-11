@@ -1,5 +1,7 @@
 """
   udp_remote_controller.py
+  
+todo replace hard coded port 10013 with TCP_UDP_REMOTE_CONTROL_PORT as defined in platform config
 
 """
 
