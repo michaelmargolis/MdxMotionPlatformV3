@@ -174,7 +174,7 @@ class Controller(QtWidgets.QMainWindow):
         if btn.text() == 'Encoders' and btn.isChecked():
             self.connect_encoder()
         elif btn.text() == 'Manual' and btn.isChecked():
-           print "todo change to manual mode"
+           print("todo change to manual mode")
 
     def connect_encoder(self):
         if pfm.PLATFORM_TYPE == "SLIDER":
