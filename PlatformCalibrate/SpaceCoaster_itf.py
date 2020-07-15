@@ -218,9 +218,6 @@ class InputInterface(object):
         self.left_mouse_click()
         print "dispatched" 
         self.frame_number = 30 # start 1.5 seconds removed
-
-    def chair_status_changed(self, chair_status):
-        print(chair_status[0])
     
     def intensity_status_changed(self, intensity):
        self.intensity_status_Label.config(text=intensity[0], fg=intensity[1])
@@ -271,8 +268,7 @@ class InputInterface(object):
                     self.coaster_connection_label.config(text="No longer receiving coaster data", fg="orange")
                 except:
                     pass
-        except:  
-            e = sys.exc_info()[0]
+        except Exception as e:  
             s = traceback.format_exc()
             print "service error", e, s
         return None
@@ -352,8 +348,7 @@ class InputInterface(object):
             client.bind((HOST, PORT))
             print "opening socket on", PORT
             # self.xyzrpyQ = xyzrpyQ
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             print "thread init err", e, s
         while True:
@@ -371,8 +366,7 @@ class InputInterface(object):
                     elif msg.find("state") == 0:
                         self.cmdQ.put(msg) # state messages go onto command queue
                
-            except:
-                e = sys.exc_info()[0]
+            except Exception as e:
                 s = traceback.format_exc()
                 print "listener err", e, s
 
@@ -395,8 +389,7 @@ class InputInterface(object):
                             self.telemetry.append(data)
                 print format("read %d frames into telemetry frame list" % (len(self.telemetry)))
                 #print self.telemetry
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             s = traceback.format_exc()
             print "Error reading telemetry file", e,s
             

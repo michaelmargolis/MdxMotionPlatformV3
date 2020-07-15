@@ -14,6 +14,7 @@ class ClientApi(object):
         self.transform = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.is_normalized = True  # set to false if client provides real world orientation values
         self.ride_state = None
+        self.is_connected = False
 
     def init_gui(self, frame):
         """pass pyqt frame and add init code if using GUI"""
@@ -25,10 +26,6 @@ class ClientApi(object):
 
     def intensity_status_changed(self, status):
         """pass string with ride intensity text if supported by this client"""
-        pass
-
-    def chair_status_changed(self, chair_status):
-        """pass string with ride status text if supported by this client"""
         pass
 
     def activate(self):
@@ -65,6 +62,20 @@ class ClientApi(object):
     def begin(self, cmd_func, move_func, limits):
         """code to start the client goes here"""
         pass
+
+    def set_address(self, address):
+        # format of address is client dependent
+        self.address = address
+
+    def get_address(self):
+        return self.address
+
+    def connect(self):
+        #  address must be set prior to connect
+        return is_connected
+
+    def is_connected(self):
+        return is_connected
 
     def fin(self):
         """client exit code goes here"""

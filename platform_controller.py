@@ -10,14 +10,14 @@ import argparse
 import sys
 import os
 import time
+import socket
 import numpy as np
 
 
 from main_gui import *
 from ride_state import RideState
 
-from common.serialSensors import Encoder, ServoModel
-import common.serial_defaults as serial_defaults
+from common.encoders import TcpEncoder
 import common.gui_utils as gutil
 from common.dynamics import Dynamics
 from common.streaming_moving_average import StreamingMovingAverage as MA
@@ -49,13 +49,14 @@ class Controller(QtWidgets.QMainWindow):
                 festo_ip = cfg.Festo_IP_ADDR
             self.init_gui()
             self.init_kinematics()
-            self.platform = MuscleOutput(self.DtoP.distance_to_pressure, festo_ip)
+            self.platform = MuscleOutput(self.DtoP.distance_to_pressure, festo_ip, pfm.MAX_ACTUATOR_RANGE)
             self.platform_status = None
             self.is_active = True  # set False to terminate
             self.is_output_enabled = False
             self.init_platform_parms()
             client.begin(self.cmd_func, pfm.limits_1dof)
-            self.init_serial()
+            self.encoder = None
+            self.connect_encoder()
             self.dynam = Dynamics()
             self.dynam.init_gui(self.ui.frm_dynamics)
             self.dynam.begin(pfm.limits_1dof, "gains.cfg")
@@ -63,6 +64,7 @@ class Controller(QtWidgets.QMainWindow):
             self.set_intensity(10)  # default intensity at max
             self.ma = MA(10)  # moving average for processing time diagnostics
             self.init_remote_controls()
+            self.init_echo()
             self.service()
             log.info("Platform controller initializations complete")
         except:
@@ -94,7 +96,6 @@ class Controller(QtWidgets.QMainWindow):
                         raise
                     else:
                         log.warning("local hardware switch control will not be used")
-        self.USE_UDP_MONITOR = False
 
     def init_kinematics(self):
         self.k = Kinematics()
@@ -145,7 +146,8 @@ class Controller(QtWidgets.QMainWindow):
             self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
             self.ui.btn_activate.clicked.connect(self.enable_platform)
             self.ui.btn_deactivate.clicked.connect(self.disable_platform)
-            
+            self.output_gui.encoder_change_callback(self.encoder_select_event)
+
             self.dialog = ModelessDialog(self)
             return True
         except Exception as e:
@@ -168,25 +170,45 @@ class Controller(QtWidgets.QMainWindow):
             log.info("System will ignore Festo msg confirmations")
             self.platform.set_wait(False)
 
-    def init_serial(self):
+    def encoder_select_event(self, btn):
+        if btn.text() == 'Encoders' and btn.isChecked():
+            self.connect_encoder()
+        elif btn.text() == 'Manual' and btn.isChecked():
+           print "todo change to manual mode"
+
+    def connect_encoder(self):
         if pfm.PLATFORM_TYPE == "SLIDER":
-            self.encoder = Encoder()
-            if 'encoder' in serial_defaults.dict:
-                port = serial_defaults.dict['encoder']
-                log.info("Attempting connect to encoders on port %s", port)
-                if self.encoder.open_port(port, 115200):
-                    log.info("Encoders connected on %s", port)
+            # encoders connected to pc running sim, see platform_config for addr
+            if self.encoder == None:
+                self.encoder = TcpEncoder(cfg.SIM_IP_ADDR[0], cfg.REMOTE_ENCODERS_PORT)
+            try:
+                addr_str = format("%s:%d" % (cfg.SIM_IP_ADDR[0], cfg.REMOTE_ENCODERS_PORT))
+                if self.encoder.connect():
+                    log.info("Encoders on %s", addr_str)
                 else:
+                    self.ui.tabWidget.setCurrentIndex(2)
                     QtWidgets.QMessageBox.warning(self, 'Encoder Connection Error!',
-                        "Unable to connect to encoders\nPlatform load must be set manually" ,
-                          QtWidgets.QMessageBox.Ok)
+                        "Unable to connect to encoders on " + addr_str + 
+                        "\nSelect Encoders in GUI to try again", QtWidgets.QMessageBox.Ok)
                     self.output_gui.encoders_set_enabled(False)
-        self.servo_model = ServoModel() # 57600 baud
-        if 'model' in serial_defaults.dict:
-            port = serial_defaults.dict['model']
-            log.info("Attempting connect to servo model on port %s", port)
-            if self.servo_model.open_port(port, 57600):
-                log.info("Servo model connected on %s", port)
+                    self.encoder = None
+            except Exception as e:
+                log.error("Error connecting to encoders %s", e)
+
+    def init_echo(self):
+        # todo - replace this with tcp_server ??? 
+        self.echo_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.echo_addr = (cfg.ECHO_IP_ADDR, cfg.PLATFORM_ECHO_PORT)
+        log.info("Echo will send UDP msgs to %s:%d",  self.echo_addr[0], self.echo_addr[1] )
+
+    def echo_output(self, transform, distances, percents,):
+       if self.echo_sock:
+            #print transform, percents, distances
+            trans_str = ",".join("{0:0.3f}".format(f) for f in transform)
+            dist_str = ",".join("{0}".format(i) for i in distances)
+            percent_str = ",".join("{0}".format(i) for i in percents)
+            msg = format("transform=%s;distances=%s;percents=%s;\n" % (trans_str, dist_str, percent_str))
+            self.echo_sock.sendto(msg, self.echo_addr)
 
     def tab_changed(self, tab_index):
         self.ui_tab = tab_index
@@ -364,14 +386,20 @@ class Controller(QtWidgets.QMainWindow):
             self.actuator_lengths = self.k.actuator_lengths(np.array(processed_xform))
             self.platform.move_distance(self.actuator_lengths)
             processing_dur = int(round((time.time() - start) * 1000))
+            self.echo_output(list(processed_xform), self.actuator_lengths, self.platform.percents)
             if processing_dur > 9: # anything less than 20 is acceptable but should average under 9 on raspberry pi
                 log.warning("Longer than expected transform processing duration: %d ms", processing_dur)
             if self.ui_tab == 2: # the output tab
                 processing_dur = self.ma.next(processing_dur)
                 self.output_gui.show_muscles(processed_xform, self.actuator_lengths, processing_dur)
+                if self.encoder:
+                    encoder_data = self.encoder.read()
+                    if encoder_data:
+                        self.output_gui.show_encoders(encoder_data)
             self.prev_start = start
         except Exception as e:
             log.error("error in move function %s", e)
+            print(traceback.format_exc()) 
 
     def service(self):
         if self.is_active:

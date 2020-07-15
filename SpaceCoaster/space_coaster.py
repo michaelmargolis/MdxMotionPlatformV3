@@ -40,12 +40,14 @@ if __name__ == "__main__":
     from client_api import ClientApi
     from ride_state import RideState
     from platform_config import cfg
+    from common.dialog import ModelessDialog
 else:
     # here if run as client of platform_controller
     from client_api import ClientApi
     from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
     from ride_state import RideState
     from common.tcp_server import SockServer
+    from common.dialog import ModelessDialog
     import common.gui_utils as gutil
     from platform_config import cfg
 
@@ -57,7 +59,6 @@ class ConnectionException(Exception):
 
 class InputInterface(ClientApi):
     USE_GUI = True  # set True if using tkInter
-    USE_UDP_MONITOR = False
 
     def __init__(self, is_local_client = False):
         super(InputInterface, self).__init__()
@@ -67,8 +68,6 @@ class InputInterface(ClientApi):
         self.log = None
         self.is_normalized = True
         self.expect_degrees = False # convert to radians if True
-        self.SC_HOST = "localhost"
-        self.SC_PORT = cfg.SPACE_COASTER_PORT
         self.max_values = [80, 80, 80, 0.4, 0.4, 0.4]
         self.telemetry = []
         self.start_frame = 30
@@ -101,7 +100,7 @@ class InputInterface(ClientApi):
 
         self.report_connection_status(self.connection_status, 'red')
         self.report_coaster_status(self.coaster_status, 'black')
-        
+        self.dialog = ModelessDialog(frame)
         log.info("Client GUI initialized")
 
     def set_focus(self, window_class=None, window_title=None):
@@ -189,7 +188,7 @@ class InputInterface(ClientApi):
         self.deactivate()
  
     def command(self, cmd):
-        print(("command", cmd))
+        # print(("command", cmd))
         if self.cmd_func is not None:
             log.debug("Requesting command: %s", cmd)
             self.cmd_func(cmd)
@@ -217,44 +216,43 @@ class InputInterface(ClientApi):
         self.read_telemetry()
         self.xyzrpyQ = Queue()
         self.cmdQ = Queue()
-        while True:
-            # print("test version ignores test for space coaster")
-            # break
-            try:
-                log.debug("attempting to set focus")
-                self.set_focus("UnityWndClass","Coaster MSU")
-                log.info("found space coaster window")
-                self.left_mouse_click()
-                break
-            except:
-                reply =  QtWidgets.QMessageBox.question(self.frame, 'Coaster Connection Error!',
-                        "Coaster not found, Start CoasterMSU and try again?" ,
-                          QtWidgets.QMessageBox.Yes,  QtWidgets.QMessageBox.No)
-                if reply == QtWidgets.QMessageBox.No:
-                    raise ConnectionException("User aborted")
-        log.info("Starting client listener thread")
-        self.is_coaster_connected = -1
-        t = Thread(target=self.listener_thread, args= (self.SC_HOST, self.SC_PORT))
+        # space coaster must be run on same pc running this client
+        self.set_address(('', cfg.SPACE_COASTER_PORT))
+                # space coaster must be run on same pc running this client
+        self.set_address(('localhost', cfg.SPACE_COASTER_PORT))
+        t = Thread(target=self.listener_thread, args= (self.get_address()))
         t.daemon = True
         t.start()
-        
-        self.report_connection_status("Connecting to Coaster", "orange") 
-        while self.is_coaster_connected < 0:
-            #  print("test version ignores test for space coaster")
-            #  break
-            self.sleep_func(5)
-            if self.is_coaster_connected != 1:
-               log.warning("Coaster not connected - Is CoasterMSU running?")
-               # QtGui.QMessageBox.warning( self.frame, 'Coaster Connection Error!',
-               #                 "Coaster not Connected\nIs CoasterMSU running?" )
-        if self.is_coaster_connected == 0:
-            self.report_connection_status("Not connected to Coaster", "red") 
-        else:
-            self.report_connection_status("Space Coaster Connected", "green") 
+        self.connect()
+        try:
+            log.debug("attempting to set focus")
+            self.set_focus("UnityWndClass","Coaster MSU")
+            log.info("found space coaster window")
+            self.left_mouse_click()
+            # break
+        except:
+            print "unable to find window todo "
+
 
     def fin(self):
         # client exit code goes here
         pass
+
+    def connect(self):
+        self.is_coaster_connected = -1
+        self.sleep_func(2)
+        while self.is_coaster_connected != 1:
+            
+            self.dialog.setWindowTitle('Coaster not detected')
+            self.dialog.txt_info.setText("If coaster not yet started, start CoasterMSU")
+            self.dialog.show()
+            self.report_connection_status("Connecting to Coaster", "orange") 
+            self.sleep_func(2)
+        if self.is_coaster_connected == 0:
+            self.report_connection_status("Not connected to Coaster", "red") 
+        else:
+            self.report_connection_status("Space Coaster Connected", "green") 
+            self.dialog.close()
 
     def service(self):
         if self.is_coaster_connected == 0:
@@ -345,10 +343,10 @@ class InputInterface(ClientApi):
 
     def listener_thread(self, HOST, PORT, ):
         try:
-            MAX_MSG_LEN = 100
+            MAX_MSG_LEN = 512
             sc_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sc_sock.bind((HOST, PORT))
-            log.info("opening space coaster socket on port %d", PORT)
+            log.info("opening space coaster socket on port %s:%d", HOST, PORT)
             while True:
                 try:
                     msg = sc_sock.recv(MAX_MSG_LEN)
@@ -471,7 +469,7 @@ class LocalClient(QtWidgets.QMainWindow):
             to_go = self.FRAME_RATE_ms - elapsed
             if to_go < 1:
                 if to_go < -1:
-                    log.warning("Service interval was %d ms", elapsed)
+                    log.debug("Service interval was %d ms", elapsed)
                 self.prev_service = now
                 self.client.service()
                 self.server.send(self.client.form_telemetry_msg())
@@ -516,7 +514,7 @@ if __name__ == "__main__":
     sys.path.insert(0, '../output')
     import importlib  
 
-    log_level = logging.DEBUG
+    log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     log.info("Python: %s, qt version %s", sys.version[0:5], QtCore.QT_VERSION_STR)
     

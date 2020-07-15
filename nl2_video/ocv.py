@@ -360,7 +360,7 @@ class MainWindow(QtGui.QMainWindow):
         if ser.sp.is_open():
             ser.sp.close_port()
 
-    def echo_to_model(self, percents):
+    def echo_to_model(self, percents, distances):
         if self.model.sp.is_open():
             msg = 'm,' + ','.join(map(str, percents)) + '\n'
             self.model.sp.write( msg)

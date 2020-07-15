@@ -50,7 +50,6 @@ import numpy as np  # for scaling telemetry data
 
 
 class InputInterface(ClientApi):
-    USE_UDP_MONITOR = False
 
     def __init__(self):
         super(InputInterface, self).__init__()
@@ -148,16 +147,18 @@ class InputInterface(ClientApi):
         pass
 
     def begin(self, cmd_func, limits):
-        # self.clients.append(SockClient('127.0.0.1', cfg.REMOTE_CLIENT_PORT))
-        self.clients.append(SockClient('192.168.1.16', cfg.REMOTE_CLIENT_PORT))
+        for ip_addr in cfg.SIM_IP_ADDR:
+            self.clients.append(SockClient(ip_addr, cfg.REMOTE_CLIENT_PORT))
+        self.set_address((cfg.SIM_IP_ADDR, cfg.REMOTE_CLIENT_PORT))
+        # print(self.get_address(), self.get_address()[0][0]) 
         self.cmd_func = cmd_func
-        self.limits = limits  # note limits are in mm and radians        
+        self.limits = limits  # note limits are in mm and radians
         if self.is_normalized:
             log.info('Platform Input is Remote Client with normalized parms, %d clients connected', len(self.clients))
         else:
             log.info('Platform Input is Remote Client with real world parms, %d clients connected', len(self.clients))
 
-    def check_client_connections(self):
+    def connect(self):
         """returns true if all clients are connected"""
         all_connected = True 
         try:
@@ -174,7 +175,7 @@ class InputInterface(ClientApi):
         pass
 
     def service(self):
-        if self.check_client_connections():
+        if self.connect():
             for idx, client in enumerate(self.clients):
                 # print("sending telemetry request for client", idx)
                 client.send('telemetry\n')

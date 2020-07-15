@@ -269,7 +269,7 @@
       <x>40</x>
       <y>10</y>
       <width>141</width>
-      <height>331</height>
+      <height>251</height>
      </rect>
     </property>
     <property name="title">
@@ -501,9 +501,9 @@
    <widget class="QGroupBox" name="gb_processing_dur">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>40</x>
       <y>272</y>
-      <width>371</width>
+      <width>350</width>
       <height>71</height>
      </rect>
     </property>
@@ -935,9 +935,9 @@
     <property name="geometry">
      <rect>
       <x>208</x>
-      <y>16</y>
+      <y>10</y>
       <width>181</width>
-      <height>325</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -950,7 +950,7 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>64</y>
+       <y>44</y>
        <width>118</width>
        <height>3</height>
       </rect>
@@ -965,7 +965,7 @@
        <x>85</x>
        <y>0</y>
        <width>20</width>
-       <height>321</height>
+       <height>261</height>
       </rect>
      </property>
      <property name="orientation">
@@ -976,7 +976,7 @@
      <property name="geometry">
       <rect>
        <x>36</x>
-       <y>164</y>
+       <y>127</y>
        <width>118</width>
        <height>3</height>
       </rect>
@@ -988,8 +988,8 @@
     <widget class="Line" name="line_13">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>263</y>
+       <x>37</x>
+       <y>209</y>
        <width>118</width>
        <height>3</height>
       </rect>
@@ -1002,9 +1002,9 @@
      <property name="geometry">
       <rect>
        <x>49</x>
-       <y>20</y>
+       <y>10</y>
        <width>90</width>
-       <height>90</height>
+       <height>70</height>
       </rect>
      </property>
      <property name="text">
@@ -1022,9 +1022,9 @@
     <property name="geometry">
      <rect>
       <x>258</x>
-      <y>236</y>
+      <y>180</y>
       <width>90</width>
-      <height>90</height>
+      <height>80</height>
      </rect>
     </property>
     <property name="text">
@@ -1041,9 +1041,9 @@
     <property name="geometry">
      <rect>
       <x>258</x>
-      <y>136</y>
+      <y>102</y>
       <width>90</width>
-      <height>90</height>
+      <height>70</height>
      </rect>
     </property>
     <property name="text">
@@ -1055,6 +1055,128 @@
     <property name="alignment">
      <set>Qt::AlignCenter</set>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="bg_load_indices_2">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>270</y>
+      <width>371</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Encoder Values</string>
+    </property>
+    <widget class="QLineEdit" name="txt_enc_0">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>30</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_enc_1">
+     <property name="geometry">
+      <rect>
+       <x>88</x>
+       <y>30</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_enc_2">
+     <property name="geometry">
+      <rect>
+       <x>126</x>
+       <y>30</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_enc_3">
+     <property name="geometry">
+      <rect>
+       <x>164</x>
+       <y>30</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_enc_4">
+     <property name="geometry">
+      <rect>
+       <x>201</x>
+       <y>30</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_enc_5">
+     <property name="geometry">
+      <rect>
+       <x>239</x>
+       <y>30</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_24">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>32</y>
+       <width>31</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>mm</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

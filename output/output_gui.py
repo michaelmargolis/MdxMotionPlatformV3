@@ -26,6 +26,7 @@ class OutputGui(object):
         self.txt_muscles = [self.ui.txt_muscle_0,self.ui.txt_muscle_1,self.ui.txt_muscle_2,self.ui.txt_muscle_3,self.ui.txt_muscle_4,self.ui.txt_muscle_5]
         self.txt_up_indices = [self.ui.txt_up_idx_0,self.ui.txt_up_idx_1,self.ui.txt_up_idx_2,self.ui.txt_up_idx_3,self.ui.txt_up_idx_4,self.ui.txt_up_idx_5]
         self.txt_down_indices = [self.ui.txt_down_idx_0,self.ui.txt_down_idx_1,self.ui.txt_down_idx_2,self.ui.txt_down_idx_3,self.ui.txt_down_idx_4,self.ui.txt_down_idx_5]
+        self.txt_encoder_vals = [self.ui.txt_enc_0,self.ui.txt_enc_1,self.ui.txt_enc_2,self.ui.txt_enc_3,self.ui.txt_enc_4,self.ui.txt_enc_5]
         self.front_pixmap = QtGui.QPixmap('images/front.png')
         self.side_pixmap = QtGui.QPixmap('images/side.png')
         self.top_pixmap = QtGui.QPixmap('images/top.png')
@@ -41,6 +42,11 @@ class OutputGui(object):
             self.ui.rb_encoders.setChecked(True)
         else:
             self.ui.rb_manual.setChecked(True)
+
+    def encoder_change_callback(self, callback):
+        self.encoder_callback = callback
+        self.ui.rb_encoders.toggled.connect(lambda:self.encoder_callback(self.ui.rb_encoders))
+        self.ui.rb_manual.toggled.connect(lambda:self.encoder_callback(self.ui.rb_manual))
 
     def do_transform(self, widget, pixmap, pos,  x, y, angle):
         widget.move(x + pos.x(), y + pos.y())
@@ -85,6 +91,18 @@ class OutputGui(object):
         else:
             self.ui.rect_dur.setStyleSheet("color: rgb(255, 0, 0)")
         self.ui.rect_dur.setFrameRect(rect)
+
+    def show_encoders(self, distances):
+        # todo - finish this
+        # print distances
+        for i in range(6):
+            self.txt_encoder_vals[i].setText(str(distances[i]))
+            """
+            rect =  self.actuator_bars[i].rect()
+            width = distances[i] 
+            rect.setWidth(width)
+            rect.setHeight(1)
+            """
 
     def normalize(self, item):
         i = 2 * (item - self.MIN_ACTUATOR_LEN) / (self.MAX_ACTUATOR_LEN - self.MIN_ACTUATOR_LEN)

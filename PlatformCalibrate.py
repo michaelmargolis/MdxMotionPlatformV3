@@ -204,7 +204,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.txt_weight.setText(weight)
                 self.ui.txt_weight.setText_2(weight)
 
-    def echo_to_model(self, percents):
+    def echo_to_model(self, percents, distances):
         if self.model.sp.is_open():
             msg = 'm,' + ','.join(map(str, percents)) + '\n'
             self.model.sp.write( msg)

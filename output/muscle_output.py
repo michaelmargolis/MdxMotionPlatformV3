@@ -21,18 +21,14 @@ import logging
 log = logging.getLogger(__name__)
 
 class MuscleOutput(object):
-    def __init__(self, d_to_p_func, FST_ip = '192.168.0.10'):
+    def __init__(self, d_to_p_func, FST_ip = '192.168.0.10', max_actuator_range = 200):
         self.distance_to_pressure = d_to_p_func
         self.festo = festo_itf.Festo(FST_ip)
+        self.max_actuator_range = max_actuator_range # max contraction in mm
         self.in_pressures = [0]*6
-        self.echo_method = None  # if set, percents passed to this method
         self.progress_callback = None
-        self.percent_factor = 2 #  divide distance by this factor to get percent
+        self.percent_factor = self.max_actuator_range / 100 #  divide distance by this factor to get percent
         log.warning("TODO, replace hard coded percent divisor in muscle_output")
-
-    def set_echo_method(self, echo): 
-        # if provided, the output request message is echoed to this method
-        self.echo_method = echo
 
     def set_progress_callback(self, cb):
         self.progress_callback = cb
@@ -112,11 +108,9 @@ class MuscleOutput(object):
             out_pressures = self.distance_to_pressure(distances)
             # print "pressures in move_distance", out_pressures
             self.festo.send_pressures(out_pressures)
-            if self.echo_method != None:
-                percents = []
-                for d in distances:
-                     percents.append(d / self.percent_factor)
-                self.echo_method(percents)
+            self.percents = []
+            for d in distances:
+                self.percents.append(d / self.percent_factor)
         except Exception as e:
             print("error in move distance", str(e), traceback.format_exc(),distances)
             log.error("error in move_distance %s, %s", e, sys.exc_info()[0])

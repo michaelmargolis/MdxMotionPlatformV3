@@ -19,7 +19,7 @@ class Status():
         self.thr_running = False # True when thread is running
     
     
-class SockClient():
+class SockClient(object):
     def __init__(self, ip_addr, port):
         self.in_queue = Queue()  # for incoming messages
         self.ip_addr = ip_addr
