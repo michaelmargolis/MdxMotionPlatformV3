@@ -3,8 +3,13 @@
 import sys
 import time
 import os
-import RemoteControls.rotary_encoder as rotary_encoder
-import RemoteControls.buttons as buttons
+
+if __name__ == "__main__":
+    import RemoteControls.rotary_encoder as rotary_encoder
+    import RemoteControls.buttons as buttons
+else:    
+    import rotary_encoder as rotary_encoder
+    import buttons as buttons
 
 USE_PCB = True
 

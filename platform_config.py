@@ -30,13 +30,14 @@ class cfg(object):
     #software network address assignments
     SIM_IP_ADDR = ['192.168.1.16',] #  '192.168.1.16'] # first addr provides telemetry and encoder data
     ECHO_IP_ADDR = '127.0.0.1' # transform and platform output echoed to this address using PLATFORM_ECHO_PORT
+    ENCODER_IP_ADDR = SIM_IP_ADDR[0] # Encoder server running on first sim PC 
     # software network port assignments:
     SPACE_COASTER_PORT = 10009
     PC_MONITOR_PORT = 10010
     TCP_UDP_REMOTE_CONTROL_PORT = 10013
     REMOTE_CLIENT_PORT = 10015 # space coaster remote client connection
-    REMOTE_ENCODERS_PORT = 10016
-
+    ENCODER_SERVER_PORT = 10016 # encoder data broadcasted on this port
+    ENCODER_SERVER_CMD_PORT = ENCODER_SERVER_PORT+1  #10017
     REMOTE_SCALE_PORT = 10018
     REMOTE_IMU_PORT = 10019
     PLATFORM_ECHO_PORT = 10020

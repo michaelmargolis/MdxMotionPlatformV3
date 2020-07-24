@@ -46,7 +46,7 @@ else:
         def __init__(self, cpu_thresholds, gpu_thresholds): 
             self.cpu_threshold = cpu_thresholds
             self.gpu_threshold = gpu_thresholds
-            self.PORT = 10010
+            self.PORT = cfg.PC_MONITOR_PORT
             self.inQ = Queue()
             self.is_running = False
             
@@ -126,9 +126,8 @@ else:
                     #  print format("In pc monitor, heartbeat {%s:%s} {%s} {%d}" % (addr[0], addr[1], data, warning_level))
                 #  print("pc monitor read:",addr, status, warning_level)
                 return addr[0], status, warning_level
-            except:
+            except Exception as e:
                 #  print error if input not a string or cannot be converted into valid request
-                e = sys.exc_info()[0]
                 s = traceback.format_exc()
                 print(e, s)
                 return ("", 0), "Error", 2
@@ -175,13 +174,11 @@ else:
                     try:
                         msg, addr = sock.recvfrom(MAX_MSG_LEN)
                         self.inQ.put((str(msg),str(addr)))
-                    except:
-                        e = sys.exc_info()[0]
+                    except Exception as e:
                         s = traceback.format_exc()
                         print("listener err", e, s)
                         time.sleep(.5)
-            except:
-                e = sys.exc_info()[0]
+            except Exception as e:
                 s = traceback.format_exc()
                 log.info("pc monitor thread init error %s", e)
                 print("thread init err", e, s)

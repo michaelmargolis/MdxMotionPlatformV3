@@ -26,6 +26,7 @@ import common.serial_defaults as serial_defaults
 
 from output.kinematicsV2 import Kinematics
 from output.configNextgen import *
+from  platform_config import  cfg
 #  from output.ConfigV3 import *
 
 import output.d_to_p as d_to_p
@@ -41,14 +42,15 @@ SCALE__PERIOD = 250
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, festo_ip):
         QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        
+        if festo_ip == '':
+            # use ip from config file of not overridden on cmd line
+            festo_ip = cfg.Festo_IP_ADDR
         self.configure_kinematics()
-        self.muscle_output = MuscleOutput(self.DtoP.distance_to_pressure)  
-        self.muscle_output.poll_pressures = False # enable background polling of actual pressures
+        self.muscle_output = MuscleOutput(self.DtoP.distance_to_pressure, festo_ip)
         self.muscle_output.set_progress_callback(self.progress_callback)
 
         self.ride = ride_scripts.RideMacros(self.muscle_output)
@@ -85,6 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configure_serial()
         self.configure_defaults()
         self.configure_button_groups()
+        self.configure_festo_info()
 
 
     def configure_timers(self):
@@ -145,6 +148,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 ser.combo.setCurrentIndex(ser.combo.count() - 1)
         else:
             ser.combo.setCurrentIndex(ser.combo.count() - 1)
+
+    def configure_festo_info(self):
+        self.pressure_bars = [self.ui.muscle_0,self.ui.muscle_1,self.ui.muscle_2,self.ui.muscle_3,self.ui.muscle_4,self.ui.muscle_5]
+        self.actual_bars = [self.ui.actual_0,self.ui.actual_1,self.ui.actual_2,self.ui.actual_3,self.ui.actual_4,self.ui.actual_5]
+        self.txt_muscles = [self.ui.txt_muscle_0,self.ui.txt_muscle_1,self.ui.txt_muscle_2,self.ui.txt_muscle_3,self.ui.txt_muscle_4,self.ui.txt_muscle_5]
+        for t in self.txt_muscles:
+             t.setText('?')
+        self.ui.chk_festo_actuals.stateChanged.connect(self.festo_check)
 
     def configure_defaults(self):
         self.ui.txt_step_delay_ms.setText("500")
@@ -380,16 +391,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.activity_label = "idle"
         else:
             if self.encoder.sp.is_open() == False:
-                QtWidgets.QMessageBox.question(self, 'Encoder Comms!',
-                                "Encoder comms must be connected before calibrating")
+                QtWidgets.QMessageBox.warning(self, 'Encoder Comms!',
+                                "Encoder comms must be connected before calibrating", QtWidgets.QMessageBox.Ok)
                 return 
                 
             try:
                weight =  float(self.ui.txt_weight.text())
                log.info("starting calibration using weight %.1f", weight)
             except ValueError:
-                QtWidgets.QMessageBox.question(self, 'Missing Weight!',
-                                "A valid weight is needed in Data Capture 'Load kg' field")
+                QtWidgets.QMessageBox.warning(self, 'Missing Weight!',
+                                "A valid weight is needed in Data Capture 'Load kg' field", QtWidgets.QMessageBox.Ok)
                 return 
                 
             log.info("todo reset encoders to zero")
@@ -519,12 +530,14 @@ class MainWindow(QtWidgets.QMainWindow):
     def step_platform(self, pressure, step_delay, step, dir, repeat):
         pressures = [pressure]*6
         self.muscle_output.send_pressures(pressures)
+        self.show_pressures(pressures)
         print("Step:", pressure, step, dir, repeat, step_delay)
         start_time = time.time()
         while len(self.distances) == 0 and time.time() - start_time < 0.1:
             app.processEvents()
         if len(self.distances) == 0:
-            QtWidgets.QMessageBox.question(self, 'Calibrate!', "Insufficient encoder data to start calibration")
+            QtWidgets.QMessageBox.warning(self, 'Calibrate!', "Insufficient encoder data to start calibration",
+                                           QtWidgets.QMessageBox.Ok)
             return
         distances = self.distances[-1]
         move_durations = [0.0]*6
@@ -547,9 +560,8 @@ class MainWindow(QtWidgets.QMainWindow):
             idx = self.move_btn_group.checkedId() 
             request = [0]*6
             request[idx] = percent*.01
-            request = self.dynam.filter(request) # convert normalized to real values
+            request = self.dynam.regulate(request) # convert normalized to real values
             percents = self.k.actuator_percents(request)
-            print("in move", percents)
             self.muscle_output.move_percent(percents)
 
     def data_update(self):
@@ -577,11 +589,12 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.imu_data.append(self.imu.sp.read())
                     #self.ui.txt_pressure_delta.setText(str(delta))
                     #self.ui.txt_measured_pos.setText(value[1]) # todo ??
+            self.actual_pressures = self.muscle_output.get_pressures()
+
         except Exception as e:
             s = traceback.format_exc()
             print("error reading serial data", e, s)
 
-        self.muscle_output.get_pressures()  # cache value for next update
 
     def check_fname(self, desc, fname, base):
         try:
@@ -596,8 +609,9 @@ class MainWindow(QtWidgets.QMainWindow):
                         return fname
         except Exception as e:
             print(str(e), traceback.format_exc())
-        QtWidgets.QMessageBox.question(self, 'Invalid ' + desc + " file name!",
-                format("Name must begin with %s followed by integer weight.\n  example: %s40.csv" %(base,base)))
+        QtWidgets.QMessageBox.warning(self, 'Invalid ' + desc + " file name!",
+                format("Name must begin with %s followed by integer weight.\n  example: %s40.csv" %(base,base)),
+                QtWidgets.QMessageBox.Ok)
         return ""
 
     def save_step_data(self):
@@ -644,6 +658,33 @@ class MainWindow(QtWidgets.QMainWindow):
             s = traceback.format_exc()
             log.error("Error saving data file, is it already open? %s %s", e, s)
                     
+    def show_pressures(self, pressures):
+        for i in range(6):
+            rect =  self.pressure_bars[i].rect()
+            width = pressures[i] / 20
+            rect.setWidth(width)
+            self.pressure_bars[i].setFrameRect(rect)
+            self.txt_muscles[i].setText(format("%d mb" % pressures[i])) #may  be overwritten with actuals 
+        if self.ui.chk_festo_actuals.isChecked():
+            # actuals = pressures # [100,200,500,700, 2000, 5000]
+            self.show_actual_pressures(self.actual_pressures)
+
+    def show_actual_pressures(self, actuals):
+        for i in range(6):
+            rect =  self.actual_bars[i].rect()
+            width = actuals[i] / 20
+            rect.setWidth(width)
+            self.actual_bars[i].setFrameRect(rect)
+            
+    def festo_check(self, state):
+        if state == QtCore.Qt.Checked:
+            log.info("System will request Festo actual pressures")
+            self.muscle_output.set_wait_ack(False)
+            self.muscle_output.enable_poll_pressures(True)
+        else:
+            log.info("System will ignore Festo actual pressures")
+            self.muscle_output.set_wait_ack(True)
+            self.muscle_output.enable_poll_pressures(False)
 
 def start_logging(level):
     log_format = log.Formatter('%(asctime)s,%(levelname)s: %(message)s')
@@ -665,6 +706,9 @@ def man():
                         dest="logLevel",
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                         help="Set the logging level")
+    parser.add_argument("-f", "--festo_ip",
+                        dest="festoIP",
+                        help="Set IP address of Festo controller")                        
     return parser
 
 
@@ -680,7 +724,10 @@ if __name__ == '__main__':
     log.info("Starting PlatformCalibration")
 
     app = QtWidgets.QApplication(sys.argv)
-    win = MainWindow()
+    if args.festoIP:
+        win = MainWindow(args.festoIP)
+    else:
+        win = MainWindow('')
     win.show()
     app.exec_() #mm added underscore
 

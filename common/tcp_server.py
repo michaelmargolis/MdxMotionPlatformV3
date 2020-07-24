@@ -17,27 +17,26 @@ import logging
 log = logging.getLogger(__name__)
 
 class SockServer(threading.Thread):
-    def __init__(self, host = '', port = 10015,  max_clients=1, timeout=1):
-        """ Initialize the server with host and port to listen to, input and output queues. """
+    def __init__(self, port = 10015,  max_clients=1, timeout=1):
+        """ Initialize the server with port to listen to and max clients """
         threading.Thread.__init__(self)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.host = host
         self.port = port
         self.max_clients = max_clients # how many simultaneous connections are allowed
-        self.sock.bind((host, port))
+        self.sock.bind(('', port))
         self.sock.listen(max_clients)
         self.sock.settimeout(timeout)
         self.in_queue = Queue()
         self.out_queue = Queue()
         self.lock = threading.Lock()
         self.nbr_clients = [0] # count of number of connected clients
-        log.info('Starting socket server (host %s, port %d)', self.host, self.port)
+        log.info('Starting socket server for %d clients on port %d', self.max_clients, self.port)
         self.sock_threads = []
 
     def close(self):
         """ Close the client socket threads and server socket if they exists. """
-        log.info('Closing server socket (host %s, port %d)', self.host, self.port)
+        log.info('Closing server socket on port %d', self.port)
 
         for thr in self.sock_threads:
             thr.stop()

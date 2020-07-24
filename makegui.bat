@@ -9,3 +9,5 @@ rem call C:\Python27\Lib\site-packages\PyQt5\pyuic5 output\output_gui.ui -o outp
 call C:\Python27\Lib\site-packages\PyQt5\pyuic5 output_gui.ui -o output\output_gui_defs.py
 call C:\Python27\Lib\site-packages\PyQt5\pyuic5 output\fstlib\festo_emulator.ui -o output\fstlib\festo_emulator_gui_defs.py
 call C:\Python27\Lib\site-packages\PyQt5\pyuic5 echo_handler_gui_defs.ui -o echo_handler_gui_defs.py
+call C:\Python27\Lib\site-packages\PyQt5\pyuic5 PlatformCalibrate\calibration_gui.ui -o PlatformCalibrate\calibration_gui_defs.py
+call C:\Python27\Lib\site-packages\PyQt5\pyuic5 gui_xform_test.ui -o gui_xform_test_defs.py

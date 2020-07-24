@@ -12,17 +12,34 @@ import time
 import ctypes
 import os
 
-from client_api import ClientApi
-from ride_state import RideState
 
-from coaster.nl2_interface import CoasterInterface
-from coaster.coaster_gui import CoasterGui
-import common.gui_utils as gutil
 
 import logging
 log = logging.getLogger(__name__)
 
 import platform_config as cfg
+
+if __name__ == "__main__":
+    # here if run as __main__
+    from coaster.nl2_interface import CoasterInterface
+    from coaster.coaster_gui import CoasterGui
+    sys.path.insert(0, '../common')
+    import gui_utils as gutil
+    import common.gui_utils as gutil
+    sys.path.insert(0, '../')
+    from client_api import ClientApi
+    from ride_state import RideState
+    from platform_config import cfg
+else:
+    # here if run as client of platform_controller
+    from client_api import ClientApi
+    from coaster.nl2_interface import CoasterInterface
+    from coaster.coaster_gui import CoasterGui
+    from ride_state import RideState
+    from common.tcp_server import SockServer
+    import common.gui_utils as gutil
+    from platform_config import cfg
+    
 
 from coaster.telemetry_logger import TelemetryLogger
 telemetry_log = TelemetryLogger(False)
@@ -131,7 +148,7 @@ class InputInterface(ClientApi):
         self.is_normalized = True
         self.is_chair_activated = False
         self.temp_is_preparing_to_run = False  # set True while unparking and checking load
-        self.coaster = CoasterInterface()
+        self.coaster = CoasterInterface(gutil.sleep_qt)
         self.gui = CoasterGui(self.dispatch_pressed, self.pause_pressed, self.reset_vr)
         self.prev_movement_time = 0  # holds the time of last reported movement from NoLimits
         #self.isNl2Paused = False
@@ -141,7 +158,8 @@ class InputInterface(ClientApi):
         self.coasterState = State(self.process_state_change)
         self.heartbeat = pc_monitor_client((40, 60), (75, 90))
         self.prev_heartbeat = 0
-        self.server_address = None # set on receipt of hearbeat from server
+        # fixme, if run from main, addr should be loopback address
+        self.set_address(cfg.SIM_IP_ADDR[0])  # addr from config file, not pc monitor as in previous version
 
     def init_gui(self, frame):
         self.gui.init_gui(frame)
@@ -174,17 +192,15 @@ class InputInterface(ClientApi):
             self.temp_is_preparing_to_run = True
             self.coasterState.coaster_event(CoasterEvent.DISPATCHED)
             while not self.coaster.prepare_for_dispatch():
-                self.sleep_func(1)
+                self.sleep_func(.5)
             self.temp_is_preparing_to_run = False
             self.coaster.dispatch(0, 0)
             log.debug("coaster dispatched")
             self.prev_movement_time = time.time()  # set time that train started to move
             self.isLeavingStation = True
             while self.coaster.is_train_in_station():
-                #  print "Leaving station"
                 self.sleep_func(.05)
             self.isLeavingStation = False
-            #  print "left station, state is", State.string(self.coasterState.state)
             self.start_time = time.time()
             telemetry_log.start()
         else:
@@ -234,6 +250,7 @@ class InputInterface(ClientApi):
             log.debug("waiting for play mode")
             self.sleep_func(0.5)
             self.service()
+        self.coaster.set_manual_mode(True)
         log.debug("selecting seat %d", self.seat)
         self.coaster.select_seat(self.seat)
         self.coasterState.coaster_event(CoasterEvent.RESETEVENT)
@@ -261,9 +278,6 @@ class InputInterface(ClientApi):
 
     def set_coaster_connection_label(self, label):
         self.gui.set_coaster_connection_label(label)
-
-    #  def chair_status_changed(self, status):
-    ##    self.gui.chair_status_changed(status)
 
     def temperature_status_changed(self, status):
         self.gui.temperature_status_changed(status)
@@ -307,62 +321,38 @@ class InputInterface(ClientApi):
         self.heartbeat.begin()
         self.coaster.begin()
         self.gui.set_park_callback(self.load_park)
-        self.coaster.reset_park(False)
         """
         while not self.check_heartbeat():
              self.sleep_func(0.5)
         print("heartbeat detected, trying to connecto to NoLimits")
-
-        while not self.connect():
-             self.sleep_func(0.5)
         """
+        # while not self.connect():
+        #     self.sleep_func(0.5)
+
         # return code removed, service func now used to exit if problems
 
     def check_heartbeat(self):
         addr, heartbeat_status, warning = self.heartbeat.read()
-        if len(addr) > 6:
-            self.prev_heartbeat = time.time()
-            if self.server_address != addr:
-                self.server_address = addr
-                log.info("First time connection to server @ %s", self.server_address)
-                self.gui.set_coaster_status_label(("Attempting to connect to No Limits", "red"))
-            # print format("heartbeat {%s} {%s} {%s}" % (addr, heartbeat_status, warning))
+        if "GPU" in heartbeat_status:
             self.temperature_status_changed((heartbeat_status, colors[warning]))
-            #self.coaster.system_status.is_pc_connected = True
-            self.coaster.system_status.is_pc_connected = True
-        duration = time.time() - self.prev_heartbeat
-        #if duration > 1.2:
-        #    print "heartbeat dur:", duration
-        if duration > 3.2: # if no heartbeat after three seconds
-            #self.coaster.system_status.is_pc_connected = False
-            self.coaster.system_status.is_pc_connected = False
-            self.temperature_status_changed(("Lost heartbeat with server", "red"))
-            # print "Lost heartbeat with server"
-            return False
-        elif duration > 2.2: # if no heartbeat after two seconds
-            self.temperature_status_changed(("Missed Heartbeat from Server", "orange"))
-            self.gui.set_coaster_connection_label(("Attempting to connect to PC", "red"))
-            # self.gui.set_coaster_status_label(("Lost connection with PC", "red"))
-        return True
+            return True
+        return False
 
     def connect(self):
-        if not self.check_heartbeat():
+        if self.check_heartbeat():
             #self.gui.set_coaster_status_label(["Waiting for Heartbeat, is PC connected", "red"])
-            self.temperature_status_changed(("Waiting for Heartbeat, is PC connected", "red"))
-            # print "no heartbeat"
-            return False
-        elif not self.coaster.system_status.is_nl2_connected:
-            # print("in client connect, calling coaster connect")
+            self.temperature_status_changed(("No temperature msg, is pc_status running", "orange"))
+
+        if not self.coaster.system_status.is_nl2_connected:
             self.gui.set_coaster_status_label(["Waiting for Coaster status", "red"])
-            if not self.coaster.connect_to_coaster(self.server_address):
-                log.error("addr: %s coaster connect returned false, nl2 not connected!", self.server_address)
-                self.gui.set_coaster_connection_label(("No connection to NoLimits, is it running?", "red"))
-                self.sleep_func(1)
+            if not self.coaster.connect_to_coaster(self.get_address()):
+                log.debug("addr: %s coaster connect returned false, nl2 not connected!", self.get_address())
+                self.gui.set_coaster_connection_label(("No connection to NoLimits, is it running on " + self.get_address(), "red"))
+                self.sleep_func(.5)
                 return False
             if self.coaster.system_status.is_nl2_connected:
                 self.gui.set_coaster_status_label(["Coaster connected but not activated", "orange"])
             return self.coaster.system_status.is_nl2_connected
-            
         else:
             #  print "All connections ok"
             # self.coasterState.coaster_event(CoasterEvent.STOPPED)

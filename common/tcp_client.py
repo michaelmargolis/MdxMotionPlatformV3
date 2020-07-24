@@ -122,42 +122,40 @@ class SockClient(object):
         status.running = False
 
 ##################  test code when run from main ################
-from datetime import datetime
+
 def millis():
-    dt = datetime.now()
-    return  int(dt.microsecond/1000)
+    return  int(time.clock() * 1000)
  
-def latency_test(addr):
+def latency_test(addr, port = 10015, id = 0):
     # this code sends a time stamp and waits for a reply with a server
     # time stamp appended. difference between the time stamps is printed
-    client = SockClient(addr, 10015)
+    client = SockClient(addr, port)
     while True:
         try:
             if not client.status.connected:
                 client.connect()
-                client.send(str(millis()) +'\n' )
+                client.send(format("%d,%d\n" % (id, millis())))
         except Exception as e:
              print(e)
         if client.status.connected:
             if client.available() > 0:
                 m = client.receive()
-                print("got", m)
                 vals = m.split(',')
-                latency = []
-                now = millis()
-                for v in vals:
+                if vals[0] == str(id):
+                    now = millis()
                     try:
-                        t = int(v)
+                        t = int(vals[1])
                         if now < t:
-                            latency.append(t-now) # rollover
+                            latency = t-now # rollover
                         else:    
-                            latency.append(now-t)
+                            latency = now-t
                     except Exception as e:
                         print(e)
-                # delta between first element and time now is total latency 
-                print("latency (ms)", latency[0])
+                        latency = -1
+                    # delta between first element and time now is total latency 
+                    print "latency (ms)", latency
                 time.sleep(0.05)
-                client.send(str(millis()) + '\n')
+                client.send(format("%d,%d\n" % (id, millis())))
                 
         if kb.kbhit(): 
             key = kb.getch()
@@ -166,8 +164,8 @@ def latency_test(addr):
     client.disconnect()
 
 
-def coaster_test(addr):
-    client = SockClient(addr, 10015)
+def coaster_test(addr, port= 10015):
+    client = SockClient(addr, port)
     while True:
         try:
             if not client.status.connected:
@@ -207,6 +205,15 @@ def man():
     parser.add_argument("-a", "--addr",
                         dest="address",
                         help="Set the target ip address")
+                        
+    parser.add_argument("-p", "--port",
+                        dest="port",
+                        help="Set the target socket port")
+
+    parser.add_argument("-i", "--id",
+                        dest="id",
+                        help="Set this client id (used in latency test")
+                        
     return parser
     
 if __name__ == "__main__":
@@ -222,13 +229,23 @@ if __name__ == "__main__":
         level = 'DEBUG'
     print(level, "logging level")
     log.setLevel(level)
+    if args.port:
+        port = int(args.port)
+    else:
+        port = 10015 
+    if args.id:
+        id = int(args.id)
+        print "id=", id
+    else:
+        id = 0 
+        
     kb = KBHit()
     if args.address:
-        latency_test(args.address)
-        # coaster_test(args.address)
+        latency_test(args.address, port, id)
+        # coaster_test(args.address, port)
     else:
-        latency_test('127.0.0.1')
-        # coaster_test('127.0.0.1')
+        latency_test('127.0.0.1', port, id)
+        # coaster_test('127.0.0.1', port )
 
 
 

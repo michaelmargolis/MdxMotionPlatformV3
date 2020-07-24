@@ -40,19 +40,22 @@ class Festo(object):
         self.out_pressures = [0,0,0,0,0,0]
         self.actual_pressures = [0,0,0,0,0,0]    
         
-        self.lock = threading.Lock()        
-        t = threading.Thread(target=self.query_thread)
-        
+        self.lock = threading.Lock()
+        t = threading.Thread(target=self.query_thread, args=(self.lock,))
+        t.daemon = True
+        t.start()
+
     def __del__(self): 
         self.FSTs.close()
  
-    def query_thread(self):
+    def query_thread(self, lock):
         while True:
+            time.sleep(.02)
             if self.poll_pressures:
                 try:
                     p = self._get_festo_pressure()
                     if p != None:
-                        with self.lock:
+                        with lock:
                            self.actual_pressures = p
                 except:
                     pass  # ignore errors, use most recent value
@@ -69,23 +72,28 @@ class Festo(object):
         try:
             # print "sending pressures:", muscle_pressures
             packet = easyip.Factory.send_flagword(0, muscle_pressures)
-            self._output_festo_packet(packet)
+            self._output_festo_packet(packet, self.wait)
             self.out_pressures = muscle_pressures
         except Exception as e: 
             log.error("error sending to Festo: %s, %s", e, traceback.format_exc())
         return None
         
-    def set_wait(self, state):
+    def set_wait_ack(self, state):
         self.wait = state
-        # if True, send method will try to get and return actual pressure
-        log.debug("festo wait for pressure flag is set to %s", self.wait)
 
-    def _output_festo_packet(self, packet):
+        # if True, send method will try to get and return actual pressure
+        log.debug("festo wait for ack is set to %s", self.wait)
+
+    def enable_poll_pressure(self, state):
+        self.poll_pressures = state
+        log.info("festo poll for actual pressure is set to %s", state)
+
+    def _output_festo_packet(self, packet, wait_ack):
         data = packet.pack()
         # print "sending to", self.FST_addr, packet
         resp = None
         self.FSTs.sendto(data, self.FST_addr)
-        if self.wait:
+        if wait_ack:
             #  print "in sendpacket,waiting for response..."
             t = time.time()
             try:
@@ -93,9 +101,9 @@ class Festo(object):
                 dur = time.time()-t
                 self.msg_latency = int(dur * 1000)
                 resp = easyip.Packet(data)
-                # print "in sendpacket, response from Festo", resp, srvaddr
+                #  print "in sendpacket, response from Festo", resp, srvaddr
                 if packet.response_errors(resp) is not None:
-                    print(packet)
+                    print(str(packet), str(resp))
                     log.error("festo output error: %s",  str(packet.response_errors(resp)))
                     self.netlink_ok = False
                 else:
@@ -115,12 +123,11 @@ class Festo(object):
         # print "attempting to get pressure"
         try:
             # print "dummy data"
-            # return [11,0,0,0,0,0] 
-
             packet = easyip.Factory.req_flagword(1, 6, 10)
-            resp = self._output_festo_packet(packet)            
+            resp = self._output_festo_packet(packet, True)
+            # print resp
             values = resp.decode_payload(easyip.Packet.DIRECTION_REQ)
-            print(list(values))
+            print("in _get_festo_pressure", list(values))
             return list(values)
         except socket.timeout:
             log.warning("timeout waiting for Pressures from Festo")
@@ -147,7 +154,7 @@ if __name__ == '__main__':
                     datefmt='%H:%M:%S')
     festo = Festo('192.168.1.16')
     print("Festo address set to 192.168.1.16")
-    festo.set_wait(True)
+    festo.set_wait_ack(True)
     while True:
         try:
             msg = eval(input("enter one to six comma separated millibar values (0-6000): "))

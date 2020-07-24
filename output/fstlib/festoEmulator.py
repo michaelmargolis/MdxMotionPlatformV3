@@ -27,6 +27,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.prev_message_time = 0
         self.timeout_start_time = None
         self.ma = MA(10)
+        self.requested_pressures = [0,0,0,0,0,0]
         log.info("Festo emulator running on %s", host_ip)
 
     def init_gui(self):
@@ -41,6 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             try:
                 self.display_pressure_bars(pressures)
+                self.requested_pressures = pressures
             except TypeError as e:
                 print(pressures, e)
 
@@ -57,20 +59,34 @@ class MainWindow(QtWidgets.QMainWindow):
             rect.setWidth(width)
             self.pressure_bars[idx].setFrameRect(rect)
 
+    def get_emulated_pressures(self):
+        ep = []
+        for d in self.requested_pressures:
+            ep.append(max(d+random.randint(-100,100), 0))
+            return em
+
     def receive(self):
         while True:
             try:
                 data, addr = self.sock.recvfrom(1024) # buffer size is 1024 bytes
+                log.debug("received msg from %s", addr)
                 t = time.time()
-                resp = easyip.Packet(data)
-                values = resp.decode_payload(easyip.Packet.DIRECTION_SEND)
-                log.debug("received msg %s from %s", data, addr)
-                self.show_pressures(values)
+                packet = easyip.Packet(data)
+                if packet.reqdata_type == easyip.Operands.FLAG_WORD:
+                     print("get pressure request")
+                     emulated_pressure = self.get_emulated_pressures()
+                     packet = easyip.Factory.send_flagword(0, emulated_pressure)
+                     self.send_response(packet, addr)
+                else:
+                    print("set pressure")
+                    values = packet.decode_payload(easyip.Packet.DIRECTION_SEND)
+                    print "in emulator", packet, "values=", values
+                    self.show_pressures(values)
                 self.ui.lbl_connection.setText("Connected to " + addr[0])
                 if self.prev_message_time:
                     avg = int(round(self.ma.next((t - self.prev_message_time) *1000)))
                     self.ui.lbl_interval.setText(format("%d" % avg))
-                self.send_response(resp, addr)
+                self.send_response(packet, addr)
                 self.prev_message_time = t
                 self.app.processEvents()
             except socket.timeout:

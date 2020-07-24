@@ -54,7 +54,7 @@
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">color:white;background-color: green;</string>
+     <string notr="true">QPushButton{color: white; background-color : green;} QPushButton::pressed{background-color :lightgreen; }</string>
     </property>
     <property name="text">
      <string>Dispatch</string>

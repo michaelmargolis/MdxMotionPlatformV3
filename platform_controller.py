@@ -17,9 +17,9 @@ import numpy as np
 from main_gui import *
 from ride_state import RideState
 
-from common.encoders import TcpEncoder
 import common.gui_utils as gutil
 from common.dynamics import Dynamics
+from common.encoders import EncoderClient
 from common.streaming_moving_average import StreamingMovingAverage as MA
 from common.dialog import ModelessDialog
 
@@ -55,7 +55,7 @@ class Controller(QtWidgets.QMainWindow):
             self.is_output_enabled = False
             self.init_platform_parms()
             client.begin(self.cmd_func, pfm.limits_1dof)
-            self.encoder = None
+            self.encoder_server = None
             self.connect_encoder()
             self.dynam = Dynamics()
             self.dynam.init_gui(self.ui.frm_dynamics)
@@ -147,6 +147,7 @@ class Controller(QtWidgets.QMainWindow):
             self.ui.btn_activate.clicked.connect(self.enable_platform)
             self.ui.btn_deactivate.clicked.connect(self.disable_platform)
             self.output_gui.encoder_change_callback(self.encoder_select_event)
+            self.output_gui.encoder_reset_callback(self.encoder_reset)
 
             self.dialog = ModelessDialog(self)
             return True
@@ -165,10 +166,10 @@ class Controller(QtWidgets.QMainWindow):
     def festo_check(self, state):
         if state == QtCore.Qt.Checked:
             log.info("System will wait for Festo msg confirmations")
-            self.platform.set_wait(True)
+            self.platform.set_wait_ack(True)
         else:
             log.info("System will ignore Festo msg confirmations")
-            self.platform.set_wait(False)
+            self.platform.set_wait_ack(False)
 
     def encoder_select_event(self, btn):
         if btn.text() == 'Encoders' and btn.isChecked():
@@ -176,14 +177,18 @@ class Controller(QtWidgets.QMainWindow):
         elif btn.text() == 'Manual' and btn.isChecked():
            print("todo change to manual mode")
 
+    def encoder_reset(self):
+        if self.encoder_server:
+            self.encoder_server.reset()
+
     def connect_encoder(self):
         if pfm.PLATFORM_TYPE == "SLIDER":
             # encoders connected to pc running sim, see platform_config for addr
-            if self.encoder == None:
-                self.encoder = TcpEncoder(cfg.SIM_IP_ADDR[0], cfg.REMOTE_ENCODERS_PORT)
+            if self.encoder_server == None:
+                self.encoder_server = EncoderClient(cfg.ENCODER_IP_ADDR, cfg.ENCODER_SERVER_PORT)
             try:
-                addr_str = format("%s:%d" % (cfg.SIM_IP_ADDR[0], cfg.REMOTE_ENCODERS_PORT))
-                if self.encoder.connect():
+                addr_str = format("%s:%d" % (cfg.SIM_IP_ADDR[0], cfg.ENCODER_SERVER_PORT))
+                if self.encoder_server.connect():
                     log.info("Encoders on %s", addr_str)
                 else:
                     self.ui.tabWidget.setCurrentIndex(2)
@@ -191,7 +196,7 @@ class Controller(QtWidgets.QMainWindow):
                         "Unable to connect to encoders on " + addr_str + 
                         "\nSelect Encoders in GUI to try again", QtWidgets.QMessageBox.Ok)
                     self.output_gui.encoders_set_enabled(False)
-                    self.encoder = None
+                    self.encoder_server = None
             except Exception as e:
                 log.error("Error connecting to encoders %s", e)
 
@@ -208,7 +213,7 @@ class Controller(QtWidgets.QMainWindow):
             dist_str = ",".join("{0}".format(i) for i in distances)
             percent_str = ",".join("{0}".format(i) for i in percents)
             msg = format("transform=%s;distances=%s;percents=%s;\n" % (trans_str, dist_str, percent_str))
-            self.echo_sock.sendto(msg, self.echo_addr)
+            self.echo_sock.sendto(msg.encode("utf-8"), self.echo_addr)
 
     def tab_changed(self, tab_index):
         self.ui_tab = tab_index
@@ -359,13 +364,13 @@ class Controller(QtWidgets.QMainWindow):
 
         self.platform.slow_pressure_move(0, up_pressure, dur)
         gutil.sleep_qt(.5)
-        encoder_data, timestamp = self.encoder.read()
+        encoder_data, timestamp = self.encoder_server.read()
         #  encoder_data = np.array([123, 125, 127, 129, 133, 136]) hard coded data only for testing 
         self.DtoP.set_index(up_pressure, encoder_data, 'up')
 
         self.platform.slow_pressure_move(up_pressure, down_pressure, dur/2)
         gutil.sleep_qt(.5)
-        encoder_data, timestamp = self.encoder.read()
+        encoder_data, timestamp = self.encoder_server.read()
         #  encoder_data = np.array([98, 100, 102, 104, 98, 106]) 
         self.DtoP.set_index(down_pressure, encoder_data, 'down')
 
@@ -392,8 +397,8 @@ class Controller(QtWidgets.QMainWindow):
             if self.ui_tab == 2: # the output tab
                 processing_dur = self.ma.next(processing_dur)
                 self.output_gui.show_muscles(processed_xform, self.actuator_lengths, processing_dur)
-                if self.encoder:
-                    encoder_data = self.encoder.read()
+                if self.encoder_server:
+                    encoder_data = self.encoder_server.read()
                     if encoder_data:
                         self.output_gui.show_encoders(encoder_data)
             self.prev_start = start

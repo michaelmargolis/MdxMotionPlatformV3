@@ -52,23 +52,26 @@
     <property name="title">
      <string>Actuators</string>
     </property>
-    <widget class="Line" name="muscle_3">
+    <widget class="Line" name="encoder_4">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>90</y>
+       <x>30</x>
+       <y>122</y>
        <width>200</width>
-       <height>16</height>
+       <height>2</height>
       </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 0, 0)</string>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Plain</enum>
      </property>
      <property name="lineWidth">
-      <number>8</number>
+      <number>2</number>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -80,7 +83,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>30</x>
        <y>110</y>
        <width>200</width>
        <height>16</height>
@@ -96,14 +99,171 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
+    <widget class="QLabel" name="lbl_actuator_frame">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>351</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
     <widget class="Line" name="muscle_5">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>30</x>
        <y>130</y>
+       <width>200</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>8</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="encoder_0">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>42</y>
+       <width>200</width>
+       <height>2</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 0, 0)</string>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="encoder_1">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>62</y>
+       <width>200</width>
+       <height>2</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 0, 0)</string>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="muscle_0">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>30</y>
+       <width>200</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>8</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="encoder_2">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>82</y>
+       <width>200</width>
+       <height>2</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 0, 0)</string>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="encoder_3">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>102</y>
+       <width>200</width>
+       <height>2</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 0, 0)</string>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="muscle_1">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>50</y>
        <width>200</width>
        <height>16</height>
       </rect>
@@ -124,7 +284,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>30</x>
        <y>70</y>
        <width>200</width>
        <height>16</height>
@@ -140,14 +300,39 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="Line" name="muscle_1">
+    <widget class="Line" name="encoder_5">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>50</y>
+       <x>30</x>
+       <y>142</y>
+       <width>200</width>
+       <height>2</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 0, 0)</string>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="muscle_3">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>90</y>
        <width>200</width>
        <height>16</height>
       </rect>
@@ -160,67 +345,6 @@
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="Line" name="muscle_0">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>30</y>
-       <width>200</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>8</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="txt_muscle_0">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>30</y>
-       <width>71</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Muscle 0</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="txt_muscle_1">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>50</y>
-       <width>71</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Muscle 1</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="txt_muscle_2">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>70</y>
-       <width>71</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Muscle 2</string>
      </property>
     </widget>
     <widget class="QLabel" name="txt_muscle_3">
@@ -234,6 +358,19 @@
      </property>
      <property name="text">
       <string>Muscle 3</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="txt_muscle_0">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>30</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Muscle 0</string>
      </property>
     </widget>
     <widget class="QLabel" name="txt_muscle_4">
@@ -262,6 +399,51 @@
       <string>Muscle 5</string>
      </property>
     </widget>
+    <widget class="QLabel" name="txt_muscle_1">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>50</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Muscle 1</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="txt_muscle_2">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>70</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Muscle 2</string>
+     </property>
+    </widget>
+    <zorder>lbl_actuator_frame</zorder>
+    <zorder>muscle_0</zorder>
+    <zorder>muscle_1</zorder>
+    <zorder>muscle_3</zorder>
+    <zorder>muscle_2</zorder>
+    <zorder>muscle_5</zorder>
+    <zorder>muscle_4</zorder>
+    <zorder>encoder_1</zorder>
+    <zorder>encoder_5</zorder>
+    <zorder>encoder_4</zorder>
+    <zorder>encoder_2</zorder>
+    <zorder>encoder_0</zorder>
+    <zorder>encoder_3</zorder>
+    <zorder>txt_muscle_3</zorder>
+    <zorder>txt_muscle_0</zorder>
+    <zorder>txt_muscle_4</zorder>
+    <zorder>txt_muscle_5</zorder>
+    <zorder>txt_muscle_1</zorder>
+    <zorder>txt_muscle_2</zorder>
    </widget>
    <widget class="QGroupBox" name="grp_request">
     <property name="geometry">
@@ -1175,6 +1357,19 @@
      </property>
      <property name="text">
       <string>mm</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_reset_encoders">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>30</y>
+       <width>51</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reset</string>
      </property>
     </widget>
    </widget>

@@ -68,8 +68,7 @@ class CoasterGui(object):
             log.info("Available parks are:\n  %s", self.park_name)
             self.ui.cmb_park_listbox.addItems(self.park_name)
             self.ui.cmb_park_listbox.currentIndexChanged.connect(self._park_selection_changed)
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             log.error("Unable to load parks, (error %s)", e)
 
     def set_park_callback(self, cb):
@@ -113,7 +112,7 @@ class CoasterGui(object):
          self.top.destroy()
 
     def set_activation(self, is_enabled):
-        print(("is activated in gui set to ", is_enabled))
+        #  print(("is activated in gui set to ", is_enabled))
         if is_enabled:
             self.is_activated = True
             self.ui.cmb_park_listbox.setEnabled(False)
@@ -127,9 +126,6 @@ class CoasterGui(object):
         
     def set_coaster_connection_label(self, status):
         gutil.set_text(self.ui.lbl_coaster_connection, status[0], status[1])
-
-    #  def chair_status_changed(self, status):
-    #      gutil.set_text(self.ui.lbl_festo_status, status[0], status[1])
 
     def temperature_status_changed(self, status):
         gutil.set_text(self.ui.lbl_temperature_status, status[0], status[1])

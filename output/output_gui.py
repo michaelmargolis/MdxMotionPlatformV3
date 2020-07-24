@@ -26,6 +26,7 @@ class OutputGui(object):
         self.txt_muscles = [self.ui.txt_muscle_0,self.ui.txt_muscle_1,self.ui.txt_muscle_2,self.ui.txt_muscle_3,self.ui.txt_muscle_4,self.ui.txt_muscle_5]
         self.txt_up_indices = [self.ui.txt_up_idx_0,self.ui.txt_up_idx_1,self.ui.txt_up_idx_2,self.ui.txt_up_idx_3,self.ui.txt_up_idx_4,self.ui.txt_up_idx_5]
         self.txt_down_indices = [self.ui.txt_down_idx_0,self.ui.txt_down_idx_1,self.ui.txt_down_idx_2,self.ui.txt_down_idx_3,self.ui.txt_down_idx_4,self.ui.txt_down_idx_5]
+        self.encoder_bars = [self.ui.encoder_0,self.ui.encoder_1,self.ui.encoder_2,self.ui.encoder_3,self.ui.encoder_4,self.ui.encoder_5]
         self.txt_encoder_vals = [self.ui.txt_enc_0,self.ui.txt_enc_1,self.ui.txt_enc_2,self.ui.txt_enc_3,self.ui.txt_enc_4,self.ui.txt_enc_5]
         self.front_pixmap = QtGui.QPixmap('images/front.png')
         self.side_pixmap = QtGui.QPixmap('images/side.png')
@@ -47,6 +48,9 @@ class OutputGui(object):
         self.encoder_callback = callback
         self.ui.rb_encoders.toggled.connect(lambda:self.encoder_callback(self.ui.rb_encoders))
         self.ui.rb_manual.toggled.connect(lambda:self.encoder_callback(self.ui.rb_manual))
+
+    def encoder_reset_callback(self, callback):
+        self.ui.btn_reset_encoders.clicked.connect(callback)
 
     def do_transform(self, widget, pixmap, pos,  x, y, angle):
         widget.move(x + pos.x(), y + pos.y())
@@ -74,7 +78,7 @@ class OutputGui(object):
     def show_muscles(self, transform, muscles, processing_dur):  # was passing  pressure_percent
         for i in range(6):
            rect =  self.actuator_bars[i].rect()
-           width = muscles[i] 
+           width = muscles[i]            
            rect.setWidth(width)
            self.actuator_bars[i].setFrameRect(rect)
            contraction = self.MAX_ACTUATOR_RANGE - width
@@ -93,16 +97,12 @@ class OutputGui(object):
         self.ui.rect_dur.setFrameRect(rect)
 
     def show_encoders(self, distances):
-        # todo - finish this
-        # print distances
         for i in range(6):
             self.txt_encoder_vals[i].setText(str(distances[i]))
-            """
-            rect =  self.actuator_bars[i].rect()
-            width = distances[i] 
+            rect =  self.encoder_bars[i].rect()
+            width = max(distances[i],0)
             rect.setWidth(width)
-            rect.setHeight(1)
-            """
+            self.encoder_bars[i].setFrameRect(rect)
 
     def normalize(self, item):
         i = 2 * (item - self.MIN_ACTUATOR_LEN) / (self.MAX_ACTUATOR_LEN - self.MIN_ACTUATOR_LEN)

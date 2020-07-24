@@ -28,24 +28,26 @@ class MuscleOutput(object):
         self.in_pressures = [0]*6
         self.progress_callback = None
         self.percent_factor = self.max_actuator_range / 100 #  divide distance by this factor to get percent
-        log.warning("TODO, replace hard coded percent divisor in muscle_output")
 
     def set_progress_callback(self, cb):
         self.progress_callback = cb
 
     def send_pressures(self, pressures):
         self.festo.send_pressures(pressures)
-        
+
     def brake(self):
         # enables brakes on sliders to avoid unintended movement
         print("todo brake")
+
+    def enable_poll_pressures(self, state):
+        self.festo.enable_poll_pressure(state)
 
     def get_pressures(self):
         self.in_pressures = self.festo.get_pressure()
         return  self.in_pressures
 
-    def set_wait(self, state):
-        self.festo.set_wait(state)
+    def set_wait_ack(self, state):
+        self.festo.set_wait_ack(state)
         log.debug("output module wait for festo pressure set to %d", state)
 
     def set_pistion_flag(self, state):
@@ -103,10 +105,9 @@ class MuscleOutput(object):
     def move_distance(self, distances):
         for idx, d in enumerate(distances):
             distances[idx] = int(round(d))
-        # print "in move distances", distances
         try:
             out_pressures = self.distance_to_pressure(distances)
-            # print "pressures in move_distance", out_pressures
+            #  print "pressures in move_distance", out_pressures
             self.festo.send_pressures(out_pressures)
             self.percents = []
             for d in distances:
@@ -116,7 +117,8 @@ class MuscleOutput(object):
             log.error("error in move_distance %s, %s", e, sys.exc_info()[0])
 
     def move_percent(self, percents):
-        self.move_distance(percents * self.percent_factor) 
+        distances = [p * self.percent_factor for p in percents]
+        self.move_distance(distances) 
 
     def calibrate(self):
         # moves platform to mid pressure to determine best d_to_p files
@@ -153,12 +155,12 @@ class MuscleOutput(object):
             self.send_pressures([end_pressure]*6)
         else:            
             current = [start_pressure]*6
-            print("moving from", start_pressure, "to", end_pressure, "steps", steps)
+            #  print("moving from", start_pressure, "to", end_pressure, "steps", steps)
             delta = float(end_pressure - start_pressure)/steps
-            print("delta = ", delta)
+            #  print("delta = ", delta)
             for step in range(steps):
                 current  =  [p+delta for p in current]
-                print(current)
+                #  print(current)
                 gutil.sleep_qt(interval / 1000.0)
                 if self.progress_callback:
                     self.progress_callback(100 * step/steps)

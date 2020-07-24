@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'calibration_gui.ui'
+# Form implementation generated from reading ui file 'PlatformCalibrate\calibration_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
@@ -11,57 +11,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(509, 527)
+        MainWindow.resize(515, 631)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.frame = QtWidgets.QFrame(self.centralwidget)
-        self.frame.setGeometry(QtCore.QRect(10, 10, 491, 711))
+        self.frame.setGeometry(QtCore.QRect(10, 10, 491, 591))
         self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName("frame")
-        self.frame_4 = QtWidgets.QFrame(self.frame)
-        self.frame_4.setGeometry(QtCore.QRect(10, 370, 465, 100))
-        self.frame_4.setMinimumSize(QtCore.QSize(300, 100))
-        self.frame_4.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_4.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_4.setObjectName("frame_4")
-        self.btn_estop = QtWidgets.QPushButton(self.frame_4)
-        self.btn_estop.setGeometry(QtCore.QRect(150, 30, 151, 61))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(True)
-        font.setWeight(75)
-        self.btn_estop.setFont(font)
-        self.btn_estop.setStyleSheet("QPushButton {\n"
-"    color: yellow;\n"
-"    border: 2px solid #555;\n"
-"    border-radius: 20px;\n"
-"    border-style: outset;\n"
-"    background: qradialgradient(\n"
-"        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,\n"
-"        radius: 1.35, stop: 0 #fff, stop: 1 #888,\n"
-"        );\n"
-"    padding: 5px;\n"
-"    background-color: red;\n"
-"    }\n"
-"\n"
-"QPushButton:hover {\n"
-"    background: qradialgradient(\n"
-"        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,\n"
-"        radius: 1.35, stop: 0 #fff, stop: 1 #bbb\n"
-"        );\n"
-"    background-color: red;\n"
-"   color: white;\n"
-"    }\n"
-"\n"
-"QPushButton:pressed {\n"
-"    border-style: inset;\n"
-"    background: qradialgradient(\n"
-"        cx: 0.4, cy: -0.1, fx: 0.4, fy: -0.1,\n"
-"        radius: 1.35, stop: 0 #fff, stop: 1 #ddd\n"
-"        );\n"
-"    }")
-        self.btn_estop.setObjectName("btn_estop")
         self.tabWidget = QtWidgets.QTabWidget(self.frame)
         self.tabWidget.setGeometry(QtCore.QRect(-10, 10, 491, 311))
         self.tabWidget.setObjectName("tabWidget")
@@ -484,16 +441,191 @@ class Ui_MainWindow(object):
         self.txt_raw_data_fname.setObjectName("txt_raw_data_fname")
         self.tabWidget.addTab(self.tb_move, "")
         self.ProgressGroupBox = QtWidgets.QGroupBox(self.frame)
-        self.ProgressGroupBox.setGeometry(QtCore.QRect(0, 320, 491, 41))
+        self.ProgressGroupBox.setGeometry(QtCore.QRect(0, 320, 491, 51))
         self.ProgressGroupBox.setObjectName("ProgressGroupBox")
         self.progressBar = QtWidgets.QProgressBar(self.ProgressGroupBox)
-        self.progressBar.setGeometry(QtCore.QRect(20, 15, 451, 23))
+        self.progressBar.setGeometry(QtCore.QRect(20, 17, 451, 23))
         self.progressBar.setProperty("value", 0)
         self.progressBar.setAlignment(QtCore.Qt.AlignCenter)
         self.progressBar.setObjectName("progressBar")
+        self.frame_2 = QtWidgets.QFrame(self.frame)
+        self.frame_2.setGeometry(QtCore.QRect(10, 520, 471, 61))
+        self.frame_2.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_2.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_2.setObjectName("frame_2")
+        self.btn_estop = QtWidgets.QPushButton(self.frame_2)
+        self.btn_estop.setGeometry(QtCore.QRect(160, 10, 151, 40))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        self.btn_estop.setFont(font)
+        self.btn_estop.setStyleSheet("QPushButton {\n"
+"    color: yellow;\n"
+"    border: 2px solid #555;\n"
+"    border-radius: 20px;\n"
+"    border-style: outset;\n"
+"    background: qradialgradient(\n"
+"        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,\n"
+"        radius: 1.35, stop: 0 #fff, stop: 1 #888,\n"
+"        );\n"
+"    padding: 5px;\n"
+"    background-color: red;\n"
+"    }\n"
+"\n"
+"QPushButton:hover {\n"
+"    background: qradialgradient(\n"
+"        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,\n"
+"        radius: 1.35, stop: 0 #fff, stop: 1 #bbb\n"
+"        );\n"
+"    background-color: red;\n"
+"   color: white;\n"
+"    }\n"
+"\n"
+"QPushButton:pressed {\n"
+"    border-style: inset;\n"
+"    background: qradialgradient(\n"
+"        cx: 0.4, cy: -0.1, fx: 0.4, fy: -0.1,\n"
+"        radius: 1.35, stop: 0 #fff, stop: 1 #ddd\n"
+"        );\n"
+"    }")
+        self.btn_estop.setObjectName("btn_estop")
+        self.chk_festo_actuals = QtWidgets.QCheckBox(self.frame_2)
+        self.chk_festo_actuals.setGeometry(QtCore.QRect(-4, 20, 131, 20))
+        self.chk_festo_actuals.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.chk_festo_actuals.setObjectName("chk_festo_actuals")
+        self.gb_actuator_percent = QtWidgets.QGroupBox(self.frame)
+        self.gb_actuator_percent.setGeometry(QtCore.QRect(10, 370, 471, 151))
+        self.gb_actuator_percent.setObjectName("gb_actuator_percent")
+        self.muscle_3 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.muscle_3.setEnabled(False)
+        self.muscle_3.setGeometry(QtCore.QRect(79, 80, 300, 20))
+        self.muscle_3.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.muscle_3.setLineWidth(8)
+        self.muscle_3.setFrameShape(QtWidgets.QFrame.HLine)
+        self.muscle_3.setObjectName("muscle_3")
+        self.muscle_4 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.muscle_4.setEnabled(False)
+        self.muscle_4.setGeometry(QtCore.QRect(79, 100, 300, 20))
+        self.muscle_4.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.muscle_4.setLineWidth(8)
+        self.muscle_4.setFrameShape(QtWidgets.QFrame.HLine)
+        self.muscle_4.setObjectName("muscle_4")
+        self.muscle_5 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.muscle_5.setEnabled(False)
+        self.muscle_5.setGeometry(QtCore.QRect(79, 120, 300, 20))
+        self.muscle_5.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.muscle_5.setLineWidth(8)
+        self.muscle_5.setFrameShape(QtWidgets.QFrame.HLine)
+        self.muscle_5.setObjectName("muscle_5")
+        self.muscle_2 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.muscle_2.setEnabled(False)
+        self.muscle_2.setGeometry(QtCore.QRect(79, 60, 300, 20))
+        self.muscle_2.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.muscle_2.setLineWidth(8)
+        self.muscle_2.setFrameShape(QtWidgets.QFrame.HLine)
+        self.muscle_2.setObjectName("muscle_2")
+        self.muscle_1 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.muscle_1.setEnabled(False)
+        self.muscle_1.setGeometry(QtCore.QRect(79, 40, 300, 20))
+        self.muscle_1.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.muscle_1.setLineWidth(8)
+        self.muscle_1.setFrameShape(QtWidgets.QFrame.HLine)
+        self.muscle_1.setObjectName("muscle_1")
+        self.muscle_0 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.muscle_0.setEnabled(False)
+        self.muscle_0.setGeometry(QtCore.QRect(79, 20, 300, 20))
+        self.muscle_0.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.muscle_0.setLineWidth(8)
+        self.muscle_0.setFrameShape(QtWidgets.QFrame.HLine)
+        self.muscle_0.setObjectName("muscle_0")
+        self.txt_muscle_0 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_0.setGeometry(QtCore.QRect(401, 22, 46, 13))
+        self.txt_muscle_0.setObjectName("txt_muscle_0")
+        self.txt_muscle_1 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_1.setGeometry(QtCore.QRect(401, 42, 46, 13))
+        self.txt_muscle_1.setObjectName("txt_muscle_1")
+        self.txt_muscle_2 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_2.setGeometry(QtCore.QRect(401, 62, 46, 13))
+        self.txt_muscle_2.setObjectName("txt_muscle_2")
+        self.txt_muscle_3 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_3.setGeometry(QtCore.QRect(401, 82, 46, 13))
+        self.txt_muscle_3.setObjectName("txt_muscle_3")
+        self.txt_muscle_4 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_4.setGeometry(QtCore.QRect(401, 102, 46, 13))
+        self.txt_muscle_4.setObjectName("txt_muscle_4")
+        self.txt_muscle_5 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_5.setGeometry(QtCore.QRect(401, 122, 46, 13))
+        self.txt_muscle_5.setObjectName("txt_muscle_5")
+        self.txt_muscle_6 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_6.setGeometry(QtCore.QRect(10, 120, 46, 13))
+        self.txt_muscle_6.setObjectName("txt_muscle_6")
+        self.txt_muscle_7 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_7.setGeometry(QtCore.QRect(10, 20, 46, 13))
+        self.txt_muscle_7.setObjectName("txt_muscle_7")
+        self.txt_muscle_8 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_8.setGeometry(QtCore.QRect(10, 40, 46, 13))
+        self.txt_muscle_8.setObjectName("txt_muscle_8")
+        self.txt_muscle_9 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_9.setGeometry(QtCore.QRect(10, 80, 46, 13))
+        self.txt_muscle_9.setObjectName("txt_muscle_9")
+        self.txt_muscle_10 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_10.setGeometry(QtCore.QRect(10, 100, 46, 13))
+        self.txt_muscle_10.setObjectName("txt_muscle_10")
+        self.txt_muscle_11 = QtWidgets.QLabel(self.gb_actuator_percent)
+        self.txt_muscle_11.setGeometry(QtCore.QRect(10, 60, 46, 13))
+        self.txt_muscle_11.setObjectName("txt_muscle_11")
+        self.actual_0 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.actual_0.setEnabled(False)
+        self.actual_0.setGeometry(QtCore.QRect(79, 34, 300, 2))
+        self.actual_0.setStyleSheet("color: rgb(255, 0, 0)")
+        self.actual_0.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.actual_0.setLineWidth(2)
+        self.actual_0.setFrameShape(QtWidgets.QFrame.HLine)
+        self.actual_0.setObjectName("actual_0")
+        self.actual_4 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.actual_4.setEnabled(False)
+        self.actual_4.setGeometry(QtCore.QRect(79, 114, 300, 2))
+        self.actual_4.setStyleSheet("color: rgb(255, 0, 0)")
+        self.actual_4.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.actual_4.setLineWidth(2)
+        self.actual_4.setFrameShape(QtWidgets.QFrame.HLine)
+        self.actual_4.setObjectName("actual_4")
+        self.actual_2 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.actual_2.setEnabled(False)
+        self.actual_2.setGeometry(QtCore.QRect(79, 74, 300, 2))
+        self.actual_2.setStyleSheet("color: rgb(255, 0, 0)")
+        self.actual_2.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.actual_2.setLineWidth(2)
+        self.actual_2.setFrameShape(QtWidgets.QFrame.HLine)
+        self.actual_2.setObjectName("actual_2")
+        self.actual_3 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.actual_3.setEnabled(False)
+        self.actual_3.setGeometry(QtCore.QRect(79, 94, 300, 2))
+        self.actual_3.setStyleSheet("color: rgb(255, 0, 0)")
+        self.actual_3.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.actual_3.setLineWidth(2)
+        self.actual_3.setFrameShape(QtWidgets.QFrame.HLine)
+        self.actual_3.setObjectName("actual_3")
+        self.actual_1 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.actual_1.setEnabled(False)
+        self.actual_1.setGeometry(QtCore.QRect(80, 54, 300, 2))
+        self.actual_1.setStyleSheet("color: rgb(255, 0, 0)")
+        self.actual_1.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.actual_1.setLineWidth(2)
+        self.actual_1.setFrameShape(QtWidgets.QFrame.HLine)
+        self.actual_1.setObjectName("actual_1")
+        self.actual_5 = QtWidgets.QFrame(self.gb_actuator_percent)
+        self.actual_5.setEnabled(False)
+        self.actual_5.setGeometry(QtCore.QRect(79, 134, 300, 2))
+        self.actual_5.setStyleSheet("color: rgb(255, 0, 0)")
+        self.actual_5.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.actual_5.setLineWidth(2)
+        self.actual_5.setFrameShape(QtWidgets.QFrame.HLine)
+        self.actual_5.setObjectName("actual_5")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 509, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 515, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -507,7 +639,6 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Platform Test"))
-        self.btn_estop.setText(_translate("MainWindow", "Stop"))
         self.SerialGroupBox.setTitle(_translate("MainWindow", "Comms"))
         self.btn_serial_connect.setText(_translate("MainWindow", "    Connect    "))
         self.lbl_encoders.setText(_translate("MainWindow", "Encoders"))
@@ -577,4 +708,19 @@ class Ui_MainWindow(object):
         self.btn_save_raw.setText(_translate("MainWindow", "Save"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tb_move), _translate("MainWindow", "Move"))
         self.ProgressGroupBox.setTitle(_translate("MainWindow", "Progress"))
+        self.btn_estop.setText(_translate("MainWindow", "Stop"))
+        self.chk_festo_actuals.setText(_translate("MainWindow", "Show Festo response"))
+        self.gb_actuator_percent.setTitle(_translate("MainWindow", "Valve Pressures"))
+        self.txt_muscle_0.setText(_translate("MainWindow", "Muscle 0"))
+        self.txt_muscle_1.setText(_translate("MainWindow", "Muscle 1"))
+        self.txt_muscle_2.setText(_translate("MainWindow", "Muscle 2"))
+        self.txt_muscle_3.setText(_translate("MainWindow", "Muscle 3"))
+        self.txt_muscle_4.setText(_translate("MainWindow", "Muscle 4"))
+        self.txt_muscle_5.setText(_translate("MainWindow", "Muscle 5"))
+        self.txt_muscle_6.setText(_translate("MainWindow", "Muscle 5"))
+        self.txt_muscle_7.setText(_translate("MainWindow", "Muscle 0"))
+        self.txt_muscle_8.setText(_translate("MainWindow", "Muscle 1"))
+        self.txt_muscle_9.setText(_translate("MainWindow", "Muscle 3"))
+        self.txt_muscle_10.setText(_translate("MainWindow", "Muscle 4"))
+        self.txt_muscle_11.setText(_translate("MainWindow", "Muscle 2"))
 

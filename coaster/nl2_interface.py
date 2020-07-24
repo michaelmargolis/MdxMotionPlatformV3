@@ -12,7 +12,7 @@ try:
 except ImportError:
     from Queue import Queue
 import socket
-from time import time,sleep
+from time import time
 from struct import *
 import collections
 from math import pi, degrees, sqrt
@@ -72,7 +72,8 @@ class CoasterInterface():
                                            coasterStyle, train, car, seat, speed, posX, posY,\
                                            posZ, quatX, quatY, quatZ, quatW, gForceX, gForceY, gForceZ')
 
-    def __init__(self):
+    def __init__(self, sleep_func):
+        self.sleep_func = sleep_func
         self.telemetry_err_str = "Waiting to connect to NoLimits Coaster"
         self.telemetry_status_ok = False
         self.telemetry_data = None
@@ -109,9 +110,9 @@ class CoasterInterface():
         
     def connect_to_coaster(self, coaster_ip_addr):
         # returns true iff connected to NL2 and in play mode
-        if self.system_status.is_pc_connected == False:
-            log.error("Not connected to VR PC")
-            return False
+        # if self.system_status.is_pc_connected == False:
+        #     log.error("Not connected to VR PC")
+        #     return False
         if self.system_status.is_nl2_connected == False:
             try:
                 log.debug("Attempting connect to NoLimits @ %s:%d",coaster_ip_addr, self.nl2_msg_port)
@@ -120,7 +121,7 @@ class CoasterInterface():
                     log.debug("nl2 connected")
                     self.system_status.is_nl2_connected = True
                     self.start_listening() # create listening thread
-                    sleep(1)
+                    self.sleep_func(1)
                     self.get_nl2_version()
             except Exception as e:
                 self.system_status.is_nl2_connected = False
@@ -143,17 +144,19 @@ class CoasterInterface():
 
 
     def prepare_for_dispatch(self):
-        print ("todo?, combine prepare_for_dispatch with load lookup after dispatch cmd")
         if self._get_station_status(bit_platform_can_lower):
             self.disengageFloor()
+            log.debug("waiting for floor to lower")
             return False
         elif self._get_station_status(bit_harness_can_close):
             self.close_harness()
+            log.debug("waiting for harness to close")
             return False
         else:
-            can_dispatch = self._get_station_status(bit_can_dispatch)
-            #  print "can dispatch", can_dispatch
-            return can_dispatch
+            return True
+            #  can_dispatch = self._get_station_status(bit_can_dispatch)
+            #  log.debug("can dispatch: %s", can_dispatch)
+            # return can_dispatch
 
     def open_harness(self):
         # print 'Opening Harness'
@@ -172,7 +175,7 @@ class CoasterInterface():
     def set_manual_mode(self, mode):
         msg = pack('>ii?', 0, 0, mode)  # coaster, car, True sets manual mode, false sets auto
         r = self._create_NL2_message(self.N_MSG_SET_MANUAL_MODE, self._get_msg_id(), msg)
-        #  print "set mode msg", binascii.hexlify(r)
+        #  print("set mode msg", mode, binascii.hexlify(r))
         self._send(r)
 
     def reset_vr(self):
@@ -196,13 +199,13 @@ class CoasterInterface():
         while True:
             # print self._telemetry_state_flags & 1,  self.get_coaster_status()
             # print(".", end=' ')
-            sleep(2)
+            self.sleep_func(2)
             self.get_telemetry(0.5)
             if self.telemetry_status_ok  and self.system_status.is_in_play_mode:
             # was if self._telemetry_state_flags & 1: # test if in play mode
                 log.info("Setting manual mode")
                 self.set_manual_mode(True)
-                sleep(.3)
+                self.sleep_func(.3)
                 #print "todo is this reset needed?"
                 if self._get_station_status(bit_manual):
                    #print "resetting Park"
@@ -263,17 +266,16 @@ class CoasterInterface():
         # above just for debug
         try:
             self.nl2_sock.sendall(r)
-        except:
-            e = sys.exc_info()[0]  # report error
-            # print e
-        sleep(.001)
+        except Exception as e:
+            print(str(e))
+        # self.sleep_func(.001)
 
     def get_nl2_version(self):
         self.nl2_version = None
         self._send(self._create_simple_message(self.N_MSG_GET_VERSION, self._get_msg_id()))
         #  print("getting version")
         for i in range(10):
-            sleep(.1)            
+            self.sleep_func(.1)            
             self.service()
             if self.nl2_version != None:
                 return self.nl2_version
@@ -281,6 +283,7 @@ class CoasterInterface():
 
     def _get_station_status(self, status_mask):
         if self.system_status.is_in_play_mode == False:
+            log.debug("Not in play mode")
             return False
         if time() - self.station_msg_time >= 1 or self.system_status.is_moving == False: 
             # send stutus request at most once per second
@@ -296,7 +299,7 @@ class CoasterInterface():
         #  print format("in get station status %x" % (self.station_status))
         if self.station_status & bit_manual != bit_manual:
             self.set_manual_mode(True)
-            sleep(0.1)
+            self.sleep_func(0.1)
         if self.station_status & bit_train_in_station == bit_train_in_station:
            #print "train status", self.station_status & bit_current_train_in_station, self.station_status & bit_current_train_in_station !=  bit_current_train_in_station
            if self.station_status & bit_current_train_in_station != bit_current_train_in_station:
@@ -332,7 +335,7 @@ class CoasterInterface():
         except Exception as e:
             log.error("error in get_telemetry: %s", e)
             print(traceback.format_exc())
-        return None
+        return None, None
 
     def service(self):
         """
@@ -376,7 +379,7 @@ class CoasterInterface():
                     self.telemetry_status_ok = True
                 else:
                     print('invalid msg len expected 76, got ', size)
-                #sleep(self.interval)
+                #self.sleep_func(self.interval)
                 #self._send(self._create_simple_message(self.N_MSG_GET_TELEMETRY, self.N_MSG_GET_TELEMETRY))
             elif msg == self.N_MSG_OK:
                 self.telemetry_status_ok = True
@@ -516,20 +519,23 @@ class CoasterInterface():
             try:
                 if self.system_status.is_nl2_connected:
                     header = bytearray(sock.recv(1))
-                    if header != b'N':
-                        print("sock header error:",  header[0], hex(header[0]))
-                        continue
-                    for i in range(8):
-                        b = bytearray(sock.recv(1))
-                        header.extend(b)
-                    msg, requestId, size = (unpack('>HIH', header[1:9]))
-                    data = bytearray(sock.recv(size))
-                    if bytearray(sock.recv(1)) != b'L':
-                        print("Invalid message received")
-                        continue
-                    #  print("got valid msg, len=", len(data), ":".join("{:02x}".format(ord(c)) for c in data))
-                    self.nl2Q.put((msg, requestId, data, size))
-                         # todo - perhaps check time of most recent incoming telemetry msg and issue fresh request if greater than timeout time
+                    if header and len(header) > 0:
+                        if header != b'N':
+                            print("sock header error:",  header[0], hex(header[0]))
+                            continue
+                        for i in range(8):
+                            b = bytearray(sock.recv(1))
+                            header.extend(b)
+                        msg, requestId, size = (unpack('>HIH', header[1:9]))
+                        data = bytearray(sock.recv(size))
+                        if bytearray(sock.recv(1)) != b'L':
+                            print("Invalid message received")
+                            continue
+                        #  print("got valid msg, len=", len(data), ":".join("{:02x}".format(ord(c)) for c in data))
+                        self.nl2Q.put((msg, requestId, data, size))
+                    else:
+                        self.system_status.is_nl2_connected = False
+
             except socket.timeout:
                 self._send(self._create_simple_message(self.N_MSG_GET_TELEMETRY, self._get_msg_id()))
                 log.debug("timeout in listener")
@@ -537,7 +543,7 @@ class CoasterInterface():
             except ValueError:
                 print("got zero from socket, assume its disconnected")
                 self.system_status.is_nl2_connected = False
-                sleep(1)
+                self.sleep_func(1)
             except Exception as e: 
                 #e = sys.exc_info()[0]
                 """
@@ -545,7 +551,7 @@ class CoasterInterface():
                     print("NoLimits closed connection - todo tell GUI")
                     # sock.close()
                     self.system_status.is_nl2_connected = False
-                    sleep(1)
+                    self.sleep_func(1)
                 """
                 s = traceback.format_exc()
                 print("listener thread err", str(e), s)

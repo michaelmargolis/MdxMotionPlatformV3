@@ -27,7 +27,7 @@ class Ui_Frame(object):
         font.setBold(True)
         font.setWeight(75)
         self.btn_dispatch.setFont(font)
-        self.btn_dispatch.setStyleSheet("color:white;background-color: green;")
+        self.btn_dispatch.setStyleSheet("QPushButton{color: white; background-color : green;} QPushButton::pressed{background-color :lightgreen; }")
         self.btn_dispatch.setObjectName("btn_dispatch")
         self.btn_reset_rift = QtWidgets.QPushButton(self.frm_input)
         self.btn_reset_rift.setGeometry(QtCore.QRect(660, 80, 91, 51))
