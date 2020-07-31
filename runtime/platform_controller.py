@@ -15,7 +15,7 @@ import numpy as np
 
 
 from main_gui import *
-from client_select_dialog import ClientSelect
+from clients.client_select_dialog import ClientSelect
 from clients.ride_state import RideState
 
 import common.gui_utils as gutil
