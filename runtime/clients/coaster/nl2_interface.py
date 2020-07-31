@@ -24,8 +24,8 @@ import  binascii  # only for debug
 import traceback
 import numpy as np # only for yaw test
 
-from coaster.my_quaternion import Quaternion
-from coaster.coaster_state import SystemStatus 
+from clients.coaster.my_quaternion import Quaternion
+from clients.coaster.coaster_state import SystemStatus 
 
 import logging
 log = logging.getLogger(__name__)

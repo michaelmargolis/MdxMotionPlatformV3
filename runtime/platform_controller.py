@@ -16,7 +16,7 @@ import numpy as np
 
 from main_gui import *
 from client_select_dialog import ClientSelect
-from ride_state import RideState
+from clients.ride_state import RideState
 
 import common.gui_utils as gutil
 from common.dynamics import Dynamics
@@ -161,6 +161,7 @@ class Controller(QtWidgets.QMainWindow):
         if dialog.exec_():
             startup_msg = format("STARTUP,%s,%s" % (dialog.client_name, dialog.local_client_itf))
             self.start_remote_pcs(dialog.pc_addresses, startup_msg)
+            log.info("starting client: %s", dialog.remote_client)
             self.client = importlib.import_module(dialog.remote_client).InputInterface()
             self.client.begin(self.cmd_func, pfm.limits_1dof, dialog.pc_addresses)
         else:

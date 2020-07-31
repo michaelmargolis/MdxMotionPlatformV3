@@ -21,9 +21,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import logging
 log = logging.getLogger(__name__)
 
-from client_api import ClientApi
-from ride_state import RideState
-from SpaceCoaster.remote_client_gui_defs import Ui_Frame
+from clients.client_api import ClientApi
+from clients.ride_state import RideState
+from clients.remote_client.remote_client_gui_defs import Ui_Frame
 from common.tcp_client import TcpClient
 import common.gui_utils as gutil
 from platform_config import cfg
@@ -256,7 +256,7 @@ class RemoteClient(QtWidgets.QMainWindow):
  
 if __name__ == "__main__":
 
-    from local_client_gui_defs import Ui_MainWindow
+    from clients.local_client_gui_defs import Ui_MainWindow
     import importlib  
     sys.path.insert(0, '../output')  # for platform config
     

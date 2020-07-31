@@ -18,32 +18,18 @@ import logging
 log = logging.getLogger(__name__)
 
 import platform_config as cfg
-
-if __name__ == "__main__":
-    # here if run as __main__
-    from coaster.nl2_interface import CoasterInterface
-    from coaster.coaster_gui import CoasterGui
-    sys.path.insert(0, '../common')
-    import gui_utils as gutil
-    import common.gui_utils as gutil
-    sys.path.insert(0, '../')
-    from client_api import ClientApi
-    from ride_state import RideState
-    from platform_config import cfg
-else:
-    # here if run as client of platform_controller
-    from client_api import ClientApi
-    from coaster.nl2_interface import CoasterInterface
-    from coaster.coaster_gui import CoasterGui
-    from ride_state import RideState
-    import common.gui_utils as gutil
-    from platform_config import cfg
+from clients.client_api import ClientApi
+from clients.coaster.nl2_interface import CoasterInterface
+from clients.coaster.coaster_gui import CoasterGui
+from clients.ride_state import RideState
+import common.gui_utils as gutil
+from platform_config import cfg
     
 
-from coaster.telemetry_logger import TelemetryLogger
+from clients.coaster.telemetry_logger import TelemetryLogger
 telemetry_log = TelemetryLogger(False)
 
-from coaster.pc_monitor import pc_monitor_client
+from clients.coaster.pc_monitor import pc_monitor_client
 # see pc_monitor.py for information on heartbeat server
 
 

@@ -4,10 +4,8 @@
 import sys
 #  from simple_input_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-from client.simple_input_gui_defs import Ui_Frame
-
-sys.path.insert(0, '../')
-from client_api import ClientApi
+from clients.test_client.simple_input_gui_defs import Ui_Frame
+from clients.client_api import ClientApi
 
 class InputInterface(ClientApi):
 
@@ -46,7 +44,7 @@ class InputInterface(ClientApi):
         self.transform = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.update_sliders()
 
-    def begin(self, cmd_func, limits):
+    def begin(self, cmd_func, limits, pc_address):
         self.cmd_func = cmd_func
         self.limits = limits  # note limits are in mm and radians
 

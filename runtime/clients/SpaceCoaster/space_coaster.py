@@ -30,9 +30,9 @@ import numpy as np  # for scaling telemetry data
 #  from space_coaster_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from client_api import ClientApi
-from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
-from ride_state import RideState
+from clients.client_api import ClientApi
+from clients.SpaceCoaster.space_coaster_gui_defs import Ui_Frame
+from clients.ride_state import RideState
 from common.tcp_server import TcpServer
 from common.dialog import ModelessDialog
 import common.gui_utils as gutil
@@ -366,7 +366,7 @@ class InputInterface(ClientApi):
 
     def read_telemetry(self):
         try:
-            path = os.path.abspath('SpaceCoaster/chairGen_telemetry.csv')
+            path = os.path.abspath('clients/SpaceCoaster/chairGen_telemetry.csv')
             if not os.path.isfile(path): path = 'chairGen_telemetry.csv'
             with open(path, 'rb') as csvfile:
                 log.info("opened space coaster telemetry file: chairGen_telemetry.csv")
@@ -410,115 +410,6 @@ class InputInterface(ClientApi):
             return ( (value - range[0]) / (range[1] - range[0]) ) * (range[3] - range[2]) + range[2]
 
 if __name__ == "__main__":
-    from common.local_client import client_main, LocalClient #  code used to run this client on external pc
+    from clients.local_client import client_main, LocalClient #  code used to run this client on external pc
     client = InputInterface(True) 
     client_main(client)
-    
-"""
-######### code for local client run from main ############
-
-
-class LocalClient(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        log.info("Starting space coaster local client")
-        try:
-            QtWidgets .QMainWindow.__init__(self)
-            self.ui = Ui_MainWindow()
-            self.ui.setupUi(self)
-            
-            self.client = InputInterface(True) 
-            self.client.init_gui(self.ui.frame)
-            limits = pfm.limits_1dof
-            self.client.begin(self.cmd_func, limits)
-            self.server = TcpServer(('', cfg.REMOTE_CLIENT_PORT))
-            self.server.start()
-            log.info("Started tcp server, this IP address is %s", self.server.get_local_ip())
-            service_timer = QtCore.QTimer(self)
-            service_timer.timeout.connect(self.service)
-            self.prev_service = None
-            self.FRAME_RATE_ms = 50
-            # log.info("Starting service timer")
-            # service_timer.start(50) 
-            self.service()
-        except Exception as e:
-            s = traceback.format_exc()
-            log.error("Space coaster local client %s %s", e, s)
- 
-    def service(self):
-        time_to_svc = int(self.FRAME_RATE_ms/2)  # default
-        now = time.time()
-        if self.prev_service != None:
-            elapsed =  (now - self.prev_service) * 1000
-            to_go = self.FRAME_RATE_ms - elapsed
-            if to_go < 1:
-                if to_go < -1:
-                    log.debug("Service interval was %d ms", elapsed)
-                self.prev_service = now
-                self.client.service()
-                self.server.send(self.server, self.client.form_telemetry_msg())
-                if self.server.connected_clients() > 0:
-                    self.client.detected_remote("Detected Remote Client Connection")
-                else:
-                     self.client.detected_remote("Remote client not Connected, this IP is: " + self.server.get_local_ip())
-                while self.server.available():
-                    try:
-                        msg = self.server.receive()
-                        if msg:
-                            event = msg.split("\n")
-                            for e in event:
-                                e = e.rstrip()
-                                # print format("[%s], %d" % (e, len(e)))
-                                if e in self.client.actions:
-                                    log.info("got remote client cmd %s", e)
-                                    self.client.actions[e]()
-                    except IndexError:
-                        log.warning("client queue index error")
-            else:
-                time_to_svc = int(max(to_go/2, 1))
-                # print "tp go=", to_go, "tts=", time_to_svc
-                
-        else:
-            self.prev_service = time.time()
-            # self.f = open("timer_test.csv", "w")
-            log.warning("starting service timing latency capture to file: timer_test.csv")
-        QtCore.QTimer.singleShot(time_to_svc, self.service)
-            
-    def cmd_func(self, cmd):  # command handler function called from Platform input
-        if cmd == "quit": self.quit()
-        elif cmd == "dispatch": self.client.dispatch()
-        elif cmd == "pause": self.client.pause()
-
-    def quit(self):
-        log.info("Executing quit command")
-        sys.exit()
- 
-if __name__ == "__main__":
-    from SpaceCoaster.local_client_gui_defs import Ui_MainWindow
-    import importlib  
-    
-    sys.path.insert(0, '../output')  # for platform config
-    
-    log_level = logging.INFO
-    logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
-    log.info("Python: %s, qt version %s", sys.version[0:5], QtCore.QT_VERSION_STR)
-    
-    # platform_selection = '.ConfigV3'
-    platform_selection = 'configNextgen'
-    pfm = importlib.import_module(platform_selection).PlatformConfig()
-
-    app = QtWidgets.QApplication(sys.argv) 
-    
-    try:       
-        local_client = LocalClient()
-        local_client.show()
-        app.exec_()
-    except ConnectionException as error:
-        log.error("User aborted because space coaster not found") 
-    except Exception as e:
-        s = traceback.format_exc()
-        log.error("space coaster main %s %s", e, s)
-      
-    app.exit()
-    log.info("Exiting Space Coaster\n")
-"""

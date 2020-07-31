@@ -8,11 +8,10 @@ import os
 import sys
 #  from coaster_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-from coaster.coaster_gui_defs import Ui_Frame
+from clients.coaster.coaster_gui_defs import Ui_Frame
 
-sys.path.insert(0, './common')
-from ride_state import RideState
-import gui_utils as gutil
+from clients.ride_state import RideState
+import common.gui_utils as gutil
 
 import logging
 log = logging.getLogger(__name__)
