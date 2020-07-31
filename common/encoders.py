@@ -15,7 +15,7 @@ try:
 except ImportError:
     from Queue import Queue
     
-if __name__ == '__main__':
+if  __name__ == '__main__':
     # running from 'common' directory
     from serialProcess import SerialProcess
     from tcp_client import SockClient

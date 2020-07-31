@@ -231,7 +231,7 @@ class InputInterface(ClientApi):
             self.left_mouse_click()
             # break
         except:
-            print "unable to find window todo "
+            print("fixme, unable to find coaster window")
 
 
     def fin(self):
