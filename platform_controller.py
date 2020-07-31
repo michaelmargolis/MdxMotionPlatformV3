@@ -15,6 +15,7 @@ import numpy as np
 
 
 from main_gui import *
+from client_select_dialog import ClientSelect
 from ride_state import RideState
 
 import common.gui_utils as gutil
@@ -22,12 +23,12 @@ from common.dynamics import Dynamics
 from common.encoders import EncoderClient
 from common.streaming_moving_average import StreamingMovingAverage as MA
 from common.dialog import ModelessDialog
+from common.tcp_client import TcpClient
 
 # Importlib used to load configurations for client and platform as selected in platform_config.py
 import importlib
-from  platform_config import client_selection, platform_selection, cfg
+from  platform_config import platform_selection, cfg
 pfm = importlib.import_module(platform_selection).PlatformConfig()
-client = importlib.import_module(client_selection).InputInterface()
 
 from RemoteControls.RemoteControl import RemoteControl
 
@@ -54,7 +55,6 @@ class Controller(QtWidgets.QMainWindow):
             self.is_active = True  # set False to terminate
             self.is_output_enabled = False
             self.init_platform_parms()
-            client.begin(self.cmd_func, pfm.limits_1dof)
             self.encoder_server = None
             self.connect_encoder()
             self.dynam = Dynamics()
@@ -71,7 +71,7 @@ class Controller(QtWidgets.QMainWindow):
             raise
             
     def init_remote_controls(self):
-        self.RemoteControl = RemoteControl(self, client.set_rc_label)
+        self.RemoteControl = RemoteControl(self, self.client.set_rc_label)
         self.local_control = None
         if os.name == 'posix':
             if os.uname()[1] == 'raspberrypi':
@@ -136,12 +136,13 @@ class Controller(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('platform_icon.png'))
         self.ui.tabWidget.currentChanged.connect(self.tab_changed)
         self.ui_tab = 0
+        self.select_client()
         try:
-            client.init_gui(self.ui.frm_input)
+            self.client.init_gui(self.ui.frm_input)
             self.output_gui = output_gui.OutputGui()
             self.output_gui.init_gui(self.ui.frm_output, pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_RANGE)
             self.ui.lbl_platform.setText("Platform: " + pfm.PLATFORM_NAME)
-            self.ui.lbl_client.setText("Client: " + client.name)
+            self.ui.lbl_client.setText("Client: " + self.client.name)
             self.ui.btn_exit.clicked.connect(self.quit)
             self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
             self.ui.btn_activate.clicked.connect(self.enable_platform)
@@ -154,6 +155,33 @@ class Controller(QtWidgets.QMainWindow):
         except Exception as e:
             log.error("error in init gui %s, %s", e, traceback.format_exc())
         return False
+
+    def select_client(self):
+        dialog =  ClientSelect(self, cfg.SIM_IP_ADDR)
+        if dialog.exec_():
+            startup_msg = format("STARTUP,%s,%s" % (dialog.client_name, dialog.local_client_itf))
+            self.start_remote_pcs(dialog.pc_addresses, startup_msg)
+            self.client = importlib.import_module(dialog.remote_client).InputInterface()
+            self.client.begin(self.cmd_func, pfm.limits_1dof, dialog.pc_addresses)
+        else:
+            sys.exit() 
+
+    def start_remote_pcs(self, addresses, startup_msg):
+        for addr in addresses:
+            log.info("remote startup to %s: %s", addr, startup_msg)
+            client = TcpClient(addr, cfg.STARTUP_SERVER_PORT)
+            while not client.status.is_connected:
+                if client.connect():
+                    log.info("Connected to PC at %s", addr)
+                    if addr == addresses[0]:
+                        log.info("Requesting encoder startup on %s", addr)
+                        client.send("STARTUP,NONE,common/encoders\n")
+                    log.info("sending startup msg: %s", startup_msg)
+                    client.send(startup_msg + '\n') 
+                else:
+                    app.processEvents()
+                    print "not connected"
+
 
     def set_activation_buttons(self, isEnabled): 
         if isEnabled:
@@ -219,8 +247,8 @@ class Controller(QtWidgets.QMainWindow):
         self.ui_tab = tab_index
 
     def pause(self):
-        if client.get_ride_state() == RideState.RUNNING or client.get_ride_state() == RideState.PAUSED:
-            client.pause()
+        if self.client.get_ride_state() == RideState.RUNNING or self.client.get_ride_state() == RideState.PAUSED:
+            self.client.pause()
         else:
             self.swell_for_access()
 
@@ -229,13 +257,13 @@ class Controller(QtWidgets.QMainWindow):
             log.debug('preparing to dispatch')
             self.move_to_ready()
             self.park_platform(False)
-            client.dispatch()
+            self.client.dispatch()
         else:
             log.warning("Unable to dispatch because platform not enabled")
 
     def reset_vr(self):
        log.info("request to reset vr")
-       client.reset_vr()
+       self.client.reset_vr()
 
     def emergency_stop(self):
        print("estop here")
@@ -266,17 +294,17 @@ class Controller(QtWidgets.QMainWindow):
         self.disable_platform()
         
     def enable_platform(self):
-        # request = self.process_request(client.get_transform())
+        # request = self.process_request(self.client.get_transform())
         # actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(True, self.actuator_lengths)
         if not self.is_output_enabled:
             self.is_output_enabled = True
             log.debug("Platform Enabled")
         self.set_activation_buttons(True)
-        client.activate()
+        self.client.activate()
 
     def disable_platform(self):
-        request = self.process_request(client.get_transform())
+        request = self.process_request(self.client.get_transform())
         actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(False, self.actuator_lengths)
         if self.is_output_enabled:
@@ -285,21 +313,21 @@ class Controller(QtWidgets.QMainWindow):
             log.debug("in disable, lengths=%s", ','.join('%d' % l for l in actuator_lengths))
             self.platform.slow_move(actuator_lengths, self.platform_disabled_pos, 1000)
         self.set_activation_buttons(False)
-        client.deactivate()
+        self.client.deactivate()
 
     def move_to_idle(self):
         log.debug("move to idle")
-        # request = self.process_request(client.get_transform())
+        # request = self.process_request(self.client.get_transform())
         # actuator_lengths  = self.k.actuator_lengths(request)
         actuator_lengths = self.platform.prev_distances
-        ##pos = client.get_transform() # was used to get z pos (pos[2])
+        ##pos = self.client.get_transform() # was used to get z pos (pos[2])
         self.park_platform(True)  # backstop to prop when coaster state goes idle
         self.platform.slow_move(actuator_lengths, self.platform_disabled_pos, 10) # rate is cm per sec
 
     def move_to_ready(self):
-        #  request = self.process_request(client.get_transform())
+        #  request = self.process_request(self.client.get_transform())
         #  actuator_lengths  = self.k.actuator_lengths(request)
-        ##pos = client.get_transform() # was used to get z pos
+        ##pos = self.client.get_transform() # was used to get z pos
         log.debug("move to ready")
         if pfm.PLATFORM_TYPE == "SLIDER":
             if self.output_gui.encoders_is_enabled():
@@ -344,16 +372,16 @@ class Controller(QtWidgets.QMainWindow):
         upper_payload_weight = int(pfm.LOAD_RANGE[1])
         payload = self.scale((intensity), (0, 10), (lower_payload_weight, upper_payload_weight))
         self.platform.set_payload(payload)
-        if self.output_gui.encoders_is_enabled() or client.get_ride_state() != RideState.READY_FOR_DISPATCH :
+        if self.output_gui.encoders_is_enabled() or self.client.get_ride_state() != RideState.READY_FOR_DISPATCH :
             self.dynam.set_intensity(intensity)
             status = format("%d percent Intensity, (Weight %d kg)" % (self.dynam.get_overall_intensity() * 100, payload))
         else:
-            if client.get_ride_state() == RideState.READY_FOR_DISPATCH:
+            if self.client.get_ride_state() == RideState.READY_FOR_DISPATCH:
                 index = intensity * self.DtoP.rows
                 self.d_to_p.up_curve_idx = [index]*6
                 self.d_to_p.down_curve_idx = [index]*6
                 status = format("Intensity = %d, index = %.1f" % (intensity*10, index))
-        client.intensity_status_changed((status, "green"))
+        self.client.intensity_status_changed((status, "green"))
 
     def run_lookup(self):
         # find closest curves for each muscle at the current load
@@ -379,7 +407,7 @@ class Controller(QtWidgets.QMainWindow):
 
     def process_request(self, transform):
         """ converts request to real world values if normalized"""
-        if client.is_normalized:
+        if self.client.is_normalized:
             transform = self.dynam.regulate(transform)
         return transform
 
@@ -419,8 +447,8 @@ class Controller(QtWidgets.QMainWindow):
                         self.RemoteControl.service()
                         if self.local_control:
                             self.local_control.service()
-                        client.service()
-                        self.do_transform(client.get_transform())
+                        self.client.service()
+                        self.do_transform(self.client.get_transform())
                         if self.platform_status != self.platform.get_output_status():
                             self.platform_status = self.platform.get_output_status()
                             gutil.set_text(self.ui.lbl_festo_status, self.platform_status[0], self.platform_status[1])
@@ -433,7 +461,7 @@ class Controller(QtWidgets.QMainWindow):
                 log.warning("starting service timing latency capture to file: timer_test.csv")
             QtCore.QTimer.singleShot(1, self.service)
         else:
-            client.fin()
+            self.client.fin()
             # self.platform.fin()
             sys.exit()
 

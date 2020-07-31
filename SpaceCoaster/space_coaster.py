@@ -7,6 +7,7 @@
 """
 
 import sys
+from os import path, getcwd
 import socket
 from math import radians, degrees
 from threading import Thread, Lock
@@ -29,27 +30,13 @@ import numpy as np  # for scaling telemetry data
 #  from space_coaster_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-if __name__ == "__main__":
-    # here if run as __main__
-    from space_coaster_gui_defs import Ui_Frame
-    from local_client_gui_defs import Ui_MainWindow
-    sys.path.insert(0, '../common')
-    from tcp_server import SockServer
-    import gui_utils as gutil
-    sys.path.insert(0, '../')
-    from client_api import ClientApi
-    from ride_state import RideState
-    from platform_config import cfg
-    from common.dialog import ModelessDialog
-else:
-    # here if run as client of platform_controller
-    from client_api import ClientApi
-    from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
-    from ride_state import RideState
-    from common.tcp_server import SockServer
-    from common.dialog import ModelessDialog
-    import common.gui_utils as gutil
-    from platform_config import cfg
+from client_api import ClientApi
+from SpaceCoaster.space_coaster_gui_defs import Ui_Frame
+from ride_state import RideState
+from common.tcp_server import TcpServer
+from common.dialog import ModelessDialog
+import common.gui_utils as gutil
+from platform_config import cfg
 
 class SC_State:  # these are space coaster specific states
     initializing, waiting, ready, running, completed = list(range(0,5))
@@ -422,20 +409,17 @@ class InputInterface(ClientApi):
         else:      
             return ( (value - range[0]) / (range[1] - range[0]) ) * (range[3] - range[2]) + range[2]
 
-
+if __name__ == "__main__":
+    from common.local_client import client_main, LocalClient #  code used to run this client on external pc
+    client = InputInterface(True) 
+    client_main(client)
+    
+"""
 ######### code for local client run from main ############
 
+
 class LocalClient(QtWidgets.QMainWindow):
-    """
-    on state or status change local client will pass:
-        current coaster state, current connection state, coaster status string, color
-    every frame client will pass:
-        frame number, xyzrpy
-        
-    commands:
-        reset, dispatch, pause 
-    
-    """
+
     def __init__(self):
         log.info("Starting space coaster local client")
         try:
@@ -447,7 +431,7 @@ class LocalClient(QtWidgets.QMainWindow):
             self.client.init_gui(self.ui.frame)
             limits = pfm.limits_1dof
             self.client.begin(self.cmd_func, limits)
-            self.server = SockServer(port=cfg.REMOTE_CLIENT_PORT)
+            self.server = TcpServer(('', cfg.REMOTE_CLIENT_PORT))
             self.server.start()
             log.info("Started tcp server, this IP address is %s", self.server.get_local_ip())
             service_timer = QtCore.QTimer(self)
@@ -472,8 +456,7 @@ class LocalClient(QtWidgets.QMainWindow):
                     log.debug("Service interval was %d ms", elapsed)
                 self.prev_service = now
                 self.client.service()
-                self.server.send(self.client.form_telemetry_msg())
-                self.server.service()
+                self.server.send(self.server, self.client.form_telemetry_msg())
                 if self.server.connected_clients() > 0:
                     self.client.detected_remote("Detected Remote Client Connection")
                 else:
@@ -511,14 +494,16 @@ class LocalClient(QtWidgets.QMainWindow):
         sys.exit()
  
 if __name__ == "__main__":
-    sys.path.insert(0, '../output')
+    from SpaceCoaster.local_client_gui_defs import Ui_MainWindow
     import importlib  
-
+    
+    sys.path.insert(0, '../output')  # for platform config
+    
     log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     log.info("Python: %s, qt version %s", sys.version[0:5], QtCore.QT_VERSION_STR)
     
-    # platform_selection = 'ConfigV3'
+    # platform_selection = '.ConfigV3'
     platform_selection = 'configNextgen'
     pfm = importlib.import_module(platform_selection).PlatformConfig()
 
@@ -536,4 +521,4 @@ if __name__ == "__main__":
       
     app.exit()
     log.info("Exiting Space Coaster\n")
-    
+"""

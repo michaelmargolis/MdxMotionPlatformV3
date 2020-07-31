@@ -10,28 +10,14 @@ import socket
 import logging
 log = logging.getLogger(__name__)
 
-try:
-    from queue import Queue
-except ImportError:
-    from Queue import Queue
-    
-if  __name__ == '__main__':
-    # running from 'common' directory
-    from serialProcess import SerialProcess
-    from tcp_client import SockClient
-    from sensor_tcp_server import SensorServer, CustomHandler
-
-else:
-    # running from parent dir
-    from common.serialProcess import SerialProcess
-    from common.tcp_client import SockClient
-    from common.sensor_tcp_server import SensorServer, CustomHandler
+from common.serialProcess import SerialProcess
+from common.tcp_client import TcpClient
+from common.tcp_server import TcpServer
 
 class SerialEncoder(SerialProcess):
     def __init__(self, tcp_port):
         super(SerialEncoder, self).__init__()
         self.server_address = ('', tcp_port)
-        self.in_q = Queue()
         self.start_server()
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -40,11 +26,12 @@ class SerialEncoder(SerialProcess):
     
     def start_server(self):
         signal.signal(signal.SIGINT, signal.SIG_DFL) # keyboard interrupt handler
-        self.server = SensorServer(self.server_address, CustomHandler, self.in_q)
-        log.info("Encoders data broadcast on port %d, commands on port %d", self.server_address[1], self.server_address[1]+1)
-        t = threading.Thread(target=self.server.serve_forever)
-        t.daemon = True
-        t.start()
+        try:
+            self.server = TcpServer(self.server_address)
+            self.server.start()
+            log.info("Encoders data broadcast on port %d, commands on port %d", self.server_address[1], self.server_address[1]+1)
+        except socket.error:
+            log.error("Error starting encoder TCP server on port %d, is it already in use?", self.server_address[1])
 
     def read(self):
         #data = super(self.__class__, self).read()
@@ -68,11 +55,11 @@ class SerialEncoder(SerialProcess):
     def get_info(self):
         self.s.write("?")
 
-class EncoderClient(SockClient, object):
+class EncoderClient(TcpClient, object):
     def __init__(self, ip_addr, port=10016):
         super(EncoderClient, self).__init__(ip_addr, port)
-        self.cmd_addr = (ip_addr, port + 1)
-        self.cmd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+        self.cmd_addr = (ip_addr, port + 1) # back channel port is server port +1
+        self.cmd_channel = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         
     def read(self):
         data = None
@@ -86,10 +73,9 @@ class EncoderClient(SockClient, object):
         return None
 
     def send(self, cmd):
-        self.cmd_sock.sendto(cmd, self.cmd_addr)
+        self.cmd_channel.sendto(cmd, self.cmd_addr)
 
     def reset(self):
-        print "send reset"
         self.send("R\n")
 
     def set_error_mode(self):
@@ -103,12 +89,14 @@ class EncoderClient(SockClient, object):
 
 
 def main():
+    from common.udp_tx_rx import UdpReceive
+
     kb = KBHit()
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     serial_port = "COM5"
     ENCODER_SERVER_PORT = 10016  # must be same as value in platform_config
-    
     encoders = SerialEncoder(ENCODER_SERVER_PORT)
+    cmd_channel = UdpReceive(ENCODER_SERVER_PORT+1)
     args = man().parse_args()
     is_testmode = args.testMode
     if encoders.open_port(serial_port, 115200):
@@ -126,9 +114,9 @@ def main():
                     # print encoder_data
                     #print("Encoder main:", encoder_data)
                     encoders.server.broadcast(encoder_data+'\n') # echo data, ignore timestamp
-                    while not encoders.in_q.empty():
-                        incoming = encoders.in_q.get_nowait()
-                        print "incoming=",  incoming
+                    while cmd_channel.available():
+                        incoming = cmd_channel.get()
+                        print("incoming=",  incoming)
                         if incoming[1] == 'R':
                             encoders.reset()
                             
@@ -142,7 +130,7 @@ def main():
                 if ord(key) == 27: # esc
                     break
                 if key == 'r':
-                    print "reset"
+                    print("reset")
                     encoders.reset()
         encoders.close_port()
     else:

@@ -15,11 +15,37 @@ log = logging.getLogger(__name__)
 
 class Status():
     def __init__(self):
-        self.connected = False  # set True when client is connected
-        self.thr_running = False # True when thread is running
-    
-    
-class SockClient(object):
+        self._connected = False  # set True when client is connected
+        self._thr_is_alive = False
+        self.mutex = threading.Lock()
+
+    @property 
+    def is_connected(self):
+        self.mutex.acquire()
+        state = self._connected
+        self.mutex.release()
+        return state
+
+    @is_connected.setter
+    def is_connected(self, state):
+        self.mutex.acquire()
+        self._connected = state
+        self.mutex.release()
+
+    @property 
+    def is_thr_alive(self):
+        self.mutex.acquire()
+        state = self._thr_is_alive
+        self.mutex.release()
+        return state
+
+    @is_thr_alive.setter
+    def is_thr_alive(self, state):
+        self.mutex.acquire()
+        self._is_thr_alive = state
+        self.mutex.release()
+
+class TcpClient(object):
     def __init__(self, ip_addr, port):
         self.in_queue = Queue()  # for incoming messages
         self.ip_addr = ip_addr
@@ -41,26 +67,26 @@ class SockClient(object):
         try:
             #  self.sock.connect((self.ip_addr, self.port))
             self.sock = socket.create_connection((self.ip_addr, self.port),1) # timeout after one second
-            self.status.connected = True
+            self.status.is_connected = True
             self.thr = threading.Thread(target=self.listener_thread, args= (self.sock, self.in_queue,self.status,))
             self.thr.daemon = True
             self.thr.start()
-            self.status.running = True
+            self.status.thr_is_alive = True
             log.info('Connected to %s:%d', self.ip_addr, self.port)
             return True
         except socket.error as e: 
-            self.status.connected = False
+            self.status.is_connected= False
             log.debug("client socket error %s", e)
             self.sock.close()
             return False
         except Exception as e:
             log.error("Error connecting to client %s", e)
-            self.status.connected = False
+            self.status.is_connected= False
             raise
 
     def disconnect(self):
-        self.status.connected = False
-        while self.status.thr_running:
+        self.status.is_connected = False
+        while self.status.thr_is_alive:
             time.sleep(.1)
             # print("*", end =" ")
         log.debug("thread no longer running")
@@ -71,7 +97,7 @@ class SockClient(object):
         log.debug("client socket closed")
 
     def send(self, msg):
-        if self.status.connected:
+        if self.status.is_connected:
             try: 
                self.sock.sendall(msg.encode("utf-8"))
                log.debug("sent: %s", msg )
@@ -91,17 +117,17 @@ class SockClient(object):
  
     def receive(self):
         if self.available():
-            return self.in_queue.get()
+            return self.in_queue.get_nowait()
         else:
             return None
 
-    def service(self):
-        pass # 
+    # def service(self):
+    #    pass # 
  
     def listener_thread(self, sock, inQ, status):
         # This method receives client events 
         msg = ""
-        while status.connected:
+        while status.is_connected:
             try:
                 msg += sock.recv(512).decode("utf-8")
                 while True:
@@ -112,14 +138,16 @@ class SockClient(object):
                        msg = msg[end+1:]
                     else:
                         break
+            except socket.timeout:
+                pass
             except socket.error as e: 
                log.error("socket error in thread %s", e)
-               status.connected = False
+               status.is_connected = False
                break
             except Exception as e:
                 log.error("unhandled listener thread err %s", e)
         log.debug("terminating tcp client thread")
-        status.running = False
+        status.thr_is_alive = False
 
 ##################  test code when run from main ################
 
@@ -129,15 +157,17 @@ def millis():
 def latency_test(addr, port = 10015, id = 0):
     # this code sends a time stamp and waits for a reply with a server
     # time stamp appended. difference between the time stamps is printed
-    client = SockClient(addr, port)
+    client = TcpClient(addr, port)
+    prev_send = 0
     while True:
         try:
-            if not client.status.connected:
+            if not client.status.is_connected:
                 client.connect()
+                log.info("tcp client connected to %s", addr)
                 client.send(format("%d,%d\n" % (id, millis())))
         except Exception as e:
              print(e)
-        if client.status.connected:
+        if client.status.is_connected:
             if client.available() > 0:
                 m = client.receive()
                 vals = m.split(',')
@@ -153,9 +183,10 @@ def latency_test(addr, port = 10015, id = 0):
                         print(e)
                         latency = -1
                     # delta between first element and time now is total latency 
-                    print "latency (ms)", latency
-                time.sleep(0.05)
+                    print("latency (ms)", latency)
+            if millis() - prev_send > 50:
                 client.send(format("%d,%d\n" % (id, millis())))
+                prev_send = millis()
                 
         if kb.kbhit(): 
             key = kb.getch()
@@ -165,10 +196,10 @@ def latency_test(addr, port = 10015, id = 0):
 
 
 def coaster_test(addr, port= 10015):
-    client = SockClient(addr, port)
+    client = TcpClient(addr, port)
     while True:
         try:
-            if not client.status.connected:
+            if not client.status.is_connected:
                 client.connect()
             else: 
                 msg = "telemetry"
@@ -181,7 +212,7 @@ def coaster_test(addr, port= 10015):
             key = kb.getch()
             if ord(key) == 27: # esc
                 return
-            elif client.status.connected:
+            elif client.status.is_connected:
                 if key == 'd': cmd = 'dispatch'
                 elif key == 'p': cmd = 'pause'
                 elif key == 'r': cmd = 'reset'
@@ -235,7 +266,7 @@ if __name__ == "__main__":
         port = 10015 
     if args.id:
         id = int(args.id)
-        print "id=", id
+        print("id=", id)
     else:
         id = 0 
         

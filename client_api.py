@@ -59,7 +59,7 @@ class ClientApi(object):
         """override this with code to reset vr headset"""
         pass
 
-    def begin(self, cmd_func, move_func, limits):
+    def begin(self, cmd_func, move_func, limits, remote_addresses=None):
         """code to start the client goes here"""
         pass
 

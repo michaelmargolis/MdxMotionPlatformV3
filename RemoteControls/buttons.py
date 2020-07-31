@@ -2,6 +2,8 @@
 """ buttons.py """
 import RPi.GPIO as GPIO
 import time
+import warnings
+
 
 GPIO.setmode(GPIO.BCM)
 
@@ -31,13 +33,12 @@ class Buttons(object):
         self.pins.append(pin)
         self.keys.append(key)
         self.edges.append(edge)
-        try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
             if input_mode == 'pulldown':
                GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) 
             elif  input_mode == 'pullup':
                    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP) 
-        except RuntimeWarning:
-            pass
         self.last_pin_val.append(GPIO.input(pin))
         self.last_pin_change.append(time.time())
         self.is_changing.append(False)

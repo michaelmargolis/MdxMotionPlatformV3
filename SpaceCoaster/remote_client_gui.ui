@@ -40,7 +40,7 @@
    <widget class="QPushButton" name="btn_dispatch">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>60</x>
       <y>173</y>
       <width>111</width>
       <height>51</height>
@@ -63,7 +63,7 @@
    <widget class="QPushButton" name="btn_pause">
     <property name="geometry">
      <rect>
-      <x>460</x>
+      <x>250</x>
       <y>173</y>
       <width>111</width>
       <height>51</height>
@@ -264,6 +264,39 @@
       <string>Reset Rift</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QLabel" name="lbl_item_select">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>190</y>
+      <width>101</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cmb_park_listbox">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>180</y>
+      <width>271</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
    </widget>
   </widget>
  </widget>

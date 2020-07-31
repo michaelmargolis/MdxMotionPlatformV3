@@ -75,4 +75,3 @@ class TwistedEasyS(protocol.DatagramProtocol):
         response.counter = packet.counter
         response.flags = 128
         return response
-        

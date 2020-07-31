@@ -2,6 +2,7 @@
 encoders.py
 
 Support for serial and TCP encoders
+ fixme this code is deprecated
 """
 
 import logging
@@ -13,11 +14,11 @@ except ImportError:
     from Queue import Queue
 if __name__ == '__main__':
     from serialProcess import SerialProcess
-    from tcp_client import SockClient
+    from tcp_client import TcpClient
     from tcp_server import SockServer
 else:
     from common.serialProcess import SerialProcess
-    from common.tcp_client import SockClient
+    from common.tcp_client import TcpClient
     from common.tcp_server import SockServer
 
 
@@ -53,7 +54,7 @@ class SerialEncoder(SerialProcess):
     def get_info(self):
         self.s.write("?")
 
-class TcpEncoder(SockClient, object):
+class TcpEncoder(TcpClient, object):
     def __init__(self, ip_addr, port):
         super(TcpEncoder, self).__init__(ip_addr, port)
     
@@ -92,7 +93,7 @@ def main():
     client = TcpEncoder('', tcp_port)
     while True:
         try:
-            if not client.status.connected:
+            if not client.status.is_connected:
                 client.connect()
             else: 
                 if client.available() > 0:

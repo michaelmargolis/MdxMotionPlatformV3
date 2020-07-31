@@ -1,193 +1,188 @@
-"""
-tcp_server.py
+# tcp_server
 
-"""
-
-import sys
-import socket
+import argparse
 import select
-import time
+import socket
 import threading
+import traceback
+import signal
+
 try:
+    #  python 3.x
     from queue import Queue
+    import socketserver as socketserver
 except ImportError:
-    from Queue import Queue 
+    #  python 2.7
+    from Queue import Queue
+    import Socketserver as socketserver
 
 import logging
 log = logging.getLogger(__name__)
 
-class SockServer(threading.Thread):
-    def __init__(self, port = 10015,  max_clients=1, timeout=1):
-        """ Initialize the server with port to listen to and max clients """
-        threading.Thread.__init__(self)
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.port = port
-        self.max_clients = max_clients # how many simultaneous connections are allowed
-        self.sock.bind(('', port))
-        self.sock.listen(max_clients)
-        self.sock.settimeout(timeout)
-        self.in_queue = Queue()
-        self.out_queue = Queue()
-        self.lock = threading.Lock()
-        self.nbr_clients = [0] # count of number of connected clients
-        log.info('Starting socket server for %d clients on port %d', self.max_clients, self.port)
-        self.sock_threads = []
+class TcpServer(socketserver.ThreadingTCPServer, object):
 
-    def close(self):
-        """ Close the client socket threads and server socket if they exists. """
-        log.info('Closing server socket on port %d', self.port)
+    def __init__(self, server_address):
+        """Initialize the server and keep a set of registered clients."""
+        super(TcpServer, self).__init__(server_address, CustomHandler, True)
+        self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
+        self.in_q = Queue()
+        #  self.mutex = threading.Lock()
+        self.clients = set()
 
-        for thr in self.sock_threads:
-            thr.stop()
-            thr.join()
+    def available(self):
+        return self.in_q.qsize()
+ 
+    def get(self):
+        if self.available():
+            return self.in_q.get_nowait()
+        else:
+            return None
 
-        if self.sock:
-            self.sock.close()
-            self.sock = None
+    def send(self, address, data):
+        #  address must be one of the connected clients
+        for client in tuple(self.clients):
+            if sender == client.name: # todo test this!
+                client.schedule(data)
+                break
+            else:
+                log.warning("No match for client address %s", address)
+
+    def broadcast(self, data):
+        """Send data to all clients """
+        for client in tuple(self.clients):
+            client.schedule(data)
+
+    def start(self):
+        t = threading.Thread(target=self.serve_forever)
+        t.daemon = True
+        t.start()
+
+    def finish(self):
+        for client in tuple(self.clients):
+            client.finish()
+            self._remove_client(client)
             
+    def _add_client(self, client):
+        self.clients.add(client)
+        log.info("adding client %s", client.name)
+
+    def _remove_client(self, client):
+        log.info("removing client %s", client.name)
+        try:
+            self.clients.remove(client)
+        except KeyError:
+            pass  # client already removed?
+        except Exception as e:
+           raise
+
     def connected_clients(self):
-        return self.nbr_clients[0]
+        return len(self.clients)
         
     def get_local_ip(self):
         # returns primary ip address of this pc
         host_name = socket.gethostname() 
         host_ip = socket.gethostbyname(host_name) 
         return host_ip
-        # following not used
+
+class CustomHandler(socketserver.BaseRequestHandler, object):
+
+    """Forwards queued data to all registered clients."""
+
+    def __init__(self, request, client_address, server):
+        """Initialize the handler with a store for future date streams."""
+        self.out_q = Queue()
+        super(CustomHandler, self).__init__(request, client_address, server)
+
+    def setup(self):
+        """Register self with the set of server clients."""
+        super(CustomHandler, self).setup()
+        self.server._add_client(self)
+        self.is_running = True
+
+    def handle(self):
+        """message pump to send queued data to all clients and check for input."""
         try:
-            # doesn't even have to be reachable
-            self.sock.connect(('10.255.255.255', 1))
-            IP = self.sock.getsockname()[0]
+            while self.is_running:
+                self.service_queues()
+            log.info("exiting handler for client %s", self.request.getpeername())
+        except KeyError:
+            pass
         except Exception:
-            IP = '127.0.0.1'
-        log.info("IP address of this pc is %s", IP)
-        return IP
+            log.info("client %s disconnected", self.request.getpeername() )
+        except Exception as e:
+            print("exception in custom handler: ", e)    #  (except Exception as e:, EOFError):
 
-    def send(self, msg):
-        #  log.debug("sending: %s", msg)
-        self.out_queue.put(msg)
+    def service_queues(self):
+        """Transfer outgoing sensor data to clients, print any incoming data."""
+        while not self.out_q.empty():
+            outgoing = self.out_q.get_nowait()
+            if outgoing:
+                self.request.sendall(outgoing)
 
-    def available(self):
-        return self.in_queue.qsize()
- 
-    def receive(self):
-        if self.available():
-            return self.in_queue.get()
-        else:
-            return None
-    
-    def service(self):
-        # listen for incoming connection and start a new SockServerThread to handle the communication
-        if self.nbr_clients[0] <  self.max_clients: 
-            # here if we can accept a new connection
-            try:
-                client_sock, client_addr = self.sock.accept()
-            except socket.timeout:
-                client_sock = None
-
-            if client_sock:
-                self.nbr_clients[0] +=1
-                client_thr = SockServerThread(client_sock, client_addr, self.in_queue, self.out_queue, self.lock, self.nbr_clients)
-                self.sock_threads.append(client_thr)
-                client_thr.start()
-
-    def stop(self):
-        self.close()
-
-class SockServerThread(threading.Thread):
-    def __init__(self, client_sock, client_addr, in_queue, out_queue, lock, nbr_clients):
-        self.id = nbr_clients[0] # use client count as a convenient thread identifier
-        threading.Thread.__init__(self)
-        self.client_sock = client_sock
-        self.client_addr = client_addr
-        self.in_queue = in_queue # received data can be returned in this queue
-        self.out_queue = out_queue # data to be sent can be written to this queue
-        self.lock = lock
-        self.nbr_clients = nbr_clients
-
-    def run(self):
-        log.info("Socket server thread %d starting with client %s", self.id, self.client_addr)
-        self.__stop = False
-        while not self.__stop:
-            if self.client_sock:
-                # Check if the client is still connected and if data is available:
-                try:
-                    rdy_read, rdy_write, sock_err = select.select([self.client_sock,], [self.client_sock,], [], 5)
-                except select.error as err:
-                    log.info('Thread %d Select() failed on socket with %s', self.id,self.client_addr)
-                    self.stop()
-                    return
-
-                if len(rdy_read) > 0:
-                    try:
-                        read_data = self.client_sock.recv(255)
-                        # Check if socket has been closed
-                        if len(read_data) == 0:
-                            log.info('thread %d closed the socket on %s.',  self.id, self.client_addr)
-                            self.stop()
-                        else:
-                            try:
-                                self.in_queue.put(read_data)
-                            except:
-                                log.debug("unable to append to tcp in_queue")
-                            # Strip newlines just for output clarity
-                            #  log.debug('thread %d Received %s',  self.id, read_data.rstrip())
-                    except socket.error as error:
-                        if error.errno == socket.errno.WSAECONNRESET:
-                            log.error("got disconnect error on connection to %s", self.client_addr)
-                            self.stop() 
-                            
-                while self.out_queue.qsize() > 0:
-                    to_send = self.out_queue.get()
-                    try:
-                        self.client_sock.sendall(to_send)
-                    except Exception as e:
-                        log.error("error sending %s",e)
+        if self.readable:
+            incoming = self.request.recv(512)
+            if incoming != '':
+                # self.server.mutex.acquire() 
+                self.server.in_q.put_nowait((self.name, incoming))
+                # self.server.mutex.release()
             else:
-                log.error("thread %d: No client is connected, SocketServer can't receive data", self.id)
-                self.stop()
-        self.close()
-        with self.lock:
-            self.nbr_clients[0] -=1
+                self.finish()
+ 
 
-    def stop(self):
-        self.__stop = True
+    @property
+    def readable(self):
+        """Check if the client's connection can be read without blocking."""
+        return self.request in select.select((self.request,), (), (), 0.001)[0]
 
-    def close(self):
-        """ Close connection with the client socket. """
-        if self.client_sock:
-            log.info('thread %d Closing connection with %s', self.id, self.client_addr)
-            self.client_sock.close()
-            
-###################  test code run from main ##################
+    @property
+    def name(self):
+        """Get the client's address to which the server is connected."""
+        return self.request.getpeername()
+
+    def schedule(self, data):
+        """Arrange for a data packet to be transmitted to the client."""
+        self.out_q.put_nowait(data)
+
+    def finish(self):
+        """Remove the client's registration from the server before closing."""
+        self.server._remove_client(self)
+        self.is_running = False
+        super(CustomHandler, self).finish()
+
+
 
 def main():
-    from kbhit  import KBHit
-
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s',
-                    datefmt='%H:%M:%S')
-    kb = KBHit()
-    server = SockServer(port=10015)
-    server.start()
-    is_running = True
-    while is_running:
-        server.service()
-        #out_queue.append(time.asctime()+'\n')
-        if server.available():
-            try:
-                msg = server.receive()
-                if msg:
-                    server.send(msg) # echo the message
-            except Exception as e:
-                log.error("Error reading server que %s", e)
-        if kb.kbhit():  
-            if ord(kb.getch()) == 27: # esc
-                break
-    server.close()
-    server.join()
-    print('End.')
-
+    import time
     
-if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Execute sensor server test.')
+    parser.add_argument('port', type=int, help='port for server to listen on')
+    parser.add_argument("-l", "--log", dest="logLevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+    # note: sends on port+1
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format='%(levelname)-8s %(message)s')
+    if args.logLevel: log.setLevel(args.logLevel)
+    server_address = '', args.port
+    signal.signal(signal.SIGINT, signal.SIG_DFL) # keyboard interrupt handler
+    server = TcpServer(server_address)
+    server.start()
+    dummy_data = 0
+
+    running = True
+    print("started tcp server on port " + str(server_address[1]))
+    while running:
+        while server.available():
+            name, data = server.get()
+            if 'quit' in data:
+                running = False
+                break
+            else:
+                log.debug("got cmd: %s", data)
+            # data = str(time.clock())+ "\n"
+            server.broadcast(data) # echo incoming to all clients 
+        time.sleep(.01)
+    print("exiting")
+    server.finish()
+
+
+if __name__ == '__main__':
     main()

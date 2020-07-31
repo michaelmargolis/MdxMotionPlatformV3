@@ -92,7 +92,7 @@ class D_to_P(object):
                 pressures.append(p)
             except Exception as e:
                 print("error in distance_to_pressure", e, traceback.format_exc())
-                print(distances, "\ni=", i)
+                print("-> Has 'output\DtoP.csv' been loaded?")
 
         # print pressures
         self.prev_distances = distances

@@ -62,10 +62,10 @@ class SerialRemote(object):
             port = p[0]
             #print "p[0]", p[0], "p[1]", p[1],"p[2]", p[2]
             if 'USB-SERIAL CH340' in  p[1]: 
-                print "found USB-SERIAL CH340 on port", port
+                print("found USB-SERIAL CH340 on port", port)
                 found = True
             if 'PID=1A86:7523' in p[2]:
-                print "found Serial PID"
+                print("found Serial PID")
                 found = True
             if found:
                 try:
@@ -73,7 +73,7 @@ class SerialRemote(object):
                     self.ser.timeout = self.timeout_period
                     #self.ser.setDTR(False)  
                     if not self.ser.isOpen():
-                        print "Connection failed:", port, "has already been opened by another process"
+                        print("Connection failed:", port, "has already been opened by another process"_
                         self.ser = None
                         return False
                     self.ser.flush()
@@ -92,12 +92,12 @@ class SerialRemote(object):
             self.ser.timeout = self.timeout_period
             #self.ser.setDTR(False)  
             if not self.ser.isOpen():
-                print "Connection failed:", portName, "has already been opened by another process"
+                print("Connection failed:", portName, "has already been opened by another process")
                 self.ser = None
                 return False
             self.ser.flush()
             time.sleep(.1)
-            print "Looking for Remote control on ", portName    
+            print("Looking for Remote control on ", portName)
             self.ser.write('V\n')
             #  print self.ser.readline()
             time.sleep(1.1)
@@ -105,7 +105,7 @@ class SerialRemote(object):
             for x in range (0,3):
                 result = self.ser.readline()
                 if len(result) > 0:
-                    print "serial data:", result
+                    print("serial data:", result)
                 if SerialRemote.auto_conn_str in result or  "intensity" in result or  "reset" in result:
                     self.connected = True
                     return True

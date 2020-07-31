@@ -15,35 +15,18 @@ try:
 except ImportError:
     from Queue import Queue
 
-import csv,os
-
 #  from remote_client_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 import logging
 log = logging.getLogger(__name__)
 
-if __name__ == "__main__":
-    sys.path.insert(0, '../output')
-    sys.path.insert(0, '../common')
-    from remote_client_gui_defs import Ui_Frame
-    from tcp_client import SockClient
-    import gui_utils as gutil
-    sys.path.insert(0, '../')
-    from client_api import ClientApi
-    from ride_state import RideState
-    from platform_config import cfg
-else:
-    from client_api import ClientApi
-    from ride_state import RideState
-    from SpaceCoaster.remote_client_gui_defs import Ui_Frame
-    from common.tcp_client import SockClient
-    import common.gui_utils as gutil
-    from platform_config import cfg
-
-import ctypes # for mouse
-import numpy as np  # for scaling telemetry data
+from client_api import ClientApi
+from ride_state import RideState
+from SpaceCoaster.remote_client_gui_defs import Ui_Frame
+from common.tcp_client import TcpClient
+import common.gui_utils as gutil
+from platform_config import cfg
 
 # class State:
 #    initializing, waiting, ready, running, completed = list(range(0,5))
@@ -146,10 +129,10 @@ class InputInterface(ClientApi):
     def deactivate(self):
         pass
 
-    def begin(self, cmd_func, limits):
-        for ip_addr in cfg.SIM_IP_ADDR:
-            self.clients.append(SockClient(ip_addr, cfg.REMOTE_CLIENT_PORT))
-        self.set_address((cfg.SIM_IP_ADDR, cfg.REMOTE_CLIENT_PORT))
+    def begin(self, cmd_func, limits, remote_addresses):
+        for ip_addr in remote_addresses:
+            self.clients.append(TcpClient(ip_addr, cfg.REMOTE_CLIENT_PORT))
+        self.set_address((remote_addresses, cfg.REMOTE_CLIENT_PORT))
         # print(self.get_address(), self.get_address()[0][0]) 
         self.cmd_func = cmd_func
         self.limits = limits  # note limits are in mm and radians
@@ -163,7 +146,7 @@ class InputInterface(ClientApi):
         all_connected = True 
         try:
             for client in self.clients:
-                if not client.status.connected:
+                if not client.status.is_connected:
                     if not client.connect():
                         return False
         except:
@@ -212,7 +195,7 @@ class InputInterface(ClientApi):
                         debug_info = format("%d,%d,%d  " % (state, frame,is_paused))
                         gutil.set_text(self.lbl_coaster_status[idx], debug_info+status[0], status[1])
 
-                        if client.status.connected:
+                        if client.status.is_connected:
                             status = msg[3].split(',')
                             gutil.set_text(self.lbl_coaster_connection[idx], status[0] + " on " + self.clients[idx].ip_addr, status[1])
                         else:
@@ -221,7 +204,7 @@ class InputInterface(ClientApi):
                         log.error("error parsing %s: %s", msg, e)
         else:
             for idx, client in enumerate(self.clients):
-                if client.status.connected:
+                if client.status.is_connected:
                     gutil.set_text(self.lbl_coaster_connection[idx], "Connected to " + self.clients[idx].ip_addr, 'green')
                 else:
                     gutil.set_text(self.lbl_coaster_connection[idx], "Attempting connection to " + self.clients[idx].ip_addr, 'red')
@@ -241,12 +224,12 @@ class RemoteClient(QtWidgets.QMainWindow):
         reset, dispatch, pause 
     
     """
-    def __init__(self, sleep_func):
+    def __init__(self):
         try:
             QtWidgets.QMainWindow.__init__(self)
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
-            self.client = InputInterface(sleep_func) 
+            self.client = InputInterface() 
             self.client.init_gui(self.ui.frame)
             limits = cfg.limits_1dof
             self.client.begin(self.cmd_func, self.move_func, limits)
@@ -272,11 +255,11 @@ class RemoteClient(QtWidgets.QMainWindow):
         sys.exit()
  
 if __name__ == "__main__":
-    sys.path.insert(0, '../output')
-    sys.path.insert(0, '../common')
+
     from local_client_gui_defs import Ui_MainWindow
     import importlib  
-   
+    sys.path.insert(0, '../output')  # for platform config
+    
    #start_logging(log.DEBUG)
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%H:%M:%S')

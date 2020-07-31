@@ -1,11 +1,11 @@
 # platform_config.py
 
 """
-Uncomment one of the above to select the client
+clients now selected using dialog, following not used and can be deleted
 """
 #  client_selection = 'coaster.coaster_client'  # for NoLimits2
 #  client_selection = 'SpaceCoaster.space_coaster'
-client_selection = 'SpaceCoaster.remote_client'
+#  client_selection = 'SpaceCoaster.remote_client'
 #  client_selection = 'flight_sim.flight_sim_client'
 #  client_selection = 'client.simple_input'    # simple gui test 
 
@@ -32,6 +32,7 @@ class cfg(object):
     ECHO_IP_ADDR = '127.0.0.1' # transform and platform output echoed to this address using PLATFORM_ECHO_PORT
     ENCODER_IP_ADDR = SIM_IP_ADDR[0] # Encoder server running on first sim PC 
     # software network port assignments:
+    STARTUP_SERVER_PORT =   10008
     SPACE_COASTER_PORT = 10009
     PC_MONITOR_PORT = 10010
     TCP_UDP_REMOTE_CONTROL_PORT = 10013

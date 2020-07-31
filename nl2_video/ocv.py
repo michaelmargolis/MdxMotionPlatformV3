@@ -180,7 +180,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def configure_festo(self):    
         self.muscle_output = muscle_output.MuscleOutput(self.DtoP.distance_to_pressure)  
-        self.muscle_output.poll_pressures = False # enable background polling of actual pressures
+        self.muscle_output.enable_poll_pressure(True) # enable background polling of actual pressures
         self.xyzrpy = [0,0,0,0,0,0]
         if self.DtoP.load('..\output\DtoP.csv'):
             log.info("Loaded %d rows of distance to pressure files ", self.DtoP.rows)

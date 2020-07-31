@@ -36,7 +36,6 @@ else:
     from coaster.nl2_interface import CoasterInterface
     from coaster.coaster_gui import CoasterGui
     from ride_state import RideState
-    from common.tcp_server import SockServer
     import common.gui_utils as gutil
     from platform_config import cfg
     
@@ -314,7 +313,7 @@ class InputInterface(ClientApi):
     def get_transform(self):
         return self.transform
 
-    def begin(self, cmd_func, limits):
+    def begin(self, cmd_func, limits, remote_addresses):
         log.info("Starting coaster client")
         self.cmd_func = cmd_func
         #self.limits = limits
