@@ -7,7 +7,7 @@
 """
 
 import sys
-from os import path, getcwd
+from os import path
 import socket
 from math import radians, degrees
 from threading import Thread, Lock

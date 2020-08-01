@@ -32,10 +32,10 @@ from platform_config import cfg
 #    initializing, waiting, ready, running, completed = list(range(0,5))
 
 
-class InputInterface(ClientApi):
+class RemoteInputInterface(ClientApi):
 
     def __init__(self):
-        super(InputInterface, self).__init__()
+        super(RemoteInputInterface, self).__init__()
         self.sleep_func = gutil.sleep_qt
         self.name = "Remote Client"
         self.is_normalized = True
@@ -53,6 +53,7 @@ class InputInterface(ClientApi):
         # the states are set by client 0
         self.state = -1 # state not yet set
         self.is_paused = False
+        self.is_activated = False
 
     def init_gui(self, frame):
         self.ui = Ui_Frame()
@@ -73,6 +74,22 @@ class InputInterface(ClientApi):
 
         for i in range(len(self.clients)):
             gutil.set_text(self.lbl_coaster_connection[i], "Attempting to Connect to " + self.clients[i].ip_addr,"orange") 
+
+        self.ui.cmb_select_ride.currentIndexChanged.connect(self.ride_selection_changed)
+
+    def show_ride_selector(self, state):
+        if state:
+            self.ui.lbl_item_select.show()
+            self.ui.cmb_select_ride.show()
+        else:
+            self.ui.lbl_item_select.hide()
+            self.ui.cmb_select_ride.hide()
+
+    def load_ride_selector(self, ride_list):
+        self.ui.cmb_select_ride.addItems(ride_list)
+
+    def ride_selection_changed(self, index):
+        log.info("ride selector changed to index %d", index)
 
     def set_rc_label(self, info):
         gutil.set_text(self.ui.lbl_remote_status, info[0], info[1])
@@ -124,10 +141,10 @@ class InputInterface(ClientApi):
        gutil.set_text(self.ui.lbl_intensity_status, intensity[0], intensity[1])
 
     def activate(self):
-        pass
+        self.is_activated = True
 
     def deactivate(self):
-        pass
+        self.is_activated = False
 
     def begin(self, cmd_func, limits, remote_addresses):
         for ip_addr in remote_addresses:
@@ -137,9 +154,9 @@ class InputInterface(ClientApi):
         self.cmd_func = cmd_func
         self.limits = limits  # note limits are in mm and radians
         if self.is_normalized:
-            log.info('Platform Input is Remote Client with normalized parms, %d clients connected', len(self.clients))
+            log.info('Platform Input is Remote Client with normalized parms, %d client(s) connected', len(self.clients))
         else:
-            log.info('Platform Input is Remote Client with real world parms, %d clients connected', len(self.clients))
+            log.info('Platform Input is Remote Client with real world parms, %d client(s) connected', len(self.clients))
 
     def connect(self):
         """returns true if all clients are connected"""
@@ -229,16 +246,16 @@ class RemoteClient(QtWidgets.QMainWindow):
             QtWidgets.QMainWindow.__init__(self)
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
-            self.client = InputInterface() 
+            self.client = RemoteInputInterface() 
+            limits = pfm.limits_1dof
+            self.client.begin(self.cmd_func,  limits, ('192.168.1.16',))
             self.client.init_gui(self.ui.frame)
-            limits = cfg.limits_1dof
-            self.client.begin(self.cmd_func, self.move_func, limits)
             service_timer = QtCore.QTimer(self)
             service_timer.timeout.connect(self.client.service)
             log.info("Starting client service timer")
             service_timer.start(50) 
         except Exception as e:
-            log.error("error starting remote client %s", e)
+            log.error("error starting remote client %s, %s", e, traceback.format_exc())
 
     def cmd_func(self, cmd):  # command handler function called from Platform input
         if cmd == "quit": 
@@ -257,8 +274,9 @@ class RemoteClient(QtWidgets.QMainWindow):
 if __name__ == "__main__":
 
     from clients.local_client_gui_defs import Ui_MainWindow
+    import traceback
     import importlib  
-    sys.path.insert(0, '../output')  # for platform config
+    sys.path.insert(0, '../../output')  # for platform config
     
    #start_logging(log.DEBUG)
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
@@ -267,7 +285,7 @@ if __name__ == "__main__":
 
     # platform_selection = 'ConfigV3'
     platform_selection = 'configNextgen'
-    cfg = importlib.import_module(platform_selection).PlatformConfig()
+    pfm = importlib.import_module(platform_selection).PlatformConfig()
 
     app = QtWidgets.QApplication(sys.argv) 
     
@@ -278,4 +296,4 @@ if __name__ == "__main__":
         app.exit()
         log.info("Exiting Remote client\n")
     except Exception as e:
-        log.error("error starting remote client %s", e)
+        log.error("in main, error starting remote client %s", e)

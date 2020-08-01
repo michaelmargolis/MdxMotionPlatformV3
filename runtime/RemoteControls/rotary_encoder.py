@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import RPi.GPIO as GPIO
+import warnings
 
 class decoder:
-import warnings
 
     """Class to decode mechanical rotary encoder pulses."""
 

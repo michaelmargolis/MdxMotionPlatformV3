@@ -138,11 +138,9 @@ class Controller(QtWidgets.QMainWindow):
         self.ui_tab = 0
         self.select_client()
         try:
-            self.client.init_gui(self.ui.frm_input)
             self.output_gui = output_gui.OutputGui()
             self.output_gui.init_gui(self.ui.frm_output, pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_RANGE)
             self.ui.lbl_platform.setText("Platform: " + pfm.PLATFORM_NAME)
-            self.ui.lbl_client.setText("Client: " + self.client.name)
             self.ui.btn_exit.clicked.connect(self.quit)
             self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
             self.ui.btn_activate.clicked.connect(self.enable_platform)
@@ -163,6 +161,8 @@ class Controller(QtWidgets.QMainWindow):
             self.start_remote_pcs(dialog.pc_addresses, startup_msg)
             log.info("starting client: %s", dialog.remote_client)
             self.client = importlib.import_module(dialog.remote_client).InputInterface()
+            self.client.init_gui(self.ui.frm_input)
+            self.ui.lbl_client.setText("Client: " + self.client.name)
             self.client.begin(self.cmd_func, pfm.limits_1dof, dialog.pc_addresses)
         else:
             sys.exit() 

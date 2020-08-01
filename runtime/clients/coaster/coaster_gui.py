@@ -25,7 +25,7 @@ class CoasterGui(object):
         # self.activate_callback_request = activate_callback_request
         # self.quit = quit_callback
         self.park_path = []
-        self.park_name = []
+        self.park_names = []
         self.seat = []
         self._park_callback = None
         self.current_park = 0
@@ -41,7 +41,7 @@ class CoasterGui(object):
         self.ui.btn_pause.clicked.connect(self.pause)
         self.ui.btn_reset_rift.clicked.connect(self.reset_vr)
 
-        self.read_parks()  # load cmb_park_listbox
+        self.read_parks()  # load cmb_select_ride
         # self.set_button_style(self.ui.btn_deactivate, False, True, "Deactivated")  # disabled, checked
         log.info("Client GUI initialized")
 
@@ -63,10 +63,10 @@ class CoasterGui(object):
                     p = p[0].split('/')
                     p = p[len(p)-1]
                     #  print p,
-                    self.park_name.append(p.split('.')[0])
-            log.info("Available parks are:\n  %s", self.park_name)
-            self.ui.cmb_park_listbox.addItems(self.park_name)
-            self.ui.cmb_park_listbox.currentIndexChanged.connect(self._park_selection_changed)
+                    self.park_names.append(p.split('.')[0])
+            log.info("Available parks are:\n  %s", self.park_names)
+            self.ui.cmb_select_ride.addItems(self.park_names)
+            self.ui.cmb_select_ride.currentIndexChanged.connect(self._park_selection_changed)
         except Exception as e:
             log.error("Unable to load parks, (error %s)", e)
 
@@ -80,7 +80,7 @@ class CoasterGui(object):
         # print idx, self.park_path[idx]
         #  print "park by index", idx, self.current_park, idx == self.current_park
         if idx != self.current_park and self._park_callback != None:
-            log.info("loading park %s", self.park_name[idx])
+            log.info("loading park %s", self.park_names[idx])
             # load park in pause mode, this will unpuase when park is loaded
             self._park_callback(True, self.park_path[idx], self.seat[idx])
             self.current_park = idx
@@ -114,10 +114,10 @@ class CoasterGui(object):
         #  print(("is activated in gui set to ", is_enabled))
         if is_enabled:
             self.is_activated = True
-            self.ui.cmb_park_listbox.setEnabled(False)
+            self.ui.cmb_select_ride.setEnabled(False)
         else:
             self.is_activated = False
-            self.ui.cmb_park_listbox.setEnabled(True)
+            self.ui.cmb_select_ride.setEnabled(True)
 
     def set_coaster_status_label(self, status):
         #  print status

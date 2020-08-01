@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'SpaceCoaster\remote_client_gui.ui'
+# Form implementation generated from reading ui file '..\clients\remote_client\remote_client_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
@@ -94,18 +94,18 @@ class Ui_Frame(object):
         font.setPointSize(12)
         self.btn_reset_rift_2.setFont(font)
         self.btn_reset_rift_2.setObjectName("btn_reset_rift_2")
-        self.lbl_select_park = QtWidgets.QLabel(self.frm_input)
-        self.lbl_select_park.setGeometry(QtCore.QRect(710, 190, 101, 20))
+        self.lbl_item_select = QtWidgets.QLabel(self.frm_input)
+        self.lbl_item_select.setGeometry(QtCore.QRect(710, 190, 101, 20))
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.lbl_select_park.setFont(font)
-        self.lbl_select_park.setObjectName("lbl_select_park")
-        self.cmb_park_listbox = QtWidgets.QComboBox(self.frm_input)
-        self.cmb_park_listbox.setGeometry(QtCore.QRect(420, 180, 271, 41))
+        self.lbl_item_select.setFont(font)
+        self.lbl_item_select.setObjectName("lbl_item_select")
+        self.cmb_select_ride = QtWidgets.QComboBox(self.frm_input)
+        self.cmb_select_ride.setGeometry(QtCore.QRect(420, 180, 271, 41))
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.cmb_park_listbox.setFont(font)
-        self.cmb_park_listbox.setObjectName("cmb_park_listbox")
+        self.cmb_select_ride.setFont(font)
+        self.cmb_select_ride.setObjectName("cmb_select_ride")
 
         self.retranslateUi(Frame)
         QtCore.QMetaObject.connectSlotsByName(Frame)
@@ -126,5 +126,5 @@ class Ui_Frame(object):
         self.lbl_coaster_status_2.setText(_translate("Frame", "Status"))
         self.lbl_coaster_connection_2.setText(_translate("Frame", "Connection"))
         self.btn_reset_rift_2.setText(_translate("Frame", "Reset Rift"))
-        self.lbl_select_park.setText(_translate("Frame", "Select"))
+        self.lbl_item_select.setText(_translate("Frame", "Select"))
 

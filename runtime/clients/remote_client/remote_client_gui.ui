@@ -283,7 +283,7 @@
      <string>Select</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="cmb_park_listbox">
+   <widget class="QComboBox" name="cmb_select_ride">
     <property name="geometry">
      <rect>
       <x>420</x>

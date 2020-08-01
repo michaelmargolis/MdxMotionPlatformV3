@@ -24,9 +24,10 @@ Client = namedtuple('Client',
                         'remote_client']) # python client to be imported and used by platform controller
 
 clients = []
-clients.append(Client('Space_Coaster', ['SpaceCoaster/space_coaster', 'SpaceCoaster/space_coaster'],[ 'SpaceCoaster.remote_client', 'SpaceCoaster.remote_client']))
-clients.append(Client('NoLimits_Coaster', ['NONE', 'todo'], ['coaster.coaster_client', 'todo']))
-clients.append(Client('Test_Client', ['NONE', 'NONE'],[ 'client.simple_input', '']))
+clients.append(Client('Space_Coaster', ['clients/SpaceCoaster/space_coaster', 'clients/SpaceCoaster/space_coaster'],
+                                       [ 'clients.SpaceCoaster.remote_spacecoaster_itf', 'clients.SpaceCoaster.remote_spacecoaster_itf']))
+clients.append(Client('NoLimits_Coaster', ['NONE', 'todo'], ['clients.coaster.coaster_client', 'clients.remote_client.remote_client']))
+clients.append(Client('Test_Client', ['NONE', 'NONE'],[ 'clients.test_client.simple_input', '']))
 
 client_rb = []
 
