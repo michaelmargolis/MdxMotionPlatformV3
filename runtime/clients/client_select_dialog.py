@@ -25,7 +25,7 @@ Client = namedtuple('Client',
 
 clients = []
 clients.append(Client('Space_Coaster', ['clients/SpaceCoaster/space_coaster', 'clients/SpaceCoaster/space_coaster'],
-                                       [ 'clients.remote_client.remote_client', 'clients.remote_client.remote_client']))
+                                       [ 'clients.SpaceCoaster.remote_spacecoaster_itf', 'clients.SpaceCoaster.remote_spacecoaster_itf']))
 clients.append(Client('NoLimits_Coaster', ['NONE', 'todo'], ['clients.coaster.coaster_client', 'clients.remote_client.remote_client']))
 clients.append(Client('Test_Client', ['NONE', 'NONE'],[ 'clients.test_client.simple_input', '']))
 

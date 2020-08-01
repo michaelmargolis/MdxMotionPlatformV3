@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'echo_handler_gui_defs.ui'
+# Form implementation generated from reading ui file '..\echo_handler_gui_defs.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
