@@ -227,12 +227,12 @@ class InputInterface(ClientApi):
 
     def connect(self):
         self.is_coaster_connected = -1
-        self.sleep_func(2)
-        while self.is_coaster_connected != 1:
-            
+        self.sleep_func(3)
+        if self.is_coaster_connected != 1:
             self.dialog.setWindowTitle('Coaster not detected')
             self.dialog.txt_info.setText("If coaster not yet started, start CoasterMSU")
             self.dialog.show()
+        while self.is_coaster_connected != 1:
             self.report_connection_status("Connecting to Coaster", "orange") 
             self.sleep_func(2)
         if self.is_coaster_connected == 0:

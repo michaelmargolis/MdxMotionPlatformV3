@@ -51,7 +51,7 @@ class CoasterGui(object):
 
     def read_parks(self):
         try:
-            path = os.path.abspath('CoasterParks/parks.cfg')
+            path = os.path.abspath('clients/coaster/CoasterParks/parks.cfg')
             log.info("Path to coaster parks: %s", path)
             with open(path) as f:
                 parks = f.read().splitlines()

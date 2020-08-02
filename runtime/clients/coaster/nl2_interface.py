@@ -293,7 +293,9 @@ class CoasterInterface():
             self._send(r)
             self.station_msg_time = time()
         self.service()
-        #  print "station status", self.station_status
+        # print("station status", self.station_status)
+        if status_mask == bit_manual and self.station_status & status_mask == status_mask: 
+            return True
         if self.system_status.is_pc_connected == False: # TODO is this needed (play mode should be set to false if not connected
             return False
         #  print format("in get station status %x" % (self.station_status))

@@ -83,7 +83,7 @@ class Controller(QtWidgets.QMainWindow):
                         log.info("using local hardware switch control")
                         if self.local_control.is_activated():
                             self.dialog.setWindowTitle('Emergency Stop must be down')
-                            self.dialog.txt_info.setText("Flip Emergency Stop Switch down and press Ok to proceed")
+                            self.dialog.txt_info.setText("Flip Emergency Stop Switch down to proceed")
                             self.dialog.show()
                             gutil.sleep_qt(5)
                             self.dialog.close()
