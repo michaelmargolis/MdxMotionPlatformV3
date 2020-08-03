@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_gui.ui'
+# Form implementation generated from reading ui file '..\main_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
@@ -79,16 +79,18 @@ class Ui_MainWindow(object):
         self.frame_3.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_3.setObjectName("frame_3")
         self.btn_activate = QtWidgets.QPushButton(self.frame_3)
-        self.btn_activate.setGeometry(QtCore.QRect(30, 10, 101, 23))
+        self.btn_activate.setGeometry(QtCore.QRect(30, 5, 101, 30))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.btn_activate.setFont(font)
+        self.btn_activate.setStyleSheet("color: white; background-color : darkgreen; border-radius:6px; border: 0px")
         self.btn_activate.setObjectName("btn_activate")
         self.btn_deactivate = QtWidgets.QPushButton(self.frame_3)
-        self.btn_deactivate.setGeometry(QtCore.QRect(180, 10, 101, 23))
+        self.btn_deactivate.setGeometry(QtCore.QRect(180, 5, 101, 30))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.btn_deactivate.setFont(font)
+        self.btn_deactivate.setStyleSheet("color: white; background-color : darkred; border-radius:12px; border: 0px")
         self.btn_deactivate.setObjectName("btn_deactivate")
         self.lbl_festo_status = QtWidgets.QLabel(self.frame_3)
         self.lbl_festo_status.setGeometry(QtCore.QRect(480, 10, 311, 19))

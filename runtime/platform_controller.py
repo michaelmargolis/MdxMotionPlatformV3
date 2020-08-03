@@ -148,6 +148,11 @@ class Controller(QtWidgets.QMainWindow):
             self.output_gui.encoder_change_callback(self.encoder_select_event)
             self.output_gui.encoder_reset_callback(self.encoder_reset)
 
+            # Create custom buttons
+            self.custom_btn_activate = gutil.CustomButton( self.ui.btn_activate, ('white','darkgreen'), ('black', 'lightgreen'), 6, 0) 
+            self.custom_btn_deactivate = gutil.CustomButton( self.ui.btn_deactivate, ('white','red'), ('white', 'darkred'), 12, 0) 
+            # self.ui.btn_pause.setStyleSheet("background-color: orange;  border-radius:10px; border: 0px;QPushButton::pressed{background-color :yellow; }")
+
             self.dialog = ModelessDialog(self)
             return True
         except Exception as e:
@@ -186,11 +191,11 @@ class Controller(QtWidgets.QMainWindow):
 
     def set_activation_buttons(self, isEnabled): 
         if isEnabled:
-            gutil.set_button_style(self.ui.btn_activate, True, True, "Activated", checked_color='green')  # enabled, checked
-            gutil.set_button_style(self.ui.btn_deactivate, True, False, "Deactivate")  # enabled, checked
+            self.custom_btn_activate.set_attributes(True, True, "Activated")  # enabled, checked
+            self.custom_btn_deactivate.set_attributes(True, False, "Deactivate")  # enabled, checked
         else:
-            gutil.set_button_style(self.ui.btn_activate, True, False, "Activate")  # enabled, not checked
-            gutil.set_button_style(self.ui.btn_deactivate, True, True, "Deactivated")  # enabled, checked
+            self.custom_btn_activate.set_attributes(True, False, "Activate")  # enabled, not checked
+            self.custom_btn_deactivate.set_attributes(True, True, "Deactivated")  # enabled, checked
 
     def festo_check(self, state):
         if state == QtCore.Qt.Checked:

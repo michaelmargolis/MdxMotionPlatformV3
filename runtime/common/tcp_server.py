@@ -14,7 +14,7 @@ try:
 except ImportError:
     #  python 2.7
     from Queue import Queue
-    import Socketserver as socketserver
+    import SocketServer as socketserver
 
 import logging
 log = logging.getLogger(__name__)

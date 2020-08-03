@@ -206,15 +206,18 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>10</y>
+       <y>5</y>
        <width>101</width>
-       <height>23</height>
+       <height>30</height>
       </rect>
      </property>
      <property name="font">
       <font>
        <pointsize>12</pointsize>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white; background-color : darkgreen; border-radius:6px; border: 0px</string>
      </property>
      <property name="text">
       <string>Activate</string>
@@ -224,15 +227,18 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>10</y>
+       <y>5</y>
        <width>101</width>
-       <height>23</height>
+       <height>30</height>
       </rect>
      </property>
      <property name="font">
       <font>
        <pointsize>12</pointsize>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white; background-color : darkred; border-radius:12px; border: 0px</string>
      </property>
      <property name="text">
       <string>Deactivated</string>

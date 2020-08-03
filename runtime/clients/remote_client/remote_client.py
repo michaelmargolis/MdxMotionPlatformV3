@@ -64,7 +64,11 @@ class RemoteInputInterface(ClientApi):
         self.lbl_coaster_status = [self.ui.lbl_coaster_status_1, self.ui.lbl_coaster_status_2]
         self.lbl_coaster_connection = [self.ui.lbl_coaster_connection_1, self.ui.lbl_coaster_connection_2]
         # self.lbl_temperature_status = [self.ui.lbl_temperature_status_1,self.ui.lbl_temperature_status_1]
-                
+
+        # set button styles
+        self.ui.btn_dispatch.setStyleSheet("QPushButton{color: white; background-color : darkgreen; border-radius:10px; border: 0px}") 
+        self.ui.btn_pause.setStyleSheet("background-color: orange;  border-radius:10px; border: 0px;QPushButton::pressed{background-color :yellow; }")
+
         # configure signals
         self.ui.btn_dispatch.clicked.connect(self.dispatch_pressed)
         self.ui.btn_pause.clicked.connect(self.pause_pressed)

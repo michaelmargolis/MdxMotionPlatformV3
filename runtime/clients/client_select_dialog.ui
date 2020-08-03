@@ -166,6 +166,9 @@
       <pointsize>12</pointsize>
      </font>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="ip_addr_1">
     <property name="geometry">
@@ -180,6 +183,9 @@
      <font>
       <pointsize>12</pointsize>
      </font>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

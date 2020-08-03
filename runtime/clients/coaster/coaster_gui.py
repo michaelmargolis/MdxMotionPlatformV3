@@ -41,8 +41,13 @@ class CoasterGui(object):
         self.ui.btn_pause.clicked.connect(self.pause)
         self.ui.btn_reset_rift.clicked.connect(self.reset_vr)
 
-        self.read_parks()  # load cmb_select_ride
-        # self.set_button_style(self.ui.btn_deactivate, False, True, "Deactivated")  # disabled, checked
+        # Create custom buttons
+        self.custom_btn_dispatch = gutil.CustomButton( self.ui.btn_dispatch, ('white','darkgreen'), ('black', 'lightgreen'), 10, 0) 
+        self.custom_btn_pause = gutil.CustomButton( self.ui.btn_pause, ('black','orange'), ('black', 'yellow'), 10, 0) 
+        # self.ui.btn_pause.setStyleSheet("background-color: orange;  border-radius:10px; border: 0px;QPushButton::pressed{background-color :yellow; }")
+        self.process_state_change(RideState.RESETTING, self.is_activated) # update buttons
+
+        self.read_parks()  # load cmb_select_ride 
         log.info("Client GUI initialized")
 
     def set_seat(self, seat):
@@ -143,6 +148,55 @@ class CoasterGui(object):
         if event.char == 'e':  self.emergency_stop()
 
     def process_state_change(self, new_state, isActivated):
+        # print("Coaster state changed to ", str(RideState.str(new_state)), str(isActivated))
+        log.debug("Coaster state changed to: %s (%s)", RideState.str(new_state), "Activated" if isActivated else "Deactivated")
+        if new_state == RideState.READY_FOR_DISPATCH:
+            if isActivated:
+                log.debug("Coaster is Ready for Dispatch")
+                self.custom_btn_dispatch.set_attributes(True, False, 'Dispatch')  # enabled, not checked
+                self.custom_btn_pause.set_attributes(True, False, 'Pause')  # enabled, not checked
+                gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Ready for Dispatch", "green")
+                # self.set_button_style(self.ui.btn_pause, True, False, "Pause")  # enabled, not checked
+            else:
+                log.debug("Coaster at Station but deactivated")
+                self.custom_btn_dispatch.set_attributes(False, False, 'Dispatch')  # not enabled, not checked
+                gutil.set_text(self.ui.lbl_coaster_status, "Coaster at Station but deactivated", "orange")
+                self.custom_btn_pause.set_attributes(True, False, "Prop Platform")  # enabled, not checked
+            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+
+        elif new_state == RideState.RUNNING:
+            self.custom_btn_dispatch.set_attributes(False, True, 'Dispatched')  # not enabled, checked
+            self.custom_btn_pause.set_attributes(True, False, "Pause")  # enabled, not checked
+            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Running", "green")
+            
+        elif new_state == RideState.PAUSED:
+            self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
+            self.custom_btn_pause.set_attributes(True, True, "Continue")  # enabled, not checked
+            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Paused", "orange")
+        elif new_state == RideState.EMERGENCY_STOPPED:
+            self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
+            self.custom_btn_pause.set_attributes(False, True)  # enabled, not checked
+            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            gutil.set_text(self.ui.lbl_coaster_status, "Emergency Stop", "red")
+        elif new_state == RideState.RESETTING:
+            self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
+            self.custom_btn_pause.set_attributes(False, False)  # enabled, not checked
+            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is resetting", "blue")
+
+    def set_button_style(self, object, is_enabled, is_checked=None, text=None):
+        if text != None:
+           object.setText(text)
+        if is_checked!= None:
+           object.setCheckable(True)
+           object.setChecked(is_checked)
+        if is_enabled != None:
+           object.setEnabled(is_enabled)
+           
+"""
+    def process_state_change(self, new_state, isActivated):
         log.debug("Coaster state changed to: %s (%s)", RideState.str(new_state), "Activated" if isActivated else "Deactivated")
         if new_state == RideState.READY_FOR_DISPATCH:
             if isActivated:
@@ -187,3 +241,4 @@ class CoasterGui(object):
            object.setChecked(is_checked)
         if is_enabled != None:
            object.setEnabled(is_enabled)
+"""
