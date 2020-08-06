@@ -28,9 +28,6 @@ from common.tcp_client import TcpClient
 import common.gui_utils as gutil
 from platform_config import cfg
 
-# class State:
-#    initializing, waiting, ready, running, completed = list(range(0,5))
-
 
 class RemoteInputInterface(ClientApi):
 
@@ -51,7 +48,9 @@ class RemoteInputInterface(ClientApi):
 
         # self.state_strings = ("Initializing", "Waiting", "Ready", "Running", "Completed")
         # the states are set by client 0
-        self.state = -1 # state not yet set
+        self.state = RideState.UNKNOWN # state not yet set
+        self.state_mismatch = 0  # vlaue is number of frames with mismatched state
+        self.client_state = []
         self.is_paused = False
         self.is_activated = False
 
@@ -65,16 +64,16 @@ class RemoteInputInterface(ClientApi):
         self.lbl_coaster_connection = [self.ui.lbl_coaster_connection_1, self.ui.lbl_coaster_connection_2]
         # self.lbl_temperature_status = [self.ui.lbl_temperature_status_1,self.ui.lbl_temperature_status_1]
 
-        # set button styles
-        self.ui.btn_dispatch.setStyleSheet("QPushButton{color: white; background-color : darkgreen; border-radius:10px; border: 0px}") 
-        self.ui.btn_pause.setStyleSheet("background-color: orange;  border-radius:10px; border: 0px;QPushButton::pressed{background-color :yellow; }")
-
         # configure signals
         self.ui.btn_dispatch.clicked.connect(self.dispatch_pressed)
         self.ui.btn_pause.clicked.connect(self.pause_pressed)
         
         self.ui.btn_reset_rift_1.clicked.connect(self.reset1)
         self.ui.btn_reset_rift_2.clicked.connect(self.reset2)
+
+        # Create custom buttons
+        self.custom_btn_dispatch = gutil.CustomButton( self.ui.btn_dispatch, ('white','darkgreen'), ('black', 'lightgreen'), 10, 0) 
+        self.custom_btn_pause = gutil.CustomButton( self.ui.btn_pause, ('black','orange'), ('black', 'yellow'), 10, 0) 
 
         for i in range(len(self.clients)):
             gutil.set_text(self.lbl_coaster_connection[i], "Attempting to Connect to " + self.clients[i].ip_addr,"orange") 
@@ -153,6 +152,7 @@ class RemoteInputInterface(ClientApi):
     def begin(self, cmd_func, limits, remote_addresses):
         for ip_addr in remote_addresses:
             self.clients.append(TcpClient(ip_addr, cfg.REMOTE_CLIENT_PORT))
+            self.client_state.append(RideState.UNKNOWN) # state not yet set
         self.set_address((remote_addresses, cfg.REMOTE_CLIENT_PORT))
         # print(self.get_address(), self.get_address()[0][0]) 
         self.cmd_func = cmd_func
@@ -178,6 +178,44 @@ class RemoteInputInterface(ClientApi):
         # client exit code goes here
         pass
 
+    def process_state_change(self, new_state, isActivated):
+        # print("Remote client state changed to ", str(RideState.str(new_state)), str(isActivated))
+        log.debug("Remote client state changed to: %s (%s)", RideState.str(new_state), "Activated" if isActivated else "Deactivated")
+        if new_state == RideState.READY_FOR_DISPATCH:
+            if isActivated:
+                log.debug("Ready for Dispatch")
+                self.custom_btn_dispatch.set_attributes(True, False, 'Dispatch')  # enabled, not checked
+                self.custom_btn_pause.set_attributes(True, False, 'Pause')  # enabled, not checked
+                # gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Ready for Dispatch", "green")
+            else:
+                log.debug("At Start but deactivated")
+                self.custom_btn_dispatch.set_attributes(False, False, 'Dispatch')  # not enabled, not checked
+                self.custom_btn_pause.set_attributes(True, False, "Prop Platform")  # enabled, not checked
+                #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster at Station but deactivated", "orange")
+            #self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+
+        elif new_state == RideState.RUNNING:
+            self.custom_btn_dispatch.set_attributes(False, True, 'Dispatched')  # not enabled, checked
+            self.custom_btn_pause.set_attributes(True, False, "Pause")  # enabled, not checked
+            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Running", "green")
+            
+        elif new_state == RideState.PAUSED:
+            self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
+            self.custom_btn_pause.set_attributes(True, True, "Continue")  # enabled, not checked
+            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Paused", "orange")
+        elif new_state == RideState.EMERGENCY_STOPPED:
+            self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
+            self.custom_btn_pause.set_attributes(False, True)  # enabled, not checked
+            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            #  gutil.set_text(self.ui.lbl_coaster_status, "Emergency Stop", "red")
+        elif new_state == RideState.RESETTING:
+            self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
+            self.custom_btn_pause.set_attributes(False, False)  # enabled, not checked
+            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster is resetting", "blue")
+
     def service(self):
         if self.connect():
             for idx, client in enumerate(self.clients):
@@ -192,10 +230,11 @@ class RemoteInputInterface(ClientApi):
                         state = int(state_info[0])
                         frame = int(state_info[1])
                         is_paused = int(state_info[2])
-                        
+                        self.client_state[idx] = state
                         if idx == 0:  # track state of first client
                             if self.state != state:
                                 log.info("state changed to %s",  RideState.str(state)) 
+                                self.process_state_change(state, self.is_activated)
                             self.state = state
                             self.frame = frame
                             self.is_paused = is_paused
@@ -223,7 +262,13 @@ class RemoteInputInterface(ClientApi):
                             status = ["Not connected", "red"]
                     except Exception as e:
                         log.error("error parsing %s: %s", msg, e)
-        else:
+            if self.client_state[1:] == self.client_state[:-1]:
+                # here of all client states are the same
+                self.state_mismatch = 0
+            else:
+                self.state_mismatch += 1 
+                print("state mismatch=",self.state_mismatch )
+        else:  # here if any client is not connected
             for idx, client in enumerate(self.clients):
                 if client.status.is_connected:
                     gutil.set_text(self.lbl_coaster_connection[idx], "Connected to " + self.clients[idx].ip_addr, 'green')
@@ -282,7 +327,6 @@ if __name__ == "__main__":
     import importlib  
     sys.path.insert(0, '../../output')  # for platform config
     
-   #start_logging(log.DEBUG)
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%H:%M:%S')
     log.info("Starting remote client")

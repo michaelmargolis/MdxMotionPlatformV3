@@ -186,8 +186,6 @@ class Controller(QtWidgets.QMainWindow):
                     client.send(startup_msg + '\n') 
                 else:
                     app.processEvents()
-                    print "not connected"
-
 
     def set_activation_buttons(self, isEnabled): 
         if isEnabled:

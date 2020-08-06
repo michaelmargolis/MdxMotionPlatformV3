@@ -18,7 +18,7 @@ platform_selection = 'output.configNextgen'
 """
 The following default values should be changed only if you know what you are doing
 """
-class cfg(object):
+class cfg:
     Festo_IP_ADDR = '192.168.0.10'  #  Festo Port is 995
 
     # set the following to None if using auto discovery of NoLimits, otherwise set to static address of NoLimits PC
@@ -28,7 +28,7 @@ class cfg(object):
     USE_PI_SWITCHES = True # uses hardware switches on Pi if set true, ignored if controller is not running on Pi
 
     #software network address assignments
-    SIM_IP_ADDR = ['192.168.1.16',] #  '192.168.1.16'] # first addr provides telemetry and encoder data
+    SIM_IP_ADDR = ['192.168.1.16', '192.168.1.22'] # first addr provides telemetry and encoder data
     ECHO_IP_ADDR = '127.0.0.1' # transform and platform output echoed to this address using PLATFORM_ECHO_PORT
     ENCODER_IP_ADDR = SIM_IP_ADDR[0] # Encoder server running on first sim PC 
     # software network port assignments:
@@ -36,7 +36,7 @@ class cfg(object):
     SPACE_COASTER_PORT = 10009
     PC_MONITOR_PORT = 10010
     TCP_UDP_REMOTE_CONTROL_PORT = 10013
-    REMOTE_CLIENT_PORT = 10015 # space coaster remote client connection
+    REMOTE_CLIENT_PORT = 10015 # remote client connection to local clients on PC
     ENCODER_SERVER_PORT = 10016 # encoder data broadcasted on this port
     ENCODER_SERVER_CMD_PORT = ENCODER_SERVER_PORT+1  #10017
     REMOTE_SCALE_PORT = 10018
