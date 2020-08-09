@@ -175,15 +175,15 @@ class Controller(QtWidgets.QMainWindow):
     def start_remote_pcs(self, addresses, startup_msg):
         for addr in addresses:
             log.info("remote startup to %s: %s", addr, startup_msg)
-            client = TcpClient(addr, cfg.STARTUP_SERVER_PORT)
-            while not client.status.is_connected:
-                if client.connect():
+            connection = TcpClient(addr, cfg.STARTUP_SERVER_PORT)
+            while not connection.status.is_connected:
+                if connection.connect():
                     log.info("Connected to PC at %s", addr)
                     if addr == addresses[0]:
                         log.info("Requesting encoder startup on %s", addr)
-                        client.send("STARTUP,NONE,common/encoders\n")
+                        connection.send("STARTUP,NONE,common/encoders\n")
                     log.info("sending startup msg: %s", startup_msg)
-                    client.send(startup_msg + '\n') 
+                    connection.send(startup_msg + '\n') 
                 else:
                     app.processEvents()
 

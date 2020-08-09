@@ -133,10 +133,10 @@
    <widget class="QLabel" name="lbl_client">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>20</x>
       <y>410</y>
-      <width>251</width>
-      <height>19</height>
+      <width>321</width>
+      <height>20</height>
      </rect>
     </property>
     <property name="font">
@@ -169,9 +169,9 @@
    <widget class="QLabel" name="lbl_platform">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>400</x>
       <y>411</y>
-      <width>241</width>
+      <width>271</width>
       <height>21</height>
      </rect>
     </property>

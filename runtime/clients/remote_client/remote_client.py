@@ -10,18 +10,18 @@ import socket
 from math import radians, degrees
 import threading
 import time
+import traceback
 try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
 
-#  from remote_client_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import logging
 log = logging.getLogger(__name__)
 
-from clients.client_api import ClientApi
+from clients.client_api import ClientApi, RemoteMsgProtocol
 from clients.ride_state import RideState
 from clients.remote_client.remote_client_gui_defs import Ui_Frame
 from common.tcp_client import TcpClient
@@ -40,18 +40,17 @@ class RemoteInputInterface(ClientApi):
 
         self.max_values = [80, 80, 80, 0.4, 0.4, 0.4]
         self.normalized = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.previous_msg_time = 0;
         self.telemetry = []
 
-        self.frame_number = 0
         self.clients = []
 
-        # self.state_strings = ("Initializing", "Waiting", "Ready", "Running", "Completed")
-        # the states are set by client 0
         self.state = RideState.UNKNOWN # state not yet set
-        self.state_mismatch = 0  # vlaue is number of frames with mismatched state
         self.client_state = []
-        self.is_paused = False
+        self.state_mismatch = 0  # valaue is number of frames that clients have mismatched states
+        self.client_frame = []
+        self.frame_mismatch = 0  # valaue is max difference in client frame numbers
+        self.client_is_paused = []
+
         self.is_activated = False
 
     def init_gui(self, frame):
@@ -60,8 +59,8 @@ class RemoteInputInterface(ClientApi):
         self.frame = frame
 
         #control arrays
-        self.lbl_coaster_status = [self.ui.lbl_coaster_status_1, self.ui.lbl_coaster_status_2]
         self.lbl_coaster_connection = [self.ui.lbl_coaster_connection_1, self.ui.lbl_coaster_connection_2]
+        self.lbl_coaster_status = [self.ui.lbl_coaster_status_1, self.ui.lbl_coaster_status_2]
         # self.lbl_temperature_status = [self.ui.lbl_temperature_status_1,self.ui.lbl_temperature_status_1]
 
         # configure signals
@@ -74,9 +73,6 @@ class RemoteInputInterface(ClientApi):
         # Create custom buttons
         self.custom_btn_dispatch = gutil.CustomButton( self.ui.btn_dispatch, ('white','darkgreen'), ('black', 'lightgreen'), 10, 0) 
         self.custom_btn_pause = gutil.CustomButton( self.ui.btn_pause, ('black','orange'), ('black', 'yellow'), 10, 0) 
-
-        for i in range(len(self.clients)):
-            gutil.set_text(self.lbl_coaster_connection[i], "Attempting to Connect to " + self.clients[i].ip_addr,"orange") 
 
         self.ui.cmb_select_ride.currentIndexChanged.connect(self.ride_selection_changed)
 
@@ -104,8 +100,9 @@ class RemoteInputInterface(ClientApi):
         self.command("pause")
 
     def get_ride_state(self):
-        log.debug("remote client state is %s", RideState.str(self.state))
-        return self.state
+        # first client provides state and transform
+        log.debug("remote client state is %s", RideState.str(self.client_state[0]))
+        return self.client_state[0]
 
     def quit(self):
         self.command("quit")
@@ -138,21 +135,24 @@ class RemoteInputInterface(ClientApi):
         for client in self.clients:
             client.send('dispatch\n')
         log.debug("dispatched")
-        # self.frame_number = 30 # start 1.5 seconds in
 
     def intensity_status_changed(self, intensity):
        gutil.set_text(self.ui.lbl_intensity_status, intensity[0], intensity[1])
 
     def activate(self):
+        log.info("Remote client activated")
         self.is_activated = True
 
     def deactivate(self):
+        log.info("Remote client deactivated")
         self.is_activated = False
 
     def begin(self, cmd_func, limits, remote_addresses):
         for ip_addr in remote_addresses:
             self.clients.append(TcpClient(ip_addr, cfg.REMOTE_CLIENT_PORT))
             self.client_state.append(RideState.UNKNOWN) # state not yet set
+            self.client_frame.append(0)
+            self.client_is_paused.append(False)
         self.set_address((remote_addresses, cfg.REMOTE_CLIENT_PORT))
         # print(self.get_address(), self.get_address()[0][0]) 
         self.cmd_func = cmd_func
@@ -161,6 +161,10 @@ class RemoteInputInterface(ClientApi):
             log.info('Platform Input is Remote Client with normalized parms, %d client(s) connected', len(self.clients))
         else:
             log.info('Platform Input is Remote Client with real world parms, %d client(s) connected', len(self.clients))
+        for i in range(len(self.clients)):
+            gutil.set_text(self.lbl_coaster_connection[i], "Connecting to " + self.clients[i].ip_addr,"orange") 
+        for i in range(len(self.clients)):
+            gutil.set_text(self.lbl_coaster_status[i], " ","green") # not used in this version            
 
     def connect(self):
         """returns true if all clients are connected"""
@@ -186,94 +190,94 @@ class RemoteInputInterface(ClientApi):
                 log.debug("Ready for Dispatch")
                 self.custom_btn_dispatch.set_attributes(True, False, 'Dispatch')  # enabled, not checked
                 self.custom_btn_pause.set_attributes(True, False, 'Pause')  # enabled, not checked
-                # gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Ready for Dispatch", "green")
+                gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Ready for Dispatch", "green")
             else:
                 log.debug("At Start but deactivated")
                 self.custom_btn_dispatch.set_attributes(False, False, 'Dispatch')  # not enabled, not checked
                 self.custom_btn_pause.set_attributes(True, False, "Prop Platform")  # enabled, not checked
-                #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster at Station but deactivated", "orange")
-            #self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+                gutil.set_text(self.ui.lbl_coaster_status, "Coaster at Station but deactivated", "orange")
 
         elif new_state == RideState.RUNNING:
             self.custom_btn_dispatch.set_attributes(False, True, 'Dispatched')  # not enabled, checked
             self.custom_btn_pause.set_attributes(True, False, "Pause")  # enabled, not checked
-            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Running", "green")
+            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Running", "green")
             
         elif new_state == RideState.PAUSED:
             self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
             self.custom_btn_pause.set_attributes(True, True, "Continue")  # enabled, not checked
-            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Paused", "orange")
+            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Paused", "orange")
         elif new_state == RideState.EMERGENCY_STOPPED:
             self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
             self.custom_btn_pause.set_attributes(False, True)  # enabled, not checked
-            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            #  gutil.set_text(self.ui.lbl_coaster_status, "Emergency Stop", "red")
+            gutil.set_text(self.ui.lbl_coaster_status, "Emergency Stop", "red")
         elif new_state == RideState.RESETTING:
             self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
             self.custom_btn_pause.set_attributes(False, False)  # enabled, not checked
-            #  self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            #  gutil.set_text(self.ui.lbl_coaster_status, "Coaster is resetting", "blue")
+            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is resetting", "blue")
+
+    def process_client_states(self):
+        if self.client_state[1:] == self.client_state[:-1]:
+            # here of all client states are the same
+            self.state_mismatch = 0
+            gutil.set_text(self.ui.lbl_state_delta, "Client States are synced", "green")
+        else:
+            self.state_mismatch += 1 # count of frames with mismatched state
+            log.warning("state mismatched over %d frame(s)",self.state_mismatch)
+            if self.state_mismatch < 3:
+                    gutil.set_text(self.ui.lbl_state_delta, "Client States not synced", "orange")
+            else:
+                log.error("State mismatched over too many frames")
+                gutil.set_text(self.ui.lbl_frame_delta, format("Client State lost sync %d frames ago" % self.state_mismatch), "red")
+                # self.state = None # raise error?
+        if self.state != self.client_state[0]:  # track state of first client
+            log.info("state changed to %s",  RideState.str(self.client_state[0])) 
+            self.process_state_change(self.client_state[0], self.is_activated)
+            self.state = self.client_state[0]
+                
+        self.frame_mismatch = max(self.client_frame) - min(self.client_frame)
+        if self.frame_mismatch > 5:
+            log.warning("Excessive frame mismatch: %d", self.frame_mismatch)
+            gutil.set_text(self.ui.lbl_frame_delta, format("Client frame delta: %d" % self.frame_mismatch), "orange")
+        else:
+            self.frame = int(sum( self.client_frame) / len( self.client_frame))
+            gutil.set_text(self.ui.lbl_frame_delta, format("Frame: %d, delta: %d" % (self.frame,self.frame_mismatch)), "green")
+
+        if self.client_is_paused[1:] == self.client_is_paused[:-1]:
+            # here of all client are in same pause state
+            self.is_paused = self.client_is_paused[0]
+        else:
+            log.error("Client pause states not matched")
+            self.is_paused = None # raise error?
 
     def service(self):
         if self.connect():
+            is_state_changed = False
             for idx, client in enumerate(self.clients):
                 # print("sending telemetry request for client", idx)
                 client.send('telemetry\n')
                 while client.available() > 0:
                     event = client.receive()
-                    # print "in service", event
-                    msg = event.split(";")
+                    # print("in service", event)
+                    msg = event
                     try:
-                        state_info = msg[0].split(',')
-                        state = int(state_info[0])
-                        frame = int(state_info[1])
-                        is_paused = int(state_info[2])
-                        self.client_state[idx] = state
-                        if idx == 0:  # track state of first client
-                            if self.state != state:
-                                log.info("state changed to %s",  RideState.str(state)) 
-                                self.process_state_change(state, self.is_activated)
-                            self.state = state
-                            self.frame = frame
-                            self.is_paused = is_paused
-                            try:
-                                self.transform =[float(i) for i in msg[1].split(',')]
-                                log.debug("telemetry: %s",  msg[1])
-                            except:
-                                log.error("Unable to process telemetry %s", msg[1])
-                        else:
-                            if state != self.state:
-                                log.debug("state mismatch with idx %d", idx)
-                            if frame != self.frame:
-                                 log.debug("frame difference is %d", self.frame - frame) 
-                            if is_paused != self.is_paused:
-                                 log.debug("pause state mismatch with idx %d", idx)
-
-                        status = msg[2].split(',')
-                        debug_info = format("%d,%d,%d  " % (state, frame,is_paused))
-                        gutil.set_text(self.lbl_coaster_status[idx], debug_info+status[0], status[1])
-
+                        m = RemoteMsgProtocol()
+                        m.decode(msg) 
+                        if self.client_state[idx] != m.state:
+                            is_state_changed = True
+                            self.client_state[idx] = m.state
+                        self.client_frame[idx] = m.frame
+                        self.client_is_paused[idx] = m.is_paused
                         if client.status.is_connected:
-                            status = msg[3].split(',')
-                            gutil.set_text(self.lbl_coaster_connection[idx], status[0] + " on " + self.clients[idx].ip_addr, status[1])
+                            gutil.set_text(self.lbl_coaster_connection[idx], format("Connected to %s" % (self.clients[idx].ip_addr)), 'green')
                         else:
-                            status = ["Not connected", "red"]
+                            gutil.set_text(self.lbl_coaster_connection[idx], format("Not Connected to %s" % (self.clients[idx].ip_addr)), 'red')
                     except Exception as e:
                         log.error("error parsing %s: %s", msg, e)
-            if self.client_state[1:] == self.client_state[:-1]:
-                # here of all client states are the same
-                self.state_mismatch = 0
-            else:
-                self.state_mismatch += 1 
-                print("state mismatch=",self.state_mismatch )
-        else:  # here if any client is not connected
-            for idx, client in enumerate(self.clients):
-                if client.status.is_connected:
-                    gutil.set_text(self.lbl_coaster_connection[idx], "Connected to " + self.clients[idx].ip_addr, 'green')
-                else:
-                    gutil.set_text(self.lbl_coaster_connection[idx], "Attempting connection to " + self.clients[idx].ip_addr, 'red')
+                        print(traceback.format_exc())
+            self.process_client_states()
+
+        else:
+            print "not connected"
         msg = None
 
 

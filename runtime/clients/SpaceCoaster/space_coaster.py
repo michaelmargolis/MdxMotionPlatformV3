@@ -30,7 +30,7 @@ import numpy as np  # for scaling telemetry data
 #  from space_coaster_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from clients.client_api import ClientApi
+from clients.client_api import ClientApi, RemoteMsgProtocol
 from clients.SpaceCoaster.space_coaster_gui_defs import Ui_Frame
 from clients.ride_state import RideState
 from common.tcp_server import TcpServer
@@ -131,9 +131,12 @@ class InputInterface(ClientApi):
     def form_telemetry_msg(self):
         # state,frame,is_paused;x,y,z,r,p,y;coaster_state;connection_state
         xyzrpy = ",".join('%0.4f' % item for item in self.get_transform())
-        self.telemetry_msg = format("%d,%d,%d;%s;%s;%s\n" % (self.state,self.cosmetic_frame,self.is_paused,
-                             xyzrpy, self.coaster_status_str,self.connection_status_str))
-        return self.telemetry_msg
+        
+        #  self.telemetry_msg = format("%d,%d,%d;%s;%s;%s\n" % (self.state,self.cosmetic_frame,self.is_paused,
+        #                     xyzrpy, self.coaster_status_str,self.connection_status_str))
+        #  return self.telemetry_msg                             
+        return RemoteMsgProtocol.encode(self.state,self.cosmetic_frame,self.is_paused,
+                                xyzrpy, self.coaster_status_str,self.connection_status_str)
 
     def detected_remote(self, info):
         # fixme - is this needed?

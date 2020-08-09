@@ -7,6 +7,25 @@ all but the most basic clients will override these methods
 This module can become an abstract base class when all code is migrated to python 3
 """
 
+class RemoteMsgProtocol(object): 
+    def __init__(self):
+        self.state = 999
+        
+    @staticmethod
+    def encode(state, frame, is_paused, transform, ride_status_str, connection_status_str):
+        return format("%d,%d,%d;%s;%s;%s\n" % (state, frame, is_paused,
+                             transform, ride_status_str, connection_status_str))
+
+    def decode(self, remote_msg):
+        fields = remote_msg.split(';')
+        context = fields[0].split(',')
+        self.state = int(context[0])
+        self.frame = int(context[1])
+        self.is_paused = int(context[2])
+        self.transform = fields[1]
+        self.ride_status_str = fields[2]
+        self.connection_status_str = fields[3]
+
 class ClientApi(object):
 
     def __init__(self):
@@ -81,3 +100,15 @@ class ClientApi(object):
         """client exit code goes here"""
         pass
 
+if __name__ == "__main__":
+    state = 1
+    frame = 2
+    is_paused = 1
+    transform = '0,0,0,0,0,0'
+    ride_status_str  = "ride status string"
+    connection_status_str  = "connection status string"
+    msg =  RemoteMsgProtocol.encode(state, frame, is_paused, transform, ride_status_str, connection_status_str)
+    m = RemoteMsgProtocol()
+    m.decode(msg)
+    print(format("%d,%d,%d;%s;%s;%s" % (m.state, m.frame, m.is_paused,
+                             m.transform, m.ride_status_str, m.connection_status_str)))

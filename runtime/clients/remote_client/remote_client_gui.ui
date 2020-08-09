@@ -41,7 +41,7 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>173</y>
+      <y>183</y>
       <width>111</width>
       <height>51</height>
      </rect>
@@ -64,7 +64,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>173</y>
+      <y>183</y>
       <width>111</width>
       <height>51</height>
      </rect>
@@ -88,7 +88,7 @@
       <x>10</x>
       <y>10</y>
       <width>361</width>
-      <height>131</height>
+      <height>91</height>
      </rect>
     </property>
     <property name="title">
@@ -105,7 +105,7 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="text">
@@ -115,9 +115,9 @@
     <widget class="QLabel" name="lbl_coaster_connection_1">
      <property name="geometry">
       <rect>
-       <x>21</x>
-       <y>95</y>
-       <width>331</width>
+       <x>20</x>
+       <y>23</y>
+       <width>221</width>
        <height>19</height>
       </rect>
      </property>
@@ -133,7 +133,7 @@
     <widget class="QPushButton" name="btn_reset_rift_1">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>260</x>
        <y>17</y>
        <width>91</width>
        <height>31</height>
@@ -154,7 +154,7 @@
      <rect>
       <x>10</x>
       <y>260</y>
-      <width>761</width>
+      <width>361</width>
       <height>81</height>
      </rect>
     </property>
@@ -166,7 +166,7 @@
       <rect>
        <x>20</x>
        <y>48</y>
-       <width>501</width>
+       <width>311</width>
        <height>21</height>
       </rect>
      </property>
@@ -184,7 +184,7 @@
       <rect>
        <x>20</x>
        <y>26</y>
-       <width>341</width>
+       <width>311</width>
        <height>19</height>
       </rect>
      </property>
@@ -204,7 +204,7 @@
       <x>410</x>
       <y>10</y>
       <width>361</width>
-      <height>131</height>
+      <height>91</height>
      </rect>
     </property>
     <property name="title">
@@ -221,19 +221,19 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <pointsize>12</pointsize>
       </font>
      </property>
      <property name="text">
-      <string>Status</string>
+      <string>-</string>
      </property>
     </widget>
     <widget class="QLabel" name="lbl_coaster_connection_2">
      <property name="geometry">
       <rect>
        <x>22</x>
-       <y>95</y>
-       <width>330</width>
+       <y>23</y>
+       <width>221</width>
        <height>19</height>
       </rect>
      </property>
@@ -243,13 +243,13 @@
       </font>
      </property>
      <property name="text">
-      <string>Connection</string>
+      <string>Unused</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_reset_rift_2">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>260</x>
        <y>17</y>
        <width>91</width>
        <height>31</height>
@@ -269,7 +269,7 @@
     <property name="geometry">
      <rect>
       <x>710</x>
-      <y>190</y>
+      <y>200</y>
       <width>101</width>
       <height>20</height>
      </rect>
@@ -287,7 +287,7 @@
     <property name="geometry">
      <rect>
       <x>420</x>
-      <y>180</y>
+      <y>190</y>
       <width>271</width>
       <height>41</height>
      </rect>
@@ -297,6 +297,73 @@
       <pointsize>12</pointsize>
      </font>
     </property>
+   </widget>
+   <widget class="QLabel" name="lbl_coaster_status">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>106</y>
+      <width>711</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Status</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_5">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>260</y>
+      <width>361</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Client consistency</string>
+    </property>
+    <widget class="QLabel" name="lbl_state_delta">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>48</y>
+       <width>311</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>State delta</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_frame_delta">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>26</y>
+       <width>311</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Frame delta</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
