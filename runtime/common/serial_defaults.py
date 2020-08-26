@@ -1,4 +1,4 @@
-# serial defaults
+# serial port defaults
 dict = {
     'encoder':'COM5',
     'imu':'COM19',

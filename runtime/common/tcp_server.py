@@ -1,4 +1,8 @@
-# tcp_server
+"""
+ tcp_server.py
+ 
+ A threaded TCP server. See main method at bottom of this file for example usage
+"""
 
 import argparse
 import select
@@ -154,7 +158,7 @@ class CustomHandler(socketserver.BaseRequestHandler, object):
 def main():
     import time
     
-    parser = argparse.ArgumentParser(description='Execute sensor server test.')
+    parser = argparse.ArgumentParser(description='TCP server test.')
     parser.add_argument('port', type=int, help='port for server to listen on')
     parser.add_argument("-l", "--log", dest="logLevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
     # note: sends on port+1

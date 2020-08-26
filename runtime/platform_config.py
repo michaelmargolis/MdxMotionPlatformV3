@@ -1,13 +1,8 @@
 # platform_config.py
 
 """
-clients now selected using dialog, following not used and can be deleted
+Platform_config.py - select platform type and ip address default values
 """
-#  client_selection = 'coaster.coaster_client'  # for NoLimits2
-#  client_selection = 'SpaceCoaster.space_coaster'
-#  client_selection = 'SpaceCoaster.remote_client'
-#  client_selection = 'flight_sim.flight_sim_client'
-#  client_selection = 'client.simple_input'    # simple gui test 
 
 """
 Uncomment one of the following to select the platform configuration
@@ -28,7 +23,7 @@ class cfg:
     USE_PI_SWITCHES = True # uses hardware switches on Pi if set true, ignored if controller is not running on Pi
 
     #software network address assignments
-    SIM_IP_ADDR = ['192.168.1.16', '192.168.1.22'] # first addr provides telemetry and encoder data
+    SIM_IP_ADDR = ['192.168.1.16', '192.168.1.23'] # first addr provides telemetry and encoder data
     ECHO_IP_ADDR = '127.0.0.1' # transform and platform output echoed to this address using PLATFORM_ECHO_PORT
     ENCODER_IP_ADDR = SIM_IP_ADDR[0] # Encoder server running on first sim PC 
     # software network port assignments:

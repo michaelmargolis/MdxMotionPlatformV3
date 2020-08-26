@@ -1,6 +1,6 @@
 """ Platform Controller connects a selected client to motion platform.
 
-Copyright Michael Margolis, Middlesex University 2019; see LICENSE for software rights.
+Copyright Michael Margolis, Middlesex University 2020, see LICENSE for software rights.
 
 note actuator lengths now expressed as muscle compression in mm (prev was total muscle length)
 """
@@ -186,6 +186,7 @@ class Controller(QtWidgets.QMainWindow):
                     connection.send(startup_msg + '\n') 
                 else:
                     app.processEvents()
+                    log.info("retrying startup to %s: is 'local_startup.py' running?", addr)
 
     def set_activation_buttons(self, isEnabled): 
         if isEnabled:

@@ -1,4 +1,5 @@
-# gui_utils
+# gui_utils - some useful pyqt high level functions
+
 from PyQt5 import QtCore
 
 

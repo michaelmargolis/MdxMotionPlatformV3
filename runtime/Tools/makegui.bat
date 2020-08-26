@@ -1,4 +1,4 @@
-call C:\Python27\Lib\site-packages\PyQt5\pyuic5 ..\main_gui.ui -o main_gui.py
+call C:\Python27\Lib\site-packages\PyQt5\pyuic5 ..\main_gui.ui -o ..\main_gui.py
 call C:\Python27\Lib\site-packages\PyQt5\pyuic5 ..\clients\test_client\simple_input_gui.ui -o ..\clients\test_client\simple_input_gui_defs.py
 call C:\Python27\Lib\site-packages\PyQt5\pyuic5 ..\clients\coaster\coaster_gui.ui -o ..\clients\coaster\coaster_gui_defs.py
 call C:\Python27\Lib\site-packages\PyQt5\pyuic5 ..\clients\SpaceCoaster\space_coaster_gui.ui -o ..\clients\SpaceCoaster\space_coaster_gui_defs.py

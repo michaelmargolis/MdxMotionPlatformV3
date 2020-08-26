@@ -22,7 +22,7 @@ class RemoteMsgProtocol(object):
         self.state = int(context[0])
         self.frame = int(context[1])
         self.is_paused = int(context[2])
-        self.transform = fields[1]
+        self.transform = [float(f) for f in fields[1].split(',')]
         self.ride_status_str = fields[2]
         self.connection_status_str = fields[3]
 

@@ -1,7 +1,8 @@
 """
-  remote client for space_coaster for V3 software
+  remote client for V3 software
   
-  This version controls two local clients with one or more running on remote pc
+  This version controls one or more local clients running on remote pc
+  The gui can display up to eight clients
 
 """
 
@@ -59,22 +60,39 @@ class RemoteInputInterface(ClientApi):
         self.frame = frame
 
         #control arrays
-        self.lbl_coaster_connection = [self.ui.lbl_coaster_connection_1, self.ui.lbl_coaster_connection_2]
-        self.lbl_coaster_status = [self.ui.lbl_coaster_status_1, self.ui.lbl_coaster_status_2]
+        self.lbl_coaster_connection = []  # [self.ui.lbl_coaster_connection_1, self.ui.lbl_coaster_connection_2]
+        # self.lbl_coaster_status = [self.ui.lbl_coaster_status_1, self.ui.lbl_coaster_status_2]
+
         # self.lbl_temperature_status = [self.ui.lbl_temperature_status_1,self.ui.lbl_temperature_status_1]
 
         # configure signals
         self.ui.btn_dispatch.clicked.connect(self.dispatch_pressed)
         self.ui.btn_pause.clicked.connect(self.pause_pressed)
         
-        self.ui.btn_reset_rift_1.clicked.connect(self.reset1)
-        self.ui.btn_reset_rift_2.clicked.connect(self.reset2)
+        # self.ui.btn_reset_rift_1.clicked.connect(self.reset1)
+        # self.ui.btn_reset_rift_2.clicked.connect(self.reset2)
 
         # Create custom buttons
         self.custom_btn_dispatch = gutil.CustomButton( self.ui.btn_dispatch, ('white','darkgreen'), ('black', 'lightgreen'), 10, 0) 
         self.custom_btn_pause = gutil.CustomButton( self.ui.btn_pause, ('black','orange'), ('black', 'yellow'), 10, 0) 
 
         self.ui.cmb_select_ride.currentIndexChanged.connect(self.ride_selection_changed)
+        gutil.set_text(self.ui.lbl_coaster_status, "Connecting", 'orange')
+        
+    def init_connection_status(self, remote_addresses):
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        for idx, ip_addr in enumerate(remote_addresses):
+            if idx >= 6:
+                log.warning("Connection status only shown for up to 6 addresses")
+                return
+            else:
+               label = QtWidgets.QLabel(self.ui.frm_input)
+               x = 20 + (idx % 2) * (self.ui.frm_input.width()/2)
+               y = 15 + (idx / 2) * 30
+               label.setGeometry(QtCore.QRect(x, y, 222, 19))
+               label.setFont(font)               
+               self.lbl_coaster_connection.append(label)
 
     def show_ride_selector(self, state):
         if state:
@@ -142,10 +160,12 @@ class RemoteInputInterface(ClientApi):
     def activate(self):
         log.info("Remote client activated")
         self.is_activated = True
+        self.show_state_change(self.state, self.is_activated)
 
     def deactivate(self):
         log.info("Remote client deactivated")
         self.is_activated = False
+        self.show_state_change(self.state, self.is_activated)
 
     def begin(self, cmd_func, limits, remote_addresses):
         for ip_addr in remote_addresses:
@@ -154,6 +174,7 @@ class RemoteInputInterface(ClientApi):
             self.client_frame.append(0)
             self.client_is_paused.append(False)
         self.set_address((remote_addresses, cfg.REMOTE_CLIENT_PORT))
+        self.init_connection_status(remote_addresses)
         # print(self.get_address(), self.get_address()[0][0]) 
         self.cmd_func = cmd_func
         self.limits = limits  # note limits are in mm and radians
@@ -161,10 +182,10 @@ class RemoteInputInterface(ClientApi):
             log.info('Platform Input is Remote Client with normalized parms, %d client(s) connected', len(self.clients))
         else:
             log.info('Platform Input is Remote Client with real world parms, %d client(s) connected', len(self.clients))
-        for i in range(len(self.clients)):
+        for i in range(len(self.lbl_coaster_connection)):
             gutil.set_text(self.lbl_coaster_connection[i], "Connecting to " + self.clients[i].ip_addr,"orange") 
-        for i in range(len(self.clients)):
-            gutil.set_text(self.lbl_coaster_status[i], " ","green") # not used in this version            
+        #for i in range(len(self.clients)):
+        #    gutil.set_text(self.lbl_coaster_status[i], " ","green") # not used in this version            
 
     def connect(self):
         """returns true if all clients are connected"""
@@ -182,7 +203,7 @@ class RemoteInputInterface(ClientApi):
         # client exit code goes here
         pass
 
-    def process_state_change(self, new_state, isActivated):
+    def show_state_change(self, new_state, isActivated):
         # print("Remote client state changed to ", str(RideState.str(new_state)), str(isActivated))
         log.debug("Remote client state changed to: %s (%s)", RideState.str(new_state), "Activated" if isActivated else "Deactivated")
         if new_state == RideState.READY_FOR_DISPATCH:
@@ -216,24 +237,38 @@ class RemoteInputInterface(ClientApi):
             gutil.set_text(self.ui.lbl_coaster_status, "Coaster is resetting", "blue")
 
     def process_client_states(self):
+        alert_color = 'green'
+         
         if self.client_state[1:] == self.client_state[:-1]:
             # here of all client states are the same
             self.state_mismatch = 0
-            gutil.set_text(self.ui.lbl_state_delta, "Client States are synced", "green")
+            if self.state != self.client_state[0]:  # track state of first client
+                log.info("state changed to %s",  RideState.str(self.client_state[0])) 
+                self.show_state_change(self.client_state[0], self.is_activated)
+                self.state = self.client_state[0]            
+            if len(self.clients) == 1: # single client
+                    gutil.set_text(self.ui.lbl_state_delta, " ", alert_color)
+                    return
+            gutil.set_text(self.ui.lbl_state_delta, "Client States are synced", alert_color)                    
         else:
             self.state_mismatch += 1 # count of frames with mismatched state
             log.warning("state mismatched over %d frame(s)",self.state_mismatch)
             if self.state_mismatch < 3:
-                    gutil.set_text(self.ui.lbl_state_delta, "Client States not synced", "orange")
+                alert_color = 'orange'
+                gutil.set_text(self.ui.lbl_state_delta, "Client States not synced", alert_color)
             else:
-                log.error("State mismatched over too many frames")
-                gutil.set_text(self.ui.lbl_frame_delta, format("Client State lost sync %d frames ago" % self.state_mismatch), "red")
-                # self.state = None # raise error?
-        if self.state != self.client_state[0]:  # track state of first client
-            log.info("state changed to %s",  RideState.str(self.client_state[0])) 
-            self.process_state_change(self.client_state[0], self.is_activated)
-            self.state = self.client_state[0]
-                
+                alert_color = 'red'
+                if self.state_mismatch == 3:
+                    log.error("State mismatched over too many frames")
+            mismatch_states = ""
+            for i in range(clients):
+                mismatch_states += format("PC %d: %s" % (i,self.client_state[i].str()))
+                if i < len(self.clients)-1:
+                    mismatch_states += "     " 
+            gutil.set_text(self.ui.lbl_coaster_status, mismatch_states, alert_color)
+            gutil.set_text(self.ui.lbl_frame_delta, format("Client State lost sync %d frames ago" % self.state_mismatch), alert_color)
+
+
         self.frame_mismatch = max(self.client_frame) - min(self.client_frame)
         if self.frame_mismatch > 5:
             log.warning("Excessive frame mismatch: %d", self.frame_mismatch)
@@ -262,6 +297,8 @@ class RemoteInputInterface(ClientApi):
                     try:
                         m = RemoteMsgProtocol()
                         m.decode(msg) 
+                        if idx == 0:
+                            self.set_transform(m.transform)
                         if self.client_state[idx] != m.state:
                             is_state_changed = True
                             self.client_state[idx] = m.state
@@ -277,7 +314,7 @@ class RemoteInputInterface(ClientApi):
             self.process_client_states()
 
         else:
-            print "not connected"
+            print("not connected")
         msg = None
 
 
@@ -301,8 +338,8 @@ class RemoteClient(QtWidgets.QMainWindow):
             self.ui.setupUi(self)
             self.client = RemoteInputInterface() 
             limits = pfm.limits_1dof
-            self.client.begin(self.cmd_func,  limits, ('192.168.1.16',))
             self.client.init_gui(self.ui.frame)
+            self.client.begin(self.cmd_func,  limits, ('192.168.1.16',))
             service_timer = QtCore.QTimer(self)
             service_timer.timeout.connect(self.client.service)
             log.info("Starting client service timer")
@@ -329,7 +366,8 @@ if __name__ == "__main__":
     from clients.local_client_gui_defs import Ui_MainWindow
     import traceback
     import importlib  
-    sys.path.insert(0, '../../output')  # for platform config
+    sys.path.insert(0, '..\..\output')  # for platform config
+    sys.path.insert(0, 'output')  # for platform config
     
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%H:%M:%S')

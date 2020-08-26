@@ -1,10 +1,12 @@
-# this version does does not use separate start to open port
-# port open moved from thread to open method
+"""
+serialProcess.py
 
-# mm added alternate term char mm may 2020
+A high level wrapper for pyserial functionality
+
+"""
 
 
-# import multiprocessing
+
 import threading
 from time import time
 import serial

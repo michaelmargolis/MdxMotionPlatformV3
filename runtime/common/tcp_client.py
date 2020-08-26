@@ -1,5 +1,7 @@
-# tcp_client.py
-# code to support tcp connection to networked socket servers
+"""
+ tcp_client.py
+ code to support tcp connection to networked socket servers
+ """
 
 import time
 import sys

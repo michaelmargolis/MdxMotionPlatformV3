@@ -18,12 +18,9 @@ class SerialContainer(object):
 
 class Encoder(SerialProcess):
     def __init__(self):
-        # self.queue = result_queue
         super(Encoder, self).__init__()
-        # super(self.__class__, self).__init__()
 
     def read(self):
-        #data = super(self.__class__, self).read()
         data = super(Encoder, self).read()
         if data:
             data = data.rstrip('\r\n}').split(',')
@@ -47,12 +44,10 @@ class Encoder(SerialProcess):
 class IMU(SerialProcess):
     def __init__(self):
         super(IMU, self).__init__()
-        # super(self.__class__, self).__init__()
 
     def read(self):
         msg = super(Imu, self).read()
         return msg.rstrip('\r\n}')
-        # return super(self.__class__, self).read().rstrip('\r\n}')
 
     def tare(self):
         self.write("T")
@@ -60,7 +55,6 @@ class IMU(SerialProcess):
 class Scale(SerialProcess):
     def __init__(self):
         super(Scale, self).__init__()
-        # super(self.__class__, self).__init__()
 
     def read(self):
         return self.update()
@@ -70,7 +64,6 @@ class Scale(SerialProcess):
             try:
                 self.write('{"measure":"kg"}')
                 msg = super(Scale, self).read()
-                #msg = super(self.__class__, self).read()
                 if '"measurement"' in msg:
                     msg = msg.split(":")
                     weight = msg[1].rstrip('\r\n}')
@@ -91,11 +84,9 @@ class ServoModel(SerialProcess):
     def __init__(self):
         self.result_queue = Queue()
         super(ServoModel, self).__init__(self.result_queue)
-        # super(self.__class__, self).__init__(self.result_queue)
 
     def read(self):
         msg = super(ServoModel, self).read()
-        #msg = super(self.__class__, self).read()
         if msg:
             msg = msg.rstrip('\r\n}')
             return msg

@@ -1,4 +1,8 @@
-# udp_receive
+"""
+ udp_tx_rx.py
+ 
+ Simple classes for sending and receiving UDP text messages
+"""
 
 import socket
 import threading
