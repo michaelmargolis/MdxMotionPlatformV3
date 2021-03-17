@@ -1,0 +1,38 @@
+MDX Platform technical information
+
+Festo:
+  IP Address: 192.168.0.10
+  Port: 991
+  protocol: proprietary (Festo easyIP)
+
+NoLimits telemetry:
+ IP Address:  192.168.0.4 (the address of the VR PC)
+ Port: 15151
+ Protocol: proprietary (documented in NoLimits distribution)
+ 
+Lockheed Martin Prepar3D
+ FlightSimGateway using MDX C Sharp FlightSimeGateway 
+
+Microsoft Flight Simulator 2020
+ SimConnect (using MDX C Sharp msfs_gateway)
+
+Condor(flight sim:
+  IP Address:  192.168.0.4 (the address of the VR PC)
+  Port:  55278
+  Protocol: proprietary (documented in distribution)
+
+Platform Runtime:
+ IP Address is  either VR PC or Pi controller
+ V1 platform input port: 10002 (deprecated)
+ Generic IP Client port: 10009
+ NoLimits coaster client port : 10011
+ Orientation Display output port: 10020 (contains UDP orientation messages)
+ Monitor output port: 10010 (UDP orientation test messages)
+ Client remote  controller messages: 10013
+
+
+
+
+   
+
+
