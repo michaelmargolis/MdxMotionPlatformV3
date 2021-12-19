@@ -9,17 +9,26 @@ updated April 12 2020 to include z axis  and calculations for both sides
 This file defines the coordinates of the upper (base) and lower (platform) attachment points
 Note: because the chair is an inverted stewart platform, the base is the plane defined by the upper attachment points
 
-The coordinate frame used follow ROS conventions, positive X is forward, positive Y us left, positive Z is up,
-positive yaw is CCW from the perspective of person on the chair.
+The coordinate frame used follows ROS conventions, positive values: X is forward, Y is left, Z is up,
+roll is right side down, pitch is nose down, yaw is CCW; all from perspective of person on the chair.
 
 The origin is the center of the circle intersecting the attachment points. The X axis is the line through the origin running
- from back to front (X values increase moving from back to front). The Y axis passes through the origin with values increasing
+ from back to front (X values increase moving forward). The Y axis passes through the origin with values increasing
  to the left.
-
+                   +y 
+                 -------- 
+                []::::::
+                []:::::::                
+      -x        []::::::::   +X  (front)
+                []::::::: 
+                {}::::::
+                 --------
+                   -y
+                 
 The attachment coordinates can be specified explicitly or with vectors from the origin to
  each attachment point. Uncomment the desired method of entry.
 
-You only need enter values for the left side, the other side is a mirror image and is calculated for you
+You only need enter values for the left side, the other side is a mirror image and is calculated ny this software
 """
 
 import math
@@ -39,6 +48,7 @@ class PlatformConfig(object):
         MAX_MUSCLE_LEN = 800  # length of muscle at minimum pressure
         MIN_MUSCLE_LEN = MAX_MUSCLE_LEN * .75 # length of muscle at maximum pressure
         self.FIXED_LEN = 200  #  length of fixing hardware
+        
         self.MIN_ACTUATOR_LEN = MIN_MUSCLE_LEN + self.FIXED_LEN  # total min actuator distance including fixing hardware
         self.MAX_ACTUATOR_LEN = MAX_MUSCLE_LEN + self.FIXED_LEN # total max actuator distance including fixing hardware
         self.MAX_ACTUATOR_RANGE = self.MAX_ACTUATOR_LEN - self.MIN_ACTUATOR_LEN
@@ -48,9 +58,12 @@ class PlatformConfig(object):
         self.PROPPING_LEN = self.MAX_ACTUATOR_LEN *.92  # length for attaching stairs or moving prop
         self.HAS_PISTON = True  # True if platform has piston actuated prop
         self.HAS_BRAKE = False # True if platform has electronic braking when parked
+        
+        self.INVERT_AXIS = (1,1,1,1,1,1) # set -1 to invert: x, y, z, roll, pitch, yaw
+        self.SWAP_ROLL_PITCH = False   # set true to swap roll and pitch (also swaps x and y)
 
         #  the max movement in a single DOF
-        self.limits_1dof = (100, 122, 140, math.radians(15), math.radians(20), math.radians(12)]
+        self.limits_1dof = (100, 122, 140, math.radians(15), math.radians(20), math.radians(12))
 
         # limits at extremes of movement
         self.limits_6dof = (80, 80, 80, math.radians(12), math.radians(12), math.radians(10))
@@ -98,7 +111,7 @@ class PlatformConfig(object):
         self.PLATFORM_POS = np.array(platform_pos)
 
 if __name__ == "__main__":
-    from . import plot_config 
+    import plot_config 
     cfg = PlatformConfig()
     cfg.calculate_coords()
     plot_config.plot(cfg.BASE_POS, cfg.PLATFORM_POS, cfg.PLATFORM_MID_HEIGHT, cfg.PLATFORM_NAME )

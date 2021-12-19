@@ -119,8 +119,8 @@ class ClientSelect(QDialog):
         if rbtn.isChecked() == True:
             self._client_name = rbtn.text()
             self._client_index = self.client_rb.index(rbtn)
-            print "index=", self._client_index
-            print self.client_name, cfg.clients[self._client_index].sim_name
+            print("index=", self._client_index)
+            print(self.client_name, cfg.clients[self._client_index].sim_name)
 
     @property
     def pc_addresses(self):

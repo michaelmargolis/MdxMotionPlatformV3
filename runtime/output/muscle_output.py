@@ -107,7 +107,7 @@ class MuscleOutput(object):
             distances[idx] = int(round(d))
         try:
             out_pressures = self.distance_to_pressure(distances)
-            #  print "pressures in move_distance", out_pressures
+            # print( "pressures in move_distance", out_pressures)
             self.festo.send_pressures(out_pressures)
             self.percents = []
             for d in distances:

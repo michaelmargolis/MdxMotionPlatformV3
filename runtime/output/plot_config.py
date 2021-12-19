@@ -40,6 +40,7 @@ def plot(base_pos, platform_pos, platform_mid_height, PLATFORM_NAME ):
            h = 'right'
         else:
            h = 'left'
+        h = 'right'
         plt.annotate(
             label,
             xy=(x, y), xytext=(lbl_xoffset, lbl_yoffset),
@@ -57,6 +58,8 @@ def plot(base_pos, platform_pos, platform_mid_height, PLATFORM_NAME ):
                offset = (-20, -20)
             else:
                offset = (-20, 20)
+        else:
+            offset = (-20, 20)
         plt.annotate(
             label,
             xy=(x, y), xytext=(offset),

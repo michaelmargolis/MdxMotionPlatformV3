@@ -3,6 +3,7 @@ import socket
 import logging
 import traceback
 import time
+import random
 
 import easyip
 from festo_emulator_gui_defs import *
@@ -28,7 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timeout_start_time = None
         self.ma = MA(10)
         self.requested_pressures = [0,0,0,0,0,0]
-        log.info("Festo emulator running on %s", host_ip)
+        log.info("Festo emulator running on %s, port %d", host_ip, easyip.EASYIP_PORT)
 
     def init_gui(self):
         self.pressure_bars = [self.ui.muscle_0,self.ui.muscle_1,self.ui.muscle_2,self.ui.muscle_3,self.ui.muscle_4,self.ui.muscle_5]
@@ -63,7 +64,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ep = []
         for d in self.requested_pressures:
             ep.append(max(d+random.randint(-100,100), 0))
-            return em
+            return ep
 
     def receive(self):
         while True:
@@ -73,14 +74,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 t = time.time()
                 packet = easyip.Packet(data)
                 if packet.reqdata_type == easyip.Operands.FLAG_WORD:
-                     print("get pressure request")
+                     # print("get pressure request")
                      emulated_pressure = self.get_emulated_pressures()
                      packet = easyip.Factory.send_flagword(0, emulated_pressure)
                      self.send_response(packet, addr)
                 else:
-                    print("set pressure")
+                    # print("set pressure")
                     values = packet.decode_payload(easyip.Packet.DIRECTION_SEND)
-                    print "in emulator", packet, "values=", values
+                    print( "in emulator", packet, "values=", values)
                     self.show_pressures(values)
                 self.ui.lbl_connection.setText("Connected to " + addr[0])
                 if self.prev_message_time:

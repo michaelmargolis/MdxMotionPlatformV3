@@ -117,7 +117,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.tabWidget.currentChanged.connect(self.tab_changed)
         self.ui.btn_load_d_to_p.clicked.connect(self.load_d_to_p)
         self.ui.btn_run_lookup.clicked.connect(self.run_lookup)
-        self.ui.btn_move.clicked.connect(self.move)
         self.ui.chk_delta_capture.stateChanged.connect(self.delta_capture_state_changed)
         self.ui.btn_create_d_to_p.clicked.connect(self.create_d_to_p)
         self.ui.btn_merge_d_to_p.clicked.connect(self.merge_d_to_p)
