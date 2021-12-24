@@ -1,3 +1,5 @@
+# derived from: https://github.com/nasa/XPlaneConnect
+
 import socket
 import struct
 
@@ -39,6 +41,7 @@ class XPlaneConnect(object):
         self.socket.bind(clientAddr)
         timeout /= 1000.0
         self.socket.settimeout(timeout)
+        print("Init completed for X-Plane at {} with timeout {}ms".format(xpHost, timeout))
 
     def __del__(self):
         self.close()
@@ -106,7 +109,7 @@ class XPlaneConnect(object):
         if pause < 0 or (pause > 2 and pause < 100) or (pause > 119 and pause < 200) or pause > 219 :
             raise ValueError("Invalid argument for pause command.")
 
-        buffer = struct.pack("<4sxB", "SIMU", pause)
+        buffer = struct.pack("<4sxB", b"SIMU", pause)
         self.sendUDP(buffer)
 
     # X-Plane UDP Data
@@ -331,7 +334,7 @@ class XPlaneConnect(object):
              datarefs.
         '''
         # Send request
-        buffer = struct.pack("<4sxB", "GETD", len(drefs))
+        buffer = struct.pack("<4sxB", b"GETD", len(drefs))
         for dref in drefs:
             fmt = "<B{0:d}s".format(len(dref))
             buffer += struct.pack(fmt, len(dref), dref)
@@ -347,7 +350,7 @@ class XPlaneConnect(object):
             offset += 1
             fmt = "<{0:d}f".format(rowLen)
             row = struct.unpack_from(fmt, buffer, offset)
-            result.append(row)
+            result.append(row[0]) # mem appending float instead of tuple
             offset += rowLen * 4
         return result
 

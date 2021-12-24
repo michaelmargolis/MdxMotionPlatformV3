@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # dcs_gateway.py
+# This version listens on a UDP port
 
 import sys
 import socket
@@ -9,7 +10,8 @@ import csv
 from collections import namedtuple
 import threading
 import traceback
-from queue import Queue
+# from queue import Queue 
+import logging as log
 
 PORT = 31090        # Port to listen on for DCS hook messages 
 
@@ -22,35 +24,34 @@ DCS_telemetry = namedtuple('DCS_telemetry', \
 
 # DCS fields used by Motion platform  
 # positive values: surge forward, sway left, heave up, roll right side down, pitch nose down, yaw CCW 
-Platform_fields = ['NMCAccel_x', 'NMCAccel_z', 'NMCAccel_y', 'NMCOmega_y', 'NMCOmega_z', 'NMCOmega_x',]
+
+#Platform_fields = ['NMCAccel_z', 'NMCAccel_x', 'NMCAccel_y', 'NMCOmega_z', 'NMCOmega_x', 'NMCOmega_y'] # using rotation acceleration 
+
+Platform_fields = ['NMCAccel_x', 'NMCAccel_z', 'NMCVerticalSpeed', 'NMCinertial_Bank', 'NMCinertial_Pitch', 'NMCinertial_Yaw']  # using angles of roll, pitch yaw 
 
 class DCS_gateway:  
     def __init__(self, DCS_port = PORT):
         self.port = DCS_port
-        self.dcs_hook_Q = None
-        self.is_hook_connected = False
+        self.dcs_message = None # raw msg from hook, read only in main thread
+        self.is_connected = False
+        self.is_active = False #set true when thread is started
         self.telemetry = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]  # the most recent DCS fields for the platform stored here
-        self.normalize = [1.0, -1.0, 1.0, 1.0, 1.0, 1.0 ]  # multiplied to each field to adjust direction and max value to +-1
+        self.normalize = [1.0, 1.0, -0.001, 1.0, -1.0, 0.1]  # multiplied to each field to adjust direction and max value to +-1
+        log.info("DCS gateway started using norm values: " + ','.join(str(n) for n in self.normalize))
     
     # return latest DCS data or None if not connected     
     def read(self):
-        if not self.dcs_hook_Q:
-            print("Error: you must call the listen method at startup prior to calls to read")
-            quit()
-        msg = None
-        while self.dcs_hook_Q.qsize() > 1:
-            ignored = self.dcs_hook_Q.get()
-            # print("ignored", ignored)       
-        if self.dcs_hook_Q.qsize() > 0:
-            msg = self.dcs_hook_Q.get()
-            # print("debg in read", msg)
-            telem = self.parse_dcs(msg)
-            if telem is not None:
-                self.telemetry = telem # store latest values  
-        if self.is_hook_connected:     
+        if self.dcs_message is None:
+            return None
+        msg = self.dcs_message # must make copy of self.dcs_message (it's updated in another thread)
+        telem = self.parse_dcs(msg) 
+        if telem is not None:
+            # telem[2]= telem[2]-1 # subtract 1g IF NEEDED
+            self.telemetry = telem # store latest values  
+        if self.dcs_message:     
             return self.telemetry 
         else:
-            return None # not connected
+            return None # notthing has been received from the hook
 
     # parses DCS message and extracts needed fields
     def parse_dcs(self, msg):
@@ -73,60 +74,39 @@ class DCS_gateway:
             print(e)
             
     def listen(self):
-        self.dcs_msg_buffer_size = 1024
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # self.sock.settimeout(1)
-        self.sock.bind(('127.0.0.1', self.port))
-        print("listening on port ", self.port)
-        self.sock.listen()
-        self.dcs_hook_Q = Queue()
-        self.is_active = True
-        t = threading.Thread(target=self.listener_thread, args= (self.sock, self.dcs_hook_Q))
-        t.daemon = True
-        t.start()
+        if not self.is_active:
+            msg_buffer_size = 1024
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock.settimeout(1) 
+            self.sock.bind(("localhost", self.port))
+
+            log.info("DCS gateway listening on port " + str(self.port))
+            self.is_active = True
+            t = threading.Thread(target=self.listener_thread, args= (self.sock, msg_buffer_size))
+            t.daemon = True
+            t.start()
         
-    def listener_thread(self, sock, que):
-        # received msgs are put into to que
-        line_reader = LineReader(sock)
+    def listener_thread(self, sock, buffer_size):
+        # received msgs are passed using shared memory so do not modify in main thread
+
         while self.is_active: 
-            try:
-                print("ready to accept")
-                line_reader.accept()  
-                self.is_hook_connected = True                
-                while self.is_active and self.is_hook_connected: 
-                    data = line_reader.get_line()
-                    if data is None:
-                       self.is_hook_connected = False
-                       print("DCS hook disconnected")
-                    else:
-                        if len(data) > 0:
-                            que.put(data)
+            try:             
+                while self.is_active: 
+                    msg = sock.recv(buffer_size).decode('utf-8')
+                    if len(msg) > 1:
+                        # perform any mods to msg before the next line
+                        self.dcs_message = msg 
+                        self.is_connected = True  # set connected flag when msg received
+                            
             except socket.timeout:
-                pass
+                if self.is_connected:
+                    log.info("Timeout receiving DCS telemetry")
+                self.is_connected = False            
             except:
                 e = sys.exc_info()[0]
                 s = traceback.format_exc()
                 print("listener thread err", e, s)
 
-# LineReader class extracts a newline terminated message from the TCP stream 
-class LineReader:
-    def __init__(self,sock):
-        self.sock = sock
-        self.buffer = b''
-    
-    def accept(self):
-        self.conn, addr = self.sock.accept()
-
-    def get_line(self):
-        while b'\n' not in self.buffer:
-            data = self.conn.recv(1024)   
-            data.replace(b'\n\n', b'\n') # remove extranios newlines
-            if data == b'':
-                return None # socket closed
-            self.buffer += data
-        line,sep,self.buffer = self.buffer.partition(b'\n')
-        return line.decode()
         
 # test code showing example usage  
 def main():

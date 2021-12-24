@@ -21,11 +21,14 @@ class Sim():
         # values for each element that when multiplied will normalize data to a range of +- 1 
         self.norm_factors = norm_factors
     
-    def load(self):
+    def set_state_callback(self, callback):
+        self.state_callback = callback
+        
+    def load(self, loader):
         try:
-            log.info("Starting NoLimits2")
-            os.startfile(r"C:\Users\memar\Desktop\Vr\NoLimits 2.lnk")
-            #os.startfile(line)
+            log.info("Starting NoLimits2 executing: " + loader)
+            # os.startfile(r"C:\Users\memar\Desktop\Vr\NoLimits 2.lnk")
+            os.startfile(loader)
             return("loading...") 
         except Exception as e:
             print(e)

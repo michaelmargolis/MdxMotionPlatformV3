@@ -13,6 +13,7 @@
 """
 
 import sys
+import os
 import socket
 from math import radians, degrees
 import threading
@@ -116,11 +117,11 @@ class Sim(object):
     def set_state_callback(self, callback):
         self.state_callback = callback
         
-    def load(self):
+    def load(self, loader):
         try:
-            log.info("Starting Spacecoaster")
-            os.startfile(r"C:\Users\memar\Desktop\Vr\SpaceCoaster.lnk")
-            return("loading...") 
+            log.info("Starting Spacecoaster executing: " + loader)
+            os.startfile(loader)
+            return("loading...")  # is this used??
         except Exception as e:
             print(e)
             return(str(e)) 

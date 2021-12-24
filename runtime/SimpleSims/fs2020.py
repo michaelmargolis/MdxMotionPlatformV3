@@ -1,6 +1,6 @@
 # sim class for FS 2020
 from SimConnect import *
-import subprocess
+import os
 import logging as log
 import traceback
 
@@ -21,14 +21,14 @@ class Sim():
     def set_norm_factors(self, norm_factors):
         # values for each element that when multiplied will normalize data to a range of +- 1 
         self.norm_factors = norm_factors
-    
-    def load(self):
+
+    def set_state_callback(self, callback):
+        self.state_callback = callback
+        
+    def load(self, loader):
         try:
-            with open("SimpleSims\\fs2020.load") as f:
-                cmd = f.readline()
-            log.info("Starting FS 2020")
-            subprocess.Popen([cmd])
-            #os.startfile(line)
+            log.info("Attempting to start sim by executing " + loader)
+            os.startfile(loader)
             return("loading...") 
         except Exception as e:
             print(e)
@@ -66,7 +66,7 @@ class Sim():
             x = self.aq.get("ACCELERATION_BODY_X") * self.norm_factors[0]
             y = self.aq.get("ACCELERATION_BODY_Y") * self.norm_factors[1]
             z = self.aq.get("ACCELERATION_BODY_Z") * self.norm_factors[2]
-            roll = self.aq.get("PLANE_BANK_DEGREES") * self.norm_factors[3]  # actually radians
+            roll = -self.aq.get("PLANE_BANK_DEGREES") * self.norm_factors[3]  # actually radians
             pitch = self.aq.get("PLANE_PITCH_DEGREES") * self.norm_factors[4] # actualy radians
             yaw = self.aq.get("TURN_COORDINATOR_BALL") * self.norm_factors[5]
             return (x, y, z, roll, pitch, yaw)

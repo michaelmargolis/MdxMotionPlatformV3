@@ -1,6 +1,7 @@
 # sim class for dcs_gateway
 from SimpleSims.dcs_gateway import DCS_gateway as dcs
-import subprocess
+import os
+import time
 import logging as log
 import traceback
        
@@ -24,12 +25,11 @@ class Sim():
     def set_state_callback(self, callback):
         self.state_callback = callback
 
-    def load(self):
+    def load(self, loader):
         try:
-            print("you could start DCS here")
-            #subprocess.Popen([cmd])
-            #os.startfile(line)
-            return("loading...") 
+            log.info("Starting DCS executing: " + loader)
+            os.startfile(loader)
+
         except Exception as e:
             print(e)
             return(str(e))            
@@ -39,20 +39,30 @@ class Sim():
         try:
             if self.dcs:
                 self.dcs.listen()
-                self.is_connected = True
-                return None 
+                time.sleep(.1) # wait for at leat one  message
+                if self.dcs.is_connected:
+                    self.is_connected = True 
+                    log.info("Connected to DCS")               
+                    return None
+                else:
+                    return("Not connecting to DCS, is it running")
             else:
-                return("Not connecting to DCS") 
+                return("DCS gateway not available") 
         except ConnectionError:
             #note that current gateway does not check if gateway is connected
+            log.info("Not connecting, is DCS loaded? " + str(e)) 
+            print(traceback.format_exc())
             return "Not connecting, is DCS loaded?"
         except Exception as e:
             log.info("DCS connect err: " + str(e)) 
-            return(e)
+            print(traceback.format_exc())
+            return(str(e))
 
     def run(self):
         print("todo run")
 
+    def pause(self):
+        print("todo pause")
  
     def read(self):
         if self.dcs:
