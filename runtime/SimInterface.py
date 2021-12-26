@@ -41,9 +41,9 @@ LATENCY = 0
 DATA_PERIOD =  50 - LATENCY  # ms between samples
 
 ECHO_UDP_IP = "127.0.0.1"
-ECHO_UDP_PORT = 10020
-echo_address = (ECHO_UDP_IP, ECHO_UDP_PORT )
+echo_address = ((ECHO_UDP_IP, 10020),(ECHO_UDP_IP, 10021))
 
+print(echo_address)
 
 slider_config_module = "configNextgen"
 chair_config_module = "ConfigV3"
@@ -224,6 +224,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
     def connect_sim(self):
         if not self.sim:
+            print("selected sim is " + self.selected_sim_class)
             sim_path = "SimpleSims." + self.selected_sim_class
             try:
                 sim = importlib.import_module(sim_path)
@@ -281,8 +282,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         req_msg = "request," + ','.join(t)
         dist_msg = ",distances," +  ",".join(str(int(d)) for d in distances)
         msg = req_msg + dist_msg + "\n"
-        # print(msg)
-        self.echo_sock.sendto(bytes(msg, "utf-8"), echo_address)
+        for i in range(len(echo_address)):
+            # print("sending",  echo_address[i], msg)
+            self.echo_sock.sendto(bytes(msg, "utf-8"), echo_address[i])
+  
         if self.csv_outfile:
             self.csv_outfile.write(msg)
 
