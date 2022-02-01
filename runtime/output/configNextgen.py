@@ -36,7 +36,7 @@ class PlatformConfig(object):
         #self.INVERT_AXIS = (1,-1,-1,-1,1,-1) # set element to -1 to invert axis direction
         #self.SWAP_ROLL_PITCH = False  # also swaps x and y
         
-        # config for top front facing muscles 1 and 2         
+        # config for top front facing muscles 1 and 2
         self.INVERT_AXIS = (1,1,-1,-1,-1,-1) # set element to -1 to invert axis direction
         self.SWAP_ROLL_PITCH = True  # also swaps x and y
 

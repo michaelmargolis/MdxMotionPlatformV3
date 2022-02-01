@@ -1,6 +1,6 @@
-""" Platform Controller connects a selected client to motion platform.
+""" Platform Controller gets telemetry from a selected agent and drives the motion platform.
 
-Copyright Michael Margolis, Middlesex University 2020, see LICENSE for software rights.
+Copyright Michael Margolis, Middlesex University 2020-22, see LICENSE for software rights.
 
 note actuator lengths now expressed as muscle compression in mm (prev was total muscle length)
 """
@@ -11,21 +11,27 @@ import sys
 import os
 import time
 import socket
+import math # for pi in echo
 import numpy as np
 
 
-from main_gui import *
-from clients.client_select_dialog import ClientSelect
-from clients.ride_state import RideState
+# from main_gui import *
+from PyQt5 import QtWidgets, uic, QtCore, QtGui
+
+from agents.agent_select_dialog import AgentSelect
+from agents.agent_config import AgentCfg
+from agents.ride_state import RideState
 
 import common.gui_utils as gutil
 from common.dynamics import Dynamics
 from common.encoders import EncoderClient
 from common.streaming_moving_average import StreamingMovingAverage as MA
 from common.dialog import ModelessDialog
-from common.tcp_client import TcpClient
+from common.udp_tx_rx import UdpReceive
+# from common.tcp_client import TcpClient
+from agents.agent_proxy import AgentProxy
 
-# Importlib used to load configurations for client and platform as selected in platform_config.py
+# Importlib used to load configurations for platform as selected in platform_config.py
 import importlib
 from  platform_config import platform_selection, cfg
 pfm = importlib.import_module(platform_selection).PlatformConfig()
@@ -39,20 +45,27 @@ import output.d_to_p as d_to_p
 
 log = logging.getLogger(__name__)
 
+qtcreator_file  = "main_gui.ui"
+Ui_MainWindow, QtBaseClass = uic.loadUiType(qtcreator_file)
+
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+
+
 class Controller(QtWidgets.QMainWindow):
 
     def __init__(self, festo_ip):
-        try:
+        try:        
             self.FRAME_RATE_ms = 50
             self.prev_service = None
             if festo_ip == '':
                 # use ip from config file of not overridden on cmd line
                 festo_ip = cfg.Festo_IP_ADDR
+            self.is_alive = True  # set False to terminate
             self.init_gui()
             self.init_kinematics()
             self.platform = MuscleOutput(self.DtoP.distance_to_pressure, festo_ip, pfm.MAX_ACTUATOR_RANGE)
-            self.platform_status = None
-            self.is_active = True  # set False to terminate
+            self.platform_status_str = None
             self.is_output_enabled = False
             self.init_platform_parms()
             self.encoder_server = None
@@ -69,9 +82,9 @@ class Controller(QtWidgets.QMainWindow):
             log.info("Platform controller initializations complete")
         except:
             raise
-            
+
     def init_remote_controls(self):
-        self.RemoteControl = RemoteControl(self, self.client.set_rc_label)
+        self.RemoteControl = RemoteControl(self, self.agent_proxy.gui.set_rc_label)
         self.local_control = None
         if os.name == 'posix':
             if os.uname()[1] == 'raspberrypi':
@@ -123,7 +136,6 @@ class Controller(QtWidgets.QMainWindow):
             log.error("Failed to loaded %s file", d_to_p_file)
 
     def init_platform_parms(self):
-        # self.platform.begin(pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_LEN, pfm.DISABLED_LEN, pfm.PROPPING_LEN, pfm.FIXED_LEN)
         self.platform_disabled_pos = np.empty(6)   # position when platform is disabled
         self.platform_propping_pos = np.empty(6)  # position for attaching stairs
         self.platform_disabled_pos.fill(pfm.DISABLED_LEN)  # position when platform is disabled (propped)
@@ -136,7 +148,7 @@ class Controller(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('platform_icon.png'))
         self.ui.tabWidget.currentChanged.connect(self.tab_changed)
         self.ui_tab = 0
-        self.select_client()
+        self.select_agent()
         try:
             self.output_gui = output_gui.OutputGui()
             self.output_gui.init_gui(self.ui.frm_output, pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_RANGE)
@@ -159,34 +171,30 @@ class Controller(QtWidgets.QMainWindow):
             log.error("error in init gui %s, %s", e, traceback.format_exc())
         return False
 
-    def select_client(self):
-        dialog =  ClientSelect(self, cfg.SIM_IP_ADDR)
-        if dialog.exec_():
-            startup_msg = format("STARTUP,%s,%s" % (dialog.client_name, dialog.local_client_itf))
-            self.start_remote_pcs(dialog.pc_addresses, startup_msg)
-            log.info("starting client: %s", dialog.remote_client)
-            self.client = importlib.import_module(dialog.remote_client).InputInterface()
-            self.client.init_gui(self.ui.frm_input)
-            self.ui.lbl_client.setText("Client: " + self.client.name)
-            self.client.begin(self.cmd_func, pfm.limits_1dof, dialog.pc_addresses)
+    def select_agent(self):
+        agent_cfg = AgentCfg()
+        dialog =  AgentSelect(self, cfg.SIM_IP_ADDR)
+        if dialog.exec_(): 
+            self.start_remote_pcs(dialog.agent_name, dialog.agent_module, dialog.agent_gui, dialog.selected_pc_addresses())
+            log.info("FIXME starting agent proxy gui: %s", dialog.agent_gui)
+            # FIXME self.agent_proxy = importlib.import_module(dialog.remote_client).InputInterface()
+
+            self.ui.lbl_client.setText("Agent: " + dialog.agent_name)
         else:
             sys.exit() 
 
-    def start_remote_pcs(self, addresses, startup_msg):
+    def start_remote_pcs(self, agent_name, agent_module, agent_gui, addresses ):  
         for addr in addresses:
-            log.info("remote startup to %s: %s", addr, startup_msg)
-            connection = TcpClient(addr, cfg.STARTUP_SERVER_PORT)
-            while not connection.status.is_connected:
-                if connection.connect():
-                    log.info("Connected to PC at %s", addr)
-                    if addr == addresses[0]:
-                        log.info("Requesting encoder startup on %s", addr)
-                        connection.send("STARTUP,NONE,common/encoders\n")
-                    log.info("sending startup msg: %s", startup_msg)
-                    connection.send(startup_msg + '\n') 
-                else:
-                    app.processEvents()
-                    log.info("retrying startup to %s: is 'local_startup.py' running?", addr)
+            addr = (addr, cfg.STARTUP_SERVER_PORT) # append port to addresses
+
+        self.agent_proxy = AgentProxy(addresses, cfg.STARTUP_SERVER_PORT, cfg.FIRST_AGENT_PROXY_EVENT_PORT)
+        while self.agent_proxy.connect() == False:
+             app.processEvents()
+        self.agent_proxy.init_gui(agent_gui, self.ui.frm_input)
+        self.cmd_dispatcher = {'detected remote': self.agent_proxy.gui.detected_remote, 'pause': self.agent_proxy.pause_pressed,
+                'dispatch': self.agent_proxy.dispatch_pressed, 'reset': self.agent_proxy.reset_vr, 'emergency_stop': self.emergency_stop,
+                'activate': self.activate, 'deactivate': self.deactivate, 'intensity' : self.set_intensity, 'info' : self.agent_proxy.remote_info }
+        self.agent_proxy.send_startup(agent_name, agent_module)
 
     def set_activation_buttons(self, isEnabled): 
         if isEnabled:
@@ -208,7 +216,7 @@ class Controller(QtWidgets.QMainWindow):
         if btn.text() == 'Encoders' and btn.isChecked():
             self.connect_encoder()
         elif btn.text() == 'Manual' and btn.isChecked():
-           print("todo change to manual mode")
+           log.warning("Manual encoder mode not yet implimented")
 
     def encoder_reset(self):
         if self.encoder_server:
@@ -224,7 +232,7 @@ class Controller(QtWidgets.QMainWindow):
                 if self.encoder_server.connect():
                     log.info("Encoders on %s", addr_str)
                 else:
-                    self.ui.tabWidget.setCurrentIndex(2)
+                    # self.ui.tabWidget.setCurrentIndex(2)
                     QtWidgets.QMessageBox.warning(self, 'Encoder Connection Error!',
                         "Unable to connect to encoders on " + addr_str + 
                         "\nSelect Encoders in GUI to try again", QtWidgets.QMessageBox.Ok)
@@ -234,26 +242,35 @@ class Controller(QtWidgets.QMainWindow):
                 log.error("Error connecting to encoders %s", e)
 
     def init_echo(self):
-        # todo - replace this with tcp_server ??? 
         self.echo_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.echo_addr = (cfg.ECHO_IP_ADDR, cfg.PLATFORM_ECHO_PORT)
         log.info("Echo will send UDP msgs to %s:%d",  self.echo_addr[0], self.echo_addr[1] )
 
     def echo_output(self, transform, distances, percents,):
-       if self.echo_sock:
+        if self.echo_sock:
             #print transform, percents, distances
-            trans_str = ",".join("{0:0.3f}".format(f) for f in transform)
-            dist_str = ",".join("{0}".format(i) for i in distances)
-            percent_str = ",".join("{0}".format(i) for i in percents)
-            msg = format("transform=%s;distances=%s;percents=%s;\n" % (trans_str, dist_str, percent_str))
-            self.echo_sock.sendto(msg.encode("utf-8"), self.echo_addr)
+            t = [""]*6
+            for idx, val in enumerate(transform):
+                if idx < 3:
+                    if idx == 2:
+                        val = -val #  TODO invert z ?
+                    t[idx] = str(round(val))
+                else:
+                    t[idx] = str(round(val*180/math.pi, 1))        
+
+            req_str = "request," + ','.join(t)
+            dist_str = ",distances," +  ",".join(str(int(d)) for d in distances)
+            percent_str = ",percent," +  ",".join(str(int(p)) for p in percents)
+            msg = req_str + dist_str + percent_str + "\n"
+            self.echo_sock.sendto(bytes(msg, "utf-8"), self.echo_addr)
+            # print(self.echo_addr, msg)
 
     def tab_changed(self, tab_index):
         self.ui_tab = tab_index
 
     def pause(self):
-        if self.client.get_ride_state() == RideState.RUNNING or self.client.get_ride_state() == RideState.PAUSED:
-            self.client.pause()
+        if self.agent_proxy.get_ride_state() == RideState.RUNNING or self.agent_proxy.get_ride_state() == RideState.PAUSED:
+            self.agent_proxy.pause()
         else:
             self.swell_for_access()
 
@@ -262,33 +279,16 @@ class Controller(QtWidgets.QMainWindow):
             log.debug('preparing to dispatch')
             self.move_to_ready()
             self.park_platform(False)
-            self.client.dispatch()
+            self.agent_proxy.dispatch()
         else:
             log.warning("Unable to dispatch because platform not enabled")
 
     def reset_vr(self):
        log.info("request to reset vr")
-       self.client.reset_vr()
+       self.agent_proxy.reset_vr()
 
     def emergency_stop(self):
        print("estop here")
-
-    def cmd_func(self, cmd):  # command handler function called from client
-        log.debug("controller received cmd function: %s", cmd)
-        if cmd == "exit": self.is_active = False
-        elif cmd == "dispatch": self.dispatch()
-        elif cmd == "pause": self.pause()
-        elif cmd == "enable": self.enable_platform()
-        elif cmd == "disable": self.disable_platform()
-        elif cmd == "idle": self.move_to_idle()
-        elif cmd == "ready": self.move_to_ready()
-        elif cmd == "swellForStairs": self.swell_for_access()
-        elif cmd == "parkPlatform": self.park_platform(True)
-        elif cmd == "unparkPlatform": self.park_platform(False)
-        elif cmd == "quit": self.quit()
-        elif 'intensity' in cmd:
-            m, intensity = cmd.split('=', 2)
-            self.set_intensity(int(intensity))
 
     def activate(self):
         """remote controls call this method"""
@@ -296,20 +296,20 @@ class Controller(QtWidgets.QMainWindow):
 
     def deactivate(self):
         """remote controls call this method"""
-        self.disable_platform()
-        
+        self.agent_proxy.deactivate()
+
     def enable_platform(self):
-        # request = self.process_request(self.client.get_transform())
+        # request = self.process_request(self.agent_proxy.get_transform())
         # actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(True, self.actuator_lengths)
         if not self.is_output_enabled:
             self.is_output_enabled = True
             log.debug("Platform Enabled")
         self.set_activation_buttons(True)
-        self.client.activate()
+        self.agent_proxy.activate()
 
     def disable_platform(self):
-        request = self.process_request(self.client.get_transform())
+        request = self.process_request(self.agent_proxy.get_transform())
         actuator_lengths = self.k.actuator_lengths(request)
         # self.platform.set_enable(False, self.actuator_lengths)
         if self.is_output_enabled:
@@ -318,21 +318,21 @@ class Controller(QtWidgets.QMainWindow):
             log.debug("in disable, lengths=%s", ','.join('%d' % l for l in actuator_lengths))
             self.platform.slow_move(actuator_lengths, self.platform_disabled_pos, 1000)
         self.set_activation_buttons(False)
-        self.client.deactivate()
+        self.agent_proxy.deactivate()
 
     def move_to_idle(self):
         log.debug("move to idle")
-        # request = self.process_request(self.client.get_transform())
+        # request = self.process_request(self.agent_proxy.get_transform())
         # actuator_lengths  = self.k.actuator_lengths(request)
         actuator_lengths = self.platform.prev_distances
-        ##pos = self.client.get_transform() # was used to get z pos (pos[2])
+        ##pos = self.agent_proxy.get_transform() # was used to get z pos (pos[2])
         self.park_platform(True)  # backstop to prop when coaster state goes idle
         self.platform.slow_move(actuator_lengths, self.platform_disabled_pos, 10) # rate is cm per sec
 
     def move_to_ready(self):
-        #  request = self.process_request(self.client.get_transform())
+        #  request = self.process_request(self.agent_proxy.get_transform())
         #  actuator_lengths  = self.k.actuator_lengths(request)
-        ##pos = self.client.get_transform() # was used to get z pos
+        ##pos = self.agent_proxy.get_transform() # was used to get z pos
         log.debug("move to ready")
         if pfm.PLATFORM_TYPE == "SLIDER":
             if self.output_gui.encoders_is_enabled():
@@ -377,16 +377,16 @@ class Controller(QtWidgets.QMainWindow):
         upper_payload_weight = int(pfm.LOAD_RANGE[1])
         payload = self.scale((intensity), (0, 10), (lower_payload_weight, upper_payload_weight))
         self.platform.set_payload(payload)
-        if self.output_gui.encoders_is_enabled() or self.client.get_ride_state() != RideState.READY_FOR_DISPATCH :
+        if self.output_gui.encoders_is_enabled() or self.agent_proxy.get_ride_state() != RideState.READY_FOR_DISPATCH :
             self.dynam.set_intensity(intensity)
             status = format("%d percent Intensity, (Weight %d kg)" % (self.dynam.get_overall_intensity() * 100, payload))
         else:
-            if self.client.get_ride_state() == RideState.READY_FOR_DISPATCH:
+            if self.agent_proxy.get_ride_state() == RideState.READY_FOR_DISPATCH:
                 index = intensity * self.DtoP.rows
                 self.d_to_p.up_curve_idx = [index]*6
                 self.d_to_p.down_curve_idx = [index]*6
                 status = format("Intensity = %d, index = %.1f" % (intensity*10, index))
-        self.client.intensity_status_changed((status, "green"))
+        self.agent_proxy.gui.intensity_status_changed((status, "green"))
 
     def run_lookup(self):
         # find closest curves for each muscle at the current load
@@ -412,24 +412,35 @@ class Controller(QtWidgets.QMainWindow):
 
     def process_request(self, transform):
         """ converts request to real world values if normalized"""
-        if self.client.is_normalized:
+        if self.agent_proxy.is_normalized:
             transform = self.dynam.regulate(transform)
         return transform
 
+    def orient_transform(self, transform):
+        """ adjusts transform for rotation of top as defined in platform_config"""
+        transform = [inv * axis for inv, axis in zip(pfm.INVERT_AXIS, transform)]
+        if pfm.SWAP_ROLL_PITCH:
+            # swap roll, pitch and x,y
+            transform[0],transform[1], transform[3],transform[4] =  transform[1],transform[0],transform[4], transform[3]
+        return transform
+
     def do_transform(self, transform): 
-        """ method to move platform to position corresponding to client transform"""
+        """ method to move platform to position corresponding to agent transform"""
         try:
-            start = time.time()
+            start = time.perf_counter()
+            transform = self.orient_transform(transform)
             processed_xform = self.process_request(transform)
             self.actuator_lengths = self.k.actuator_lengths(np.array(processed_xform))
             self.platform.move_distance(self.actuator_lengths)
-            processing_dur = int(round((time.time() - start) * 1000))
+            processing_dur = int(round((time.perf_counter() - start) * 1000))
             self.echo_output(list(processed_xform), self.actuator_lengths, self.platform.percents)
             if processing_dur > 9: # anything less than 20 is acceptable but should average under 9 on raspberry pi
                 log.warning("Longer than expected transform processing duration: %d ms", processing_dur)
+            self.ui.lbl_processing_dur.setText(str(processing_dur))
             if self.ui_tab == 2: # the output tab
-                processing_dur = self.ma.next(processing_dur)
-                self.output_gui.show_muscles(processed_xform, self.actuator_lengths, processing_dur)
+                # processing_dur = self.ma.next(processing_dur)
+                processing_percent = round((100 * processing_dur) / self.FRAME_RATE_ms)
+                self.output_gui.show_muscles(processed_xform, self.actuator_lengths, processing_percent)
                 if self.encoder_server:
                     encoder_data = self.encoder_server.read()
                     if encoder_data:
@@ -440,9 +451,9 @@ class Controller(QtWidgets.QMainWindow):
             print(traceback.format_exc()) 
 
     def service(self):
-        if self.is_active:
+        if self.is_alive:
             now = time.time()
-            if  self.prev_service != None:
+            if self.prev_service != None:
                 try:
                     t =  (now - self.prev_service) * 1000
                     delta = t-self.FRAME_RATE_ms
@@ -452,11 +463,12 @@ class Controller(QtWidgets.QMainWindow):
                         self.RemoteControl.service()
                         if self.local_control:
                             self.local_control.service()
-                        self.client.service()
-                        self.do_transform(self.client.get_transform())
-                        if self.platform_status != self.platform.get_output_status():
-                            self.platform_status = self.platform.get_output_status()
-                            gutil.set_text(self.ui.lbl_festo_status, self.platform_status[0], self.platform_status[1])
+                        self.agent_proxy.service()
+                        transform = np.asarray(self.agent_proxy.get_transform())
+                        self.do_transform(transform)
+                        if self.platform_status_str != self.platform.get_output_status():
+                            self.platform_status_str = self.platform.get_output_status()
+                            gutil.set_text(self.ui.lbl_festo_status, self.platform_status_str[0], self.platform_status_str[1])
                 except Exception as e:
                     log.warning("timing test exception %s", e)
                     print(traceback.format_exc())
@@ -466,7 +478,7 @@ class Controller(QtWidgets.QMainWindow):
                 log.warning("starting service timing latency capture to file: timer_test.csv")
             QtCore.QTimer.singleShot(1, self.service)
         else:
-            self.client.fin()
+            self.agent_proxy.fin()
             # self.platform.fin()
             sys.exit()
 
@@ -475,7 +487,7 @@ class Controller(QtWidgets.QMainWindow):
         result = qm.question(self, 'Exit?', "Are You Sure you want to quit?", qm.Yes | qm.No)
         if result != qm.Yes:
             return
-        self.is_active = False # this will trigger exit in the service routine
+        self.is_alive = False # this will trigger exit in the service routine
 
 
 app = QtWidgets.QApplication(sys.argv) 

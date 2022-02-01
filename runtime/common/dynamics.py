@@ -3,8 +3,15 @@
 import traceback
 import numpy as np
 # from dynamics_gui_defs import *
-from PyQt5 import QtCore, QtGui, QtWidgets
-from common.dynamics_gui_defs import Ui_Frame
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
+
+# from common.dynamics_gui_defs import Ui_Frame
+ui, base = uic.loadUiType("common/dynamics_gui.ui")
+
+class frame_gui(QtWidgets.QFrame, ui):
+    def __init__(self, parent=None):
+        super(frame_gui, self).__init__(parent)
+        self.setupUi(self)
 
 import logging
 log = logging.getLogger(__name__)
@@ -16,8 +23,9 @@ class Dynamics(object):
         self.use_gui = False
 
     def init_gui(self, frame):
-        self.ui = Ui_Frame()
-        self.ui.setupUi(frame)
+        # self.ui = Ui_Frame()        
+        #self.ui.setupUi(frame)
+        self.ui = frame_gui(frame)
         self.use_gui = True
         self.intensity_sliders = [self.ui.sld_x_0, self.ui.sld_y_1,self.ui.sld_z_2,self.ui.sld_roll_3,
                                   self.ui.sld_pitch_4,self.ui.sld_yaw_5,self.ui.sld_master_6]
@@ -38,6 +46,9 @@ class Dynamics(object):
         self.master_gain = 1.0
         if self.use_gui:
             self.update_sliders()
+        #  washout_time is number of seconds to decay below 2%
+        self.washout_time = [12, 12, 12, 12, 0, 12]        
+        self.washout_factor = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])     
 
     def move_slider_changed(self, sender_id):
         value = self.intensity_sliders[sender_id].value()
@@ -79,22 +90,35 @@ class Dynamics(object):
     def get_overall_intensity(self):
         return self.master_gain * self.intensity
         
+    def set_washout(self, idx, value):
+        #  expects washout duration (time to decay below 2%)
+        #  zero disables washout
+        self.washout_time[idx] = value
+        if value == 0:
+            self.washout_factor[idx] = 0
+        else:
+            self.washout_factor[idx] = 1.0 - self.frame_rate / value * 4
+            #  print "in shape", idx, " washout time set to ", value, "decay factor=", self.washout_factor[idx]
+
+    def get_washouts(self):
+        #  print "in shape", self.washout_time
+        return self.washout_time
+        
     def regulate(self, request):
     # returns real values adjusted for intensity and washout
         # print request
-        # print "in filter", request, self.gains, self.master_gain
-        r = np.multiply(request, self.gains) * self.master_gain * self.intensity
-
+    
+        r = np.multiply(request, self.gains) * self.master_gain* self.intensity
         np.clip(r, -1, 1, r)  # clip normalized values
         #  print "clipped", r
-        """
+
         for idx, f in enumerate(self.washout_factor):
             #  if washout enabled and request is less than prev washed value, decay more
             if f != 0 and abs(request[idx]) < abs(self.prev_value[idx]):
                 #  here if washout is enabled
                 r[idx] =  self.prev_value[idx] * self.washout_factor[idx]
         self.prev_value = r       
-        """
+
         #  convert from normalized to real world values
         r = np.multiply(r, self.range)  
         #print "real",r, self.range

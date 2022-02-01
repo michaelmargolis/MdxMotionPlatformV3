@@ -5,19 +5,27 @@ display muscle lengths and platform orientation
 """
 
 #  from output_gui_defs import *
-from PyQt5 import QtCore, QtGui, QtWidgets
-from output.output_gui_defs import Ui_Frame
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 import copy
 # import time
 from math import degrees
 import platform_config as cfg
 
+# from output.output_gui_defs import Ui_Frame
+ui, base = uic.loadUiType("output_gui.ui")
+
+class frame_gui(QtWidgets.QFrame, ui):
+    def __init__(self, parent=None):
+        super(frame_gui, self).__init__(parent)
+        self.setupUi(self)
+        
 class OutputGui(object):
 
     def init_gui(self, frame, MIN_ACTUATOR_LEN , MAX_ACTUATOR_RANGE):
-        self.ui = Ui_Frame()
-        self.ui.setupUi(frame)
+        # self.ui = Ui_Frame()
+        # self.ui.setupUi(frame)
+        self.ui = frame_gui(frame)
         self.MIN_ACTUATOR_LEN = MIN_ACTUATOR_LEN
         self.MAX_ACTUATOR_RANGE = MAX_ACTUATOR_RANGE
         # self.actuator_bars = [self.ui.pb_0,self.ui.pb_1,self.ui.pb_2,self.ui.pb_3,self.ui.pb_4,self.ui.pb_5]
@@ -75,7 +83,7 @@ class OutputGui(object):
         self.do_transform(self.ui.lbl_side_view, self.side_pixmap, self.side_pos, x,z, transform[4] * 57.3) # side view: pitch
         self.do_transform(self.ui.lbl_top_view, self.top_pixmap, self.top_pos,  y,x, transform[5] * 57.3)  # top view: yaw
 
-    def show_muscles(self, transform, muscles, processing_dur):  # was passing  pressure_percent
+    def show_muscles(self, transform, muscles, processing_percent):  # was passing  pressure_percent
         for i in range(6):
            rect =  self.actuator_bars[i].rect()
            width = muscles[i]            
@@ -85,12 +93,12 @@ class OutputGui(object):
            self.txt_muscles[i].setText(format("%d mm" % contraction ))
         self.show_transform(transform) 
         #  processing_dur = int(time.time() % 20) # for testing, todo remove
-        self.ui.txt_processing_dur.setText(str(processing_dur))
+        self.ui.txt_processing_dur.setText(str(processing_percent))
         rect =  self.ui.rect_dur.rect()
-        rect.setWidth(processing_dur * 10)
-        if processing_dur < 5:
+        rect.setWidth(max(2*processing_percent,1) )
+        if processing_percent < 50:
             self.ui.rect_dur.setStyleSheet("color: rgb(85, 255, 127)")
-        elif processing_dur < 10:
+        elif processing_percent < 75:
             self.ui.rect_dur.setStyleSheet("color: rgb(255, 170, 0)")
         else:
             self.ui.rect_dur.setStyleSheet("color: rgb(255, 0, 0)")

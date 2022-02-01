@@ -135,7 +135,7 @@
      <rect>
       <x>20</x>
       <y>410</y>
-      <width>321</width>
+      <width>261</width>
       <height>20</height>
      </rect>
     </property>
@@ -145,16 +145,16 @@
      </font>
     </property>
     <property name="text">
-     <string>Client</string>
+     <string>Agent</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_exit">
     <property name="geometry">
      <rect>
-      <x>710</x>
-      <y>412</y>
-      <width>75</width>
-      <height>23</height>
+      <x>694</x>
+      <y>400</y>
+      <width>91</width>
+      <height>28</height>
      </rect>
     </property>
     <property name="font">
@@ -169,9 +169,9 @@
    <widget class="QLabel" name="lbl_platform">
     <property name="geometry">
      <rect>
-      <x>400</x>
+      <x>320</x>
       <y>411</y>
-      <width>271</width>
+      <width>231</width>
       <height>21</height>
      </rect>
     </property>
@@ -205,9 +205,9 @@
     <widget class="QPushButton" name="btn_activate">
      <property name="geometry">
       <rect>
-       <x>30</x>
+       <x>10</x>
        <y>5</y>
-       <width>101</width>
+       <width>121</width>
        <height>30</height>
       </rect>
      </property>
@@ -226,9 +226,9 @@
     <widget class="QPushButton" name="btn_deactivate">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>160</x>
        <y>5</y>
-       <width>101</width>
+       <width>121</width>
        <height>30</height>
       </rect>
      </property>
@@ -265,9 +265,9 @@
     <widget class="QCheckBox" name="chk_festo_wait">
      <property name="geometry">
       <rect>
-       <x>318</x>
+       <x>310</x>
        <y>10</y>
-       <width>161</width>
+       <width>181</width>
        <height>21</height>
       </rect>
      </property>
@@ -281,6 +281,19 @@
      </property>
     </widget>
    </widget>
+   <widget class="QLabel" name="lbl_processing_dur">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>410</y>
+      <width>47</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -288,7 +301,7 @@
      <x>0</x>
      <y>0</y>
      <width>804</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

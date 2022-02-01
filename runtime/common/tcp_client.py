@@ -7,6 +7,7 @@ import time
 import sys
 import socket
 import threading
+import traceback
 try:
     from queue import Queue
 except ImportError:
@@ -30,6 +31,7 @@ class Status():
 
     @is_connected.setter
     def is_connected(self, state):
+        print("wha in tcp client, old state", self._connected, "new", state)
         self.mutex.acquire()
         self._connected = state
         self.mutex.release()
@@ -74,12 +76,13 @@ class TcpClient(object):
             self.thr.daemon = True
             self.thr.start()
             self.status.thr_is_alive = True
-            log.info('Connected to %s:%d', self.ip_addr, self.port)
+            log.debug('Connected to %s:%d', self.ip_addr, self.port)
             return True
         except socket.error as e: 
             self.status.is_connected= False
-            log.debug("client socket error %s", e)
+            log.info("client socket connect error %s", e)
             self.sock.close()
+            # print(traceback.format_exc())
             return False
         except Exception as e:
             log.error("Error connecting to client %s", e)
@@ -98,6 +101,15 @@ class TcpClient(object):
             self.sock.close()
         log.debug("client socket closed")
 
+    def get_addr(self): # fixme
+        return (self.ip_addr, self.port )
+        
+    def get_local_ip(self):
+        # returns primary ip address of this pc
+        host_name = socket.gethostname() 
+        host_ip = socket.gethostbyname(host_name) 
+        return host_ip    
+        
     def send(self, msg):
         if self.status.is_connected:
             try: 
@@ -118,32 +130,36 @@ class TcpClient(object):
         return self.in_queue.qsize()
  
     def receive(self):
-        if self.available():
+        if self.available() > 0:
             return self.in_queue.get_nowait()
         else:
             return None
 
-    # def service(self):
-    #    pass # 
+    def service(self):
+        pass # 
  
     def listener_thread(self, sock, inQ, status):
         # This method receives client events 
-        msg = ""
+        buffer = ""
         while status.is_connected:
             try:
-                msg += sock.recv(512).decode("utf-8")
+                buffer += sock.recv(1024).decode("utf-8")
                 while True:
-                    end = msg.find('\n')
-                    if end > 0:
-                       inQ.put(msg[:end])
-                       # log.debug("in client thread, msg=%s", msg[:end])
-                       msg = msg[end+1:]
+                    #  end = buffer.find('\n')
+                    #  if end > 0:
+                    line, sep, buffer = buffer.partition('\n')
+                    if len(line):
+                       print("in thread", line)
+                       inQ.put(line)
+                    #  inQ.put(msg[:end])
+                    #  log.debug("in client thread, msg=%s", msg[:end])
+                    #  msg = msg[end+1:]
                     else:
                         break
             except socket.timeout:
                 pass
             except socket.error as e: 
-               log.error("socket error in thread %s", e)
+               log.error("socket error in tcp client thread %s", e)
                status.is_connected = False
                break
             except Exception as e:
@@ -154,11 +170,12 @@ class TcpClient(object):
 ##################  test code when run from main ################
 
 def millis():
-    return  int(time.clock() * 1000)
+    return  int(time.perf_counter() * 1000)
  
 def latency_test(addr, port = 10015, id = 0):
     # this code sends a time stamp and waits for a reply with a server
     # time stamp appended. difference between the time stamps is printed
+    log.info("running letency test to " + str((addr, port)))
     client = TcpClient(addr, port)
     prev_send = 0
     while True:
@@ -198,14 +215,14 @@ def latency_test(addr, port = 10015, id = 0):
 
 
 def coaster_test(addr, port= 10015):
+    log.info("running coaster test to " + str((addr, port)))
     client = TcpClient(addr, port)
     while True:
         try:
             if not client.status.is_connected:
                 client.connect()
             else: 
-                msg = "telemetry"
-                print("sending msg:",  msg)
+                msg = "telemetry\n"
                 client.send(msg)
                 client.service()
         except Exception as e:
@@ -215,20 +232,55 @@ def coaster_test(addr, port= 10015):
             if ord(key) == 27: # esc
                 return
             elif client.status.is_connected:
+                cmd = None
                 if key == 'd': cmd = 'dispatch'
                 elif key == 'p': cmd = 'pause'
                 elif key == 'r': cmd = 'reset'
                 else: cmd == str(key)
-                client.send(cmd)
+                if cmd:
+                    client.send(cmd)
         time.sleep(.5)
-        while True:
+        if client.available():
             event = client.receive()
             if event:
                 print("got:", event)
             else:
                 break
+    print("disconnecting")
     client.disconnect()
 
+
+def echo_test(addr, port= 10015):
+    log.info("running echo test to " + str((addr, port)))
+    client = TcpClient(addr, port)
+    while True:
+        try:
+            if not client.status.is_connected:
+                client.connect()
+            else: 
+                client.service()
+        except Exception as e:
+            print( "err", str(e))
+        if kb.kbhit(): 
+            key = kb.getch()
+            if ord(key) == 27: # esc
+                return
+            elif client.status.is_connected:
+                cmd = None
+                if key == 'd': cmd = 'dispatch'
+                elif key == 'p': cmd = 'pause'
+                elif key == 'r': cmd = 'reset'
+                else: cmd == str(key)
+                if cmd:
+                    client.send(cmd)
+
+        event = client.receive()
+        if event:
+            print("got:", event)
+
+    print("disconnecting")
+    client.disconnect()
+    
 def man():
     parser = argparse.ArgumentParser(description='TCP client latency test mode')
     parser.add_argument("-l", "--log",
@@ -246,7 +298,10 @@ def man():
     parser.add_argument("-i", "--id",
                         dest="id",
                         help="Set this client id (used in latency test")
-                        
+    
+    parser.add_argument("-e", "--echo",
+                        dest="echo",
+                        help="do echo test")    
     return parser
     
 if __name__ == "__main__":
@@ -276,9 +331,11 @@ if __name__ == "__main__":
     if args.address:
         latency_test(args.address, port, id)
         # coaster_test(args.address, port)
+    elif args.echo:
+        echo_test('127.0.0.1', port) # todo add non local addresses
     else:
-        latency_test('127.0.0.1', port, id)
-        # coaster_test('127.0.0.1', port )
+        # latency_test('127.0.0.1', port, id)
+        coaster_test('127.0.0.1', port )
 
 
 

@@ -95,6 +95,7 @@ class CustomHandler(socketserver.BaseRequestHandler, object):
     def __init__(self, request, client_address, server):
         """Initialize the handler with a store for future date streams."""
         self.out_q = Queue()
+        self.in_buffer = ''
         super(CustomHandler, self).__init__(request, client_address, server)
 
     def setup(self):
@@ -124,11 +125,15 @@ class CustomHandler(socketserver.BaseRequestHandler, object):
                 self.request.sendall(outgoing)
 
         if self.readable:
-            incoming = self.request.recv(512)
+            incoming = self.request.recv(512).decode('utf-8')
             if incoming != '':
-                # self.server.mutex.acquire() 
-                self.server.in_q.put_nowait((self.name, incoming))
-                # self.server.mutex.release()
+                self.in_buffer += incoming
+                while True:
+                    line, sep, self.in_buffer = self.in_buffer.partition('\n')
+                    if len(line):
+                        self.server.in_q.put_nowait((self.name, line))
+                    else:
+                        break
             else:
                 self.finish()
  

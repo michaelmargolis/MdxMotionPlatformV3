@@ -103,6 +103,7 @@ class MuscleOutput(object):
         pass
 
     def move_distance(self, distances):
+        """ parm is list of muscle movements in mm from rest positions """ 
         for idx, d in enumerate(distances):
             distances[idx] = int(round(d))
         try:
