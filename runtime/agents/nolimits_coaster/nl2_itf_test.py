@@ -9,15 +9,14 @@ import socket
 from time import time,sleep
 from struct import *
 import collections
-from quaternion import Quaternion
+from my_quaternion import Quaternion
 from math import pi, degrees, sqrt
 import sys
 import ctypes #  for bit fields
 import os
 import  binascii  # only for debug
 import traceback
-from .pc_monitor import pc_monitor_client
-heartbeat = pc_monitor_client((40,60),(75,90))
+
 
 # bit fields for station message
 bit_e_stop = 0x1
@@ -96,20 +95,13 @@ class CoasterInterface():
         return True # self.check_coaster_status(ConnectStatus.is_in_play_mode)
 
     def _create_simple_message(self, msgId, requestId):  # message with no data
-        result = pack('>cHIHc', 'N', msgId, requestId, 0, 'L')
+        result = pack(b'>cHIHc', b'N', msgId, requestId, 0, b'L')
         return result
 
     def _create_NL2_message(self, msgId, requestId, msg):  # message is packed
         #  fields are: N Message Id, reqest Id, data size, L
-        start = pack('>cHIH', 'N', msgId, requestId, len(msg))
-        end = pack('>c', 'L')
-        result = start + msg + end
-        return result
-
-    def _create_extended_NL2_message(self, msgId, requestId, msg, len):  # message is packed
-        #  fields are: N Message Id, reqest Id, data size, L
-        start = pack('>cHIH', 'N', msgId, requestId, len)
-        end = pack('>c', 'L')
+        start = pack(b'>cHIH', b'N', msgId, requestId, len(msg))
+        end = pack(b'>c', b'L')
         result = start + msg + end
         return result
 
@@ -205,31 +197,16 @@ class CoasterInterface():
             pitch = degrees(quat.toPitchFromYUp())
             yaw = degrees(quat.toYawFromYUp())
             roll = degrees(quat.toRollFromYUp())
-            print(format("telemetry (speed, rpy): %.2f, %.2f, %.2f, %.2f" % (msg.speed, roll, pitch, yaw)))
+            print(format("telemetry (speed, frame, rpy): %.2f, %d, %.2f, %.2f, %.2f" % (msg.speed, msg.frame, roll, pitch, yaw)))
         else:
             print("in telemetry, Coaster not in play mode")
         return [False, False, 0, None]
 
 
-server_address = None
-def check_heartbeat():
-    global server_address
-    addr, heartbeat_status, warning = heartbeat.read()
-    #print "in connect, addr = ", addr,  addr[1] == 10011
-    if len(addr[0]) > 6 and addr[1]  == 10011: #  server sends on port 10011
-        if server_address != addr[0]:
-            server_address = addr[0]
-            print("first time connection to server @", server_address)
-        print(format("heartbeat {%s:%s} {%s} {%s}" % (addr[0], addr[1], heartbeat_status, warning)))
-        return True
-    return False
+server_address = '127.0.0.1'
 
 if __name__ == "__main__":
     nl2 = CoasterInterface()
-    heartbeat.begin()
-    while not check_heartbeat():
-         print('.', end=' ')
-         sleep(0.1)
     print("\nserver address:", server_address)
     while nl2.connect_to_coaster(server_address) == False:
         sleep(1)
@@ -259,5 +236,3 @@ if __name__ == "__main__":
             break
         nl2.get_telemetry()
 
-     
-    heartbeat.fin()

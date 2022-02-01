@@ -41,7 +41,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>80</y>
+      <y>30</y>
       <width>111</width>
       <height>51</height>
      </rect>
@@ -64,7 +64,7 @@
     <property name="geometry">
      <rect>
       <x>660</x>
-      <y>80</y>
+      <y>30</y>
       <width>91</width>
       <height>51</height>
      </rect>
@@ -82,7 +82,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>80</y>
+      <y>30</y>
       <width>111</width>
       <height>51</height>
      </rect>
@@ -100,26 +100,11 @@
      <string>Pause</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="cmb_select_ride">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>20</y>
-      <width>271</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-   </widget>
    <widget class="QLabel" name="lbl_coaster_status">
     <property name="geometry">
      <rect>
-      <x>100</x>
-      <y>142</y>
+      <x>80</x>
+      <y>90</y>
       <width>631</width>
       <height>41</height>
      </rect>
@@ -136,10 +121,10 @@
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>190</y>
-      <width>671</width>
-      <height>131</height>
+      <x>70</x>
+      <y>128</y>
+      <width>341</width>
+      <height>161</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -152,8 +137,8 @@
      <property name="geometry">
       <rect>
        <x>11</x>
-       <y>11</y>
-       <width>631</width>
+       <y>51</y>
+       <width>301</width>
        <height>19</height>
       </rect>
      </property>
@@ -170,8 +155,8 @@
      <property name="geometry">
       <rect>
        <x>11</x>
-       <y>63</y>
-       <width>641</width>
+       <y>90</y>
+       <width>301</width>
        <height>21</height>
       </rect>
      </property>
@@ -184,30 +169,12 @@
       <string>Remote</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lbl_coaster_connection">
-     <property name="geometry">
-      <rect>
-       <x>11</x>
-       <y>38</y>
-       <width>641</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Connection</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="lbl_temperature_status">
      <property name="geometry">
       <rect>
        <x>11</x>
-       <y>90</y>
-       <width>641</width>
+       <y>130</y>
+       <width>301</width>
        <height>19</height>
       </rect>
      </property>
@@ -220,12 +187,154 @@
       <string>Temperature</string>
      </property>
     </widget>
+    <widget class="QLabel" name="lbl_sync_status">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>10</y>
+       <width>351</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame_3">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>190</y>
+      <width>301</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <widget class="QLabel" name="lbl_pc_conn_status_0">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>2</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Waiting connection status</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_1">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>32</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>62</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>92</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>122</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QComboBox" name="cmb_select_ride">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>297</y>
+      <width>271</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
    </widget>
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>33</y>
+      <x>360</x>
+      <y>310</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -237,27 +346,6 @@
     </property>
     <property name="text">
      <string>Parks</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lbl_platform">
-    <property name="geometry">
-     <rect>
-      <x>625</x>
-      <y>32</y>
-      <width>121</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Platform</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
   </widget>

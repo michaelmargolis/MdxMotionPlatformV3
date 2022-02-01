@@ -32,6 +32,7 @@ Platform_fields = ['NMCAccel_x', 'NMCAccel_z', 'NMCVerticalSpeed', 'NMCinertial_
 class DCS_gateway:  
     def __init__(self, DCS_port = PORT):
         self.port = DCS_port
+        self.lock = threading.Lock()
         self.dcs_message = None # raw msg from hook, read only in main thread
         self.is_connected = False
         self.is_active = False #set true when thread is started
@@ -82,11 +83,11 @@ class DCS_gateway:
 
             log.info("DCS gateway listening on port " + str(self.port))
             self.is_active = True
-            t = threading.Thread(target=self.listener_thread, args= (self.sock, msg_buffer_size))
+            t = threading.Thread(target=self.listener_thread, args= (self.sock, self.lock, msg_buffer_size))
             t.daemon = True
             t.start()
         
-    def listener_thread(self, sock, buffer_size):
+    def listener_thread(self, sock, lock, buffer_size):
         # received msgs are passed using shared memory so do not modify in main thread
 
         while self.is_active: 
@@ -95,9 +96,11 @@ class DCS_gateway:
                     msg = sock.recv(buffer_size).decode('utf-8')
                     if len(msg) > 1:
                         # perform any mods to msg before the next line
-                        self.dcs_message = msg 
+                        lock.acquire()
+                        self.dcs_message = msg
                         self.is_connected = True  # set connected flag when msg received
-                            
+                        lock.release()
+                        log.debug("hook send msg: %s", msg.strip())
             except socket.timeout:
                 if self.is_connected:
                     log.info("Timeout receiving DCS telemetry")

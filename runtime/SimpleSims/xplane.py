@@ -28,7 +28,7 @@ class Sim():
         self.xpc = None
         self.is_connected = False
         # self.norm_factors = [2.0, 2.0, .5, -.02, .15, .15]
-        self.norm_factors = [2, .2, .1, .015, -.03, .1]
+        self.norm_factors = [-2, .2, .1, .015, -.03, .1]
         self.name = "X-Plane"
         self.ip_addr = '127.0.0.1' # address of pc running xplane
         self.port = 49009
@@ -48,8 +48,7 @@ class Sim():
     def load(self, loader):
         log.info("Attempting to start sim by executing " + loader)
         os.startfile(loader)
-       
-   
+    
     def connect(self):
         # returns error string or None if no error
         try:

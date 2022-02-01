@@ -11,7 +11,7 @@ class Sim():
         self.interval_ms = interval_ms
         self.sm = None
         self.is_connected = False
-        self.norm_factors = [.1, .05, .05, 1, 1, .3]
+        self.norm_factors = [.1, .05, .01, 1, 1, .3]
         self.name = "MS FS2020"
 
     def __del__(self):
@@ -32,7 +32,7 @@ class Sim():
             return("loading...") 
         except Exception as e:
             print(e)
-            return(str(e))            
+            return(str(e))
    
     def connect(self):
         # returns string code or None if no error
