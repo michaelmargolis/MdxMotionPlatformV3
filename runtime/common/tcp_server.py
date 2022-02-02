@@ -124,7 +124,7 @@ class CustomHandler(socketserver.BaseRequestHandler, object):
                 self.request.sendall(outgoing)
 
         if self.readable:
-            incoming = self.request.recv(512)
+            incoming = self.request.recv(512).decode('utf-8')
             if incoming != '':
                 # self.server.mutex.acquire() 
                 self.server.in_q.put_nowait((self.name, incoming))

@@ -103,6 +103,7 @@ def client_main(client):
     import importlib  
     
     sys.path.insert(0, 'output')  # for platform config
+    sys.path.insert(0, '../../output')  # for platform config
     
     log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')

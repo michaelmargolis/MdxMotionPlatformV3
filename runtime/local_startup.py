@@ -4,7 +4,6 @@
 """
   local_startup.py
   This script is run at startup on the VR PCs to select and activate the runtime environment and ride
-
 """
 
 from common.tcp_server import TcpServer
@@ -17,11 +16,11 @@ from subprocess import Popen
 import logging
 log = logging.getLogger(__name__)
 
-
+# each option comprises display followed by a colon and sim path
 sim_exe = {
             "Space_Coaster": 'M:/mdx/MdxPlatformInstall/SpaceCoaster/coasterMSU.exe',
             "NoLimits_Coaster": 'D:/Program Files/NoLimits 2/64bit/nolimits2app.exe --telemetry',
-            "Test_Client": ''
+            "Test_Client": ''  # test client does not have a path
           }
 
 def main():

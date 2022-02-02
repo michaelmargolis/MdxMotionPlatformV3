@@ -2,7 +2,7 @@
 # sim module is the name of the python module defining the desired Sim class
 # a jpg file with the same name as the module will be displayed when selected 
 
-default_sim = 4 # combo box will be set the this value at startup
+default_sim = 5 # combo box will be set the this value at startup
 Desktop = r"C:/Users/memar/Desktop/Vr/" # location of startup icons (usually C:/Users/name/Desktop/ )
 print(Desktop)
 

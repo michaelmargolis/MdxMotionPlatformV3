@@ -60,6 +60,7 @@ class Sim(object):
     def __init__(self, sleep_func, interval_ms = 25):
         self.sleep_func = sleep_func
         self.interval_ms = interval_ms
+        self.name = "Space Coaster"
         self.is_started = False
         self.is_normalized = True
         self.expect_degrees = False # convert to radians if True
