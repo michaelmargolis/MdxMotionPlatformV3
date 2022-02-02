@@ -37,81 +37,18 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QPushButton" name="btn_dispatch">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>90</y>
-      <width>111</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">color:white;background-color: green;</string>
-    </property>
-    <property name="text">
-     <string>Dispatch</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_reset_rift">
-    <property name="geometry">
-     <rect>
-      <x>660</x>
-      <y>90</y>
-      <width>91</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Reset Rift</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_pause">
-    <property name="geometry">
-     <rect>
-      <x>350</x>
-      <y>90</y>
-      <width>111</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: orange
-</string>
-    </property>
-    <property name="text">
-     <string>Pause</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="lbl_coaster_status">
     <property name="geometry">
      <rect>
-      <x>100</x>
-      <y>152</y>
-      <width>631</width>
-      <height>41</height>
+      <x>80</x>
+      <y>130</y>
+      <width>671</width>
+      <height>55</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>24</pointsize>
+      <pointsize>22</pointsize>
      </font>
     </property>
     <property name="text">
@@ -121,10 +58,10 @@
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>200</y>
-      <width>671</width>
-      <height>131</height>
+      <x>70</x>
+      <y>180</y>
+      <width>391</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -133,13 +70,16 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
     <widget class="QLabel" name="lbl_intensity_status">
      <property name="geometry">
       <rect>
        <x>11</x>
-       <y>11</y>
-       <width>631</width>
-       <height>19</height>
+       <y>40</y>
+       <width>361</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -155,9 +95,9 @@
      <property name="geometry">
       <rect>
        <x>11</x>
-       <y>63</y>
-       <width>641</width>
-       <height>21</height>
+       <y>80</y>
+       <width>351</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -169,31 +109,13 @@
       <string>Remote</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lbl_coaster_connection">
-     <property name="geometry">
-      <rect>
-       <x>11</x>
-       <y>38</y>
-       <width>641</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Connection</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="lbl_temperature_status">
      <property name="geometry">
       <rect>
        <x>11</x>
-       <y>94</y>
-       <width>641</width>
-       <height>19</height>
+       <y>120</y>
+       <width>351</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -205,46 +127,213 @@
       <string>Temperature</string>
      </property>
     </widget>
+    <widget class="QLabel" name="lbl_sync_status">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>351</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
-   <widget class="QLabel" name="lbl_platform">
+   <widget class="QFrame" name="frame_2">
     <property name="geometry">
      <rect>
-      <x>625</x>
-      <y>32</y>
-      <width>121</width>
-      <height>21</height>
+      <x>52</x>
+      <y>50</y>
+      <width>720</width>
+      <height>71</height>
      </rect>
     </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
     </property>
-    <property name="text">
-     <string>Platform</string>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
     </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
+    <widget class="QPushButton" name="btn_dispatch">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>10</y>
+       <width>131</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color:white;background-color: green;</string>
+     </property>
+     <property name="text">
+      <string>Dispatch</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_reset_rift">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>10</y>
+       <width>121</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Reset Rift</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_pause">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>10</y>
+       <width>131</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: orange
+</string>
+     </property>
+     <property name="text">
+      <string>Pause</string>
+     </property>
+    </widget>
    </widget>
-  </widget>
-  <widget class="QPushButton" name="btn_exit">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>390</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Exit</string>
-   </property>
+   <widget class="QFrame" name="frame_3">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>180</y>
+      <width>291</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <widget class="QLabel" name="lbl_pc_conn_status_0">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>2</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Waiting connection status</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_1">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>32</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>62</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>92</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>122</y>
+       <width>270</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
   </widget>
  </widget>
  <resources/>
