@@ -117,7 +117,10 @@ class Sim(object):
 
     def set_state_callback(self, callback):
         self.state_callback = callback
-        
+
+    def select_ride_callback(self, cb):
+        pass # space coaster cannot select ride
+
     def load(self, loader):
         try:
             log.info("Starting Spacecoaster executing: " + loader)
@@ -214,7 +217,7 @@ class Sim(object):
                             ##  print x
                             x=x1 
                         self.xyzrpyQ.queue.clear()
-                        return self.frame_number               
+                        return self.frame_number
         except Exception as e:  
             s = traceback.format_exc()
             print( "service error", e, s)
@@ -358,7 +361,12 @@ class Sim(object):
             
 if __name__ == "__main__":
     import time
+    Desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop') + '/Vr/'
     coaster = Sim(time.sleep)
+    coaster.load(Desktop + "SpaceCoaster.lnk")
+    coaster.connect()
+    input("press return to start ")
+    coaster.run()
     while True:
         coaster.service()
         time.sleep(.05)        

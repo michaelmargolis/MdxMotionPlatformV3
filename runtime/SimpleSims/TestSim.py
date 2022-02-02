@@ -34,10 +34,10 @@ class Sim():
         self.name = "Test Sim"
         global global_queue
         self.data_Q = global_queue
-    
+
     def __del__(self):
         self.win.close()
-        self.app.exit()  
+        self.app.exit()
     
     def set_norm_factors(self, norm_factors):
         # values for each element that when multiplied will normalize data to a range of +- 1 
@@ -49,11 +49,11 @@ class Sim():
     def load(self, loader):
         # ignore loader arg, create QT window
         self.app = QtWidgets.QApplication(sys.argv)
-        self.win = MainWindow()        
+        self.win = MainWindow()
         self.win.show()
         self.app.exec_()
         self.connect()
-  
+
     def connect(self):
         self.is_connected = True
 

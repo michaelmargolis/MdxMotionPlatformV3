@@ -10,9 +10,14 @@ import socket
 import logging
 log = logging.getLogger(__name__)
 
-from common.serialProcess import SerialProcess
-from common.tcp_client import TcpClient
-from common.tcp_server import TcpServer
+try:
+    from common.serialProcess import SerialProcess
+    from common.tcp_client import TcpClient
+    from common.tcp_server import TcpServer
+except:
+    from serialProcess import SerialProcess
+    from tcp_client import TcpClient
+    from tcp_server import TcpServer
 
 class SerialEncoder(SerialProcess):
     def __init__(self, tcp_port):
@@ -37,7 +42,7 @@ class SerialEncoder(SerialProcess):
         #data = super(self.__class__, self).read()
         data = super(SerialEncoder, self).read()
         if data:
-            data = data.rstrip('\r\n}').split(',')
+            data = data.decode().rstrip('\r\n}').split(',')
             # Data format for mm:     D0,e1,e2,e3,e4,e5,e6,timestamp\n"
             if len(data) >= 8:
                 return data[1:7], data[7]
@@ -89,11 +94,13 @@ class EncoderClient(TcpClient, object):
 
 
 def main():
-    from common.udp_tx_rx import UdpReceive
-
+    try:
+        from common.udp_tx_rx import UdpReceive
+    except:
+        from udp_tx_rx import UdpReceive
     kb = KBHit()
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
-    serial_port = "COM5"
+    serial_port = "COM3"
     ENCODER_SERVER_PORT = 10016  # must be same as value in platform_config
     encoders = SerialEncoder(ENCODER_SERVER_PORT)
     cmd_channel = UdpReceive(ENCODER_SERVER_PORT+1)
@@ -115,7 +122,7 @@ def main():
                     #print("Encoder main:", encoder_data)
                     encoders.server.broadcast(encoder_data+'\n') # echo data, ignore timestamp
                     while cmd_channel.available():
-                        incoming = cmd_channel.get()
+                        incoming = cmd_channel.get() 
                         print("incoming=",  incoming)
                         if incoming[1] == 'R':
                             encoders.reset()

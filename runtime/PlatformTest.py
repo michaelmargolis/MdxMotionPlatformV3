@@ -162,11 +162,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_geometry_3d(self):
          plot_config.plot3d(self.cfg, self.cfg.PLATFORM_POS)
 
-    def reset_buffers(self):
-        self.target_pressures = []
-        self.pressure_deltas = []
-        log.info("Buffers reset")
-        
     def data_update(self):
         #  todo if self.estopped then call loadpos and return
         if self.is_ready == False:
@@ -212,10 +207,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def move(self):
         transform = [x * .01 for x in self.lagged_slider_values]
         
-        transform = [inv * axis for inv, axis in zip(self.invert_axis, transform)]   
+        transform = [inv * axis for inv, axis in zip(self.invert_axis, transform)]
         if self.swap_roll_pitch:
             # swap roll, pitch and x,y
-            transform[0],transform[1], transform[3],transform[4] =  transform[1],transform[0],transform[4], transform[3]        
+            transform[0],transform[1], transform[3],transform[4] =  transform[1],transform[0],transform[4], transform[3]
 
         request = self.dynam.regulate(transform) # convert normalized to real values
         percents = self.k.actuator_percents(request)
@@ -251,7 +246,7 @@ class MainWindow(QtWidgets.QMainWindow):
         req_msg = "request," + ','.join(t)
         dist_msg = ",distances," +  ",".join(str(int(d)) for d in distances)
         msg = req_msg + dist_msg + "\n"
-        print(msg)
+        # print(msg)
         self.echo_sock.sendto(bytes(msg, "utf-8"), echo_address)
 
     def estop(self):

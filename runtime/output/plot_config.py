@@ -6,11 +6,11 @@ def plot(base_pos, platform_pos, platform_mid_height, PLATFORM_NAME ):
     platform_labels = ['platform{0}'.format(i) for i in range(6)]
     if PLATFORM_NAME == "Flying Platform":
        is_flying_platform = True
-       img = plt.imread("flying_platform.png")
+       img = plt.imread("images/flying_platform.png")
        plt.imshow(img, zorder=1, extent=[-600, 600, -600, 600])
     else:
         is_flying_platform = False
-        img = plt.imread("chair_red.png")
+        img = plt.imread("images/chair_red.png")
         plt.imshow(img, zorder=1, extent=[-400, 400, -400, 400])
         
     bx= base_pos[:,0]
