@@ -28,7 +28,6 @@ from common.encoders import EncoderClient
 from common.streaming_moving_average import StreamingMovingAverage as MA
 from common.dialog import ModelessDialog
 from common.udp_tx_rx import UdpReceive
-# from common.tcp_client import TcpClient
 from agents.agent_proxy import AgentProxy
 
 # Importlib used to load configurations for platform as selected in platform_config.py
