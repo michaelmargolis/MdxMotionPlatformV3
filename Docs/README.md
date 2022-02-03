@@ -8,6 +8,6 @@
 +   Motion sims are expected to remain in sync for duration of ‘ride’ but currently this is not enforced.
 
     
-### Typical agent detail (space_coaster):
+<p></p>
 ![agent example v3](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Example_agent.png)
-    
+### Typical agent detail (space_coaster):
