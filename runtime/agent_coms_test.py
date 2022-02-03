@@ -48,6 +48,12 @@ class AgentComsTest():
             time.sleep(.01)
             conn.send(event_test_msg + '\n')
 
+        start = time.time()         
+        while( time.time() < start  + 2): # listen for two seconds
+            for idx, rx in  enumerate(self.event_receiver):
+                if rx.available():
+                    print(rx.get(), "from", self.addresses[idx])
+
     def disconnect(self):
         for idx, addr in enumerate(self.addresses):
             if self.is_connected[idx]:

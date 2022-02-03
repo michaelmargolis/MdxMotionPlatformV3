@@ -31,7 +31,7 @@ class Status():
 
     @is_connected.setter
     def is_connected(self, state):
-        print("wha in tcp client, old state", self._connected, "new", state)
+        log.debug("previous connection state %s, new state now %s", str(self._connected), str(state))
         self.mutex.acquire()
         self._connected = state
         self.mutex.release()

@@ -18,7 +18,7 @@ import threading
 import importlib
 import traceback
 import argparse
-
+import socket # only used for event test
 from subprocess import Popen
 
 import logging
@@ -72,7 +72,6 @@ class AgentStartup(object):
         # process commands from agent_proxy
         if self.server.available() > 0:
             name, data = self.server.get()
-            print("wha", name, data)
             if 'quit' in data:
                 self.running = False
             else:
@@ -87,7 +86,11 @@ class AgentStartup(object):
                         print("event msg:", fields)
                         ip_addr = fields[1]
                         event_port = int(fields[2])
-                        self.event_sender.send('test event'.encode('utf-8'),(ip_addr,event_port))
+                        hostname = socket.gethostname()   
+                        IPAddr = socket.gethostbyname(hostname)  
+                        event_msg = format("test event from %s @ %s" % (hostname, IPAddr))
+                        log.info("sending event msg: %s", event_msg)
+                        self.event_sender.send(event_msg.encode('utf-8'),(ip_addr,event_port))
                     else:
                         if self.agent:
                             self.agent.handle_command(fields)
