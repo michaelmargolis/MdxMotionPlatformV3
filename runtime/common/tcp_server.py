@@ -82,11 +82,6 @@ class TcpServer(socketserver.ThreadingTCPServer, object):
     def connected_clients(self):
         return len(self.clients)
         
-    def get_local_ip(self):
-        # returns primary ip address of this pc
-        host_name = socket.gethostname() 
-        host_ip = socket.gethostbyname(host_name) 
-        return host_ip
 
 class CustomHandler(socketserver.BaseRequestHandler, object):
 

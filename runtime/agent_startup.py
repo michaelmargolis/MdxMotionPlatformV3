@@ -87,6 +87,7 @@ class AgentStartup(object):
                         print("event msg:", fields)
                         ip_addr = fields[1]
                         event_port = int(fields[2])
+                        # fixme replace following two lines with util get_ip
                         hostname = socket.gethostname()   
                         IPAddr = socket.gethostbyname(hostname)  
                         event_msg = format("test event from %s @ %s" % (hostname, IPAddr))

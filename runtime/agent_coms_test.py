@@ -3,23 +3,11 @@
 from  platform_config import cfg
 from common.tcp_client import TcpClient
 from common.udp_tx_rx import UdpReceive
+from common.ip_utils import get_ip, ping_ip
 
 import time
 
-import subprocess # for ping
-import platform
- 
-def ping_ip(current_ip_address):
-    try:
-        output = subprocess.check_output("ping -{} 1 {}".format('n' if platform.system().lower(
-        ) == "windows" else 'c', current_ip_address ), shell=True, universal_newlines=True)
-        if 'unreachable' in output:
-            return False
-        else:
-            return True
-    except Exception:
-            return False
-                
+   
 import logging
 log = logging.getLogger(__name__)
 
@@ -37,7 +25,8 @@ class AgentComsTest():
         for idx, addr in enumerate(self.addresses):
             log.info("Initialising socket for comms to agent at %s:%d",addr, startup_cmd_port) 
             self.conn[idx] = TcpClient(addr, startup_cmd_port)
-        self.controller_ip = self.conn[0].get_local_ip()
+        self.controller_ip = get_ip()
+        log.info("This ip address is %s", self.controller_ip)
         
     def connect(self):
         for idx, addr in enumerate(self.addresses):

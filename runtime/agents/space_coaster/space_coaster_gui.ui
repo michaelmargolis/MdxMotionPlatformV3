@@ -41,7 +41,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>130</y>
+      <y>92</y>
       <width>671</width>
       <height>55</height>
      </rect>
@@ -60,7 +60,7 @@
      <rect>
       <x>70</x>
       <y>180</y>
-      <width>391</width>
+      <width>351</width>
       <height>151</height>
      </rect>
     </property>
@@ -150,7 +150,7 @@
     <property name="geometry">
      <rect>
       <x>52</x>
-      <y>50</y>
+      <y>20</y>
       <width>720</width>
       <height>71</height>
      </rect>
@@ -228,27 +228,27 @@
    <widget class="QFrame" name="frame_3">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>180</y>
-      <width>291</width>
-      <height>151</height>
+      <x>430</x>
+      <y>160</y>
+      <width>331</width>
+      <height>181</height>
      </rect>
     </property>
     <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+     <enum>QFrame::Panel</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <enum>QFrame::Sunken</enum>
     </property>
     <property name="lineWidth">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QLabel" name="lbl_pc_conn_status_0">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>2</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -266,7 +266,7 @@
       <rect>
        <x>10</x>
        <y>32</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -284,7 +284,7 @@
       <rect>
        <x>10</x>
        <y>62</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -302,7 +302,7 @@
       <rect>
        <x>10</x>
        <y>92</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -320,7 +320,25 @@
       <rect>
        <x>10</x>
        <y>122</y>
-       <width>270</width>
+       <width>330</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>152</y>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>

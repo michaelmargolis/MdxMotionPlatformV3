@@ -17,7 +17,7 @@
    <enum>QFrame::StyledPanel</enum>
   </property>
   <property name="frameShadow">
-   <enum>QFrame::Raised</enum>
+   <enum>QFrame::Sunken</enum>
   </property>
   <widget class="QFrame" name="frm_input">
    <property name="geometry">
@@ -104,7 +104,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>90</y>
+      <y>93</y>
       <width>631</width>
       <height>41</height>
      </rect>
@@ -122,16 +122,16 @@
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>128</y>
+      <y>160</y>
       <width>341</width>
-      <height>161</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+     <enum>QFrame::Panel</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <enum>QFrame::Sunken</enum>
     </property>
     <widget class="QLabel" name="lbl_intensity_status">
      <property name="geometry">
@@ -209,27 +209,27 @@
    <widget class="QFrame" name="frame_3">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>190</y>
-      <width>301</width>
-      <height>151</height>
+      <x>430</x>
+      <y>160</y>
+      <width>331</width>
+      <height>181</height>
      </rect>
     </property>
     <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+     <enum>QFrame::Panel</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <enum>QFrame::Sunken</enum>
     </property>
     <property name="lineWidth">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QLabel" name="lbl_pc_conn_status_0">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>2</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -247,7 +247,7 @@
       <rect>
        <x>10</x>
        <y>32</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -265,7 +265,7 @@
       <rect>
        <x>10</x>
        <y>62</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -283,7 +283,7 @@
       <rect>
        <x>10</x>
        <y>92</y>
-       <width>270</width>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -301,7 +301,25 @@
       <rect>
        <x>10</x>
        <y>122</y>
-       <width>270</width>
+       <width>330</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_pc_conn_status_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>152</y>
+       <width>330</width>
        <height>22</height>
       </rect>
      </property>
@@ -335,7 +353,7 @@
      <rect>
       <x>360</x>
       <y>310</y>
-      <width>81</width>
+      <width>51</width>
       <height>16</height>
      </rect>
     </property>

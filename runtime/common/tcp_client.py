@@ -102,13 +102,7 @@ class TcpClient(object):
         log.debug("client socket closed")
 
     def get_addr(self): # fixme
-        return (self.ip_addr, self.port )
-        
-    def get_local_ip(self):
-        # returns primary ip address of this pc
-        host_name = socket.gethostname() 
-        host_ip = socket.gethostbyname(host_name) 
-        return host_ip    
+        return (self.ip_addr, self.port )  
         
     def send(self, msg):
         if self.status.is_connected:

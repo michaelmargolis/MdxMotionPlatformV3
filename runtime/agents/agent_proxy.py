@@ -5,6 +5,8 @@ from agents.agent_config import AgentStartupMsg
 from agents.agent_base import RemoteMsgProtocol
 from common.tcp_client import TcpClient
 from common.udp_tx_rx import UdpReceive
+from common.ip_utils import get_ip
+
 import importlib
 import logging
 log = logging.getLogger(__name__)
@@ -54,7 +56,7 @@ class AgentProxy():
         self.gui.select_ride_callback(self.select_ride)
 
     def send_startup(self, agent_name, agent_module):
-        self.host_ip = self.conn[0].get_local_ip()
+        self.host_ip = get_ip()
         for idx, conn in  enumerate(self.conn):
             body = AgentStartupMsg(agent_name, agent_module, self.host_ip, str(self.event_port), str(idx)) 
             startup_msg = "STARTUP," + ','.join(str(s) for s in body)

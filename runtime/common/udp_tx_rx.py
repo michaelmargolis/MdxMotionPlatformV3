@@ -48,8 +48,8 @@ class UdpReceive(object):
             return None
 
     def send(self, data, addr):
-        self.sock.sendto(data.encode('utf-8'), addr)
-        
+        self.sock.sendto(data.encode('utf-8'), addr)    
+
     def listener_thread(self, sock, in_q ):
         MAX_MSG_LEN = 256
         while True:
