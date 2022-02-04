@@ -21,7 +21,7 @@ class cfg:
     USE_PI_SWITCHES = True # uses hardware switches on Pi if set true, ignored if controller is not running on Pi
 
     #software network address assignments
-    SIM_IP_ADDR =  ('192.168.1.159','192.168.1.166') #('192.168.0.183',) #('192.168.0.38',) #('192.168.1.24', '192.168.1.9') # first addr provides telemetry and encoder data
+    SIM_IP_ADDR =  ('192.168.1.109','192.168.1.166') #('192.168.0.183',) #('192.168.0.38',) #('192.168.1.24', '192.168.1.9') # first addr provides telemetry and encoder data
     ECHO_IP_ADDR = '127.0.0.1' # transform and platform output echoed to this address using PLATFORM_ECHO_PORT
     # software network port assignments:
     FIRST_AGENT_PROXY_EVENT_PORT = 10000

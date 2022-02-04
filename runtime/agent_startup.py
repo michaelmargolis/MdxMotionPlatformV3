@@ -9,6 +9,7 @@
 from common.tcp_server import TcpServer
 from common.udp_tx_rx import UdpSend
 from common.kb_sleep import kb_sleep
+from common.ip_utils import get_ip
 from platform_config import cfg
 from agents.agent_config import AgentStartupMsg
 import time
@@ -101,7 +102,7 @@ class AgentStartup(object):
                     print(traceback.format_exc())
 
     def run(self):
-        log.info("Startup service at %s using TCP port %d", self.server.get_local_ip(), self.server_address[1])
+        log.info("Startup service at %s using TCP port %d", get_ip(), self.server_address[1])
         while self.running:
             while self.server.available() > 0:
                 self.cmd_handler()
