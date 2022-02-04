@@ -70,14 +70,25 @@ class Buttons(object):
                     self.callback(self.keys[idx]) 
 
 
-def test(key):
-    print(key)
+def show(pin):
+    try:
+        print(pin, pin_defs[pin])
+    except:
+        print(pin)
+
 
 if __name__ == "__main__":
-    buttons = Buttons(test)
-    buttons.append(21,"sw 21", 'pullup','falling')
-    buttons.append(9,"sw 9", 'pullup','falling')
-    buttons.append(27,["sw 27 low", "sw 27 high"], 'pullup','both')
+    all_pins = [2,3,4,17,27,22,10,9,11,5,6,13,19,26,18,23,24,25,8,7,12,16,20,21]
+
+    pin_defs = {18:'pcb_DISPATCH_PIN', 17:'pcb_PAUSE_PIN',23:'pcb_RESET_PIN', 22:'pcb_ACTIVATE_PIN', \
+               3:'pcb_ENCODER_A', 4:'pcb_ENCODER_B', 2:'pcb_ENCODER_SW_PIN', \
+               5:'wired_DISPATCH_PIN', 6:'wired_PAUSE_PIN', 13:'wired_RESET_PIN', 19:'wired_ACTIVATE_PIN',\
+               9:'wired_ENCODER_A', 11:'wired_ENCODER_B', 26:'wired_ENCODER_SW_PIN' }
+    
+    buttons = Buttons(show)
+    for pin in all_pins:        
+        buttons.append(pin, str(pin), 'pullup', 'falling')
+
     while True:
         buttons.service()
         time.sleep(.05)
