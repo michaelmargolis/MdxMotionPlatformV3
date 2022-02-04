@@ -12,13 +12,13 @@ log = logging.getLogger(__name__)
 TIME_DELTA_THRESHOLD = .2 # max time deviation across agents before errors are logged
 
 class AgentProxy():
-    def __init__(self, address_list, startup_cmd_port, first_event_port): 
+    def __init__(self, address_list, startup_cmd_port, event_port): 
         self.addresses = address_list  # (ipaddr, port),
         self.nbr_agents = len(address_list)
         self.conn = [None] * self.nbr_agents
         self.is_connected = [False] * self.nbr_agents
-        self.event_ports = [None] * self.nbr_agents  # ports to receive telemetry for each agent
-        self.event_receiver = [None] * self.nbr_agents # upd receiver objects for each agent
+        self.event_port = event_port
+        self.event_receiver = UdpReceive(self.event_port)
         self.states = [RideState.DISABLED] * self.nbr_agents  # the agent ride state
         self.ridetime = [0] * self.nbr_agents # the time since ride was dispatched
         
@@ -31,11 +31,7 @@ class AgentProxy():
         for idx, addr in enumerate(self.addresses):
             log.debug("creating agent for %s, %d", addr, startup_cmd_port) 
             self.conn[idx] = TcpClient(addr, startup_cmd_port)
-        for i in range(len(self.event_receiver)):
-            self.event_ports[i] = first_event_port + i
-            self.event_receiver[i] = UdpReceive(self.event_ports[i])
-            log.info("creating UDP event receiver on port %d for PC at %s", self.event_ports[i], self.addresses[i]) 
-
+        
     def fin(self):
         pass
 
@@ -60,7 +56,7 @@ class AgentProxy():
     def send_startup(self, agent_name, agent_module):
         self.host_ip = self.conn[0].get_local_ip()
         for idx, conn in  enumerate(self.conn):
-            body = AgentStartupMsg(agent_name, agent_module, self.host_ip, str(self.event_ports[idx])) 
+            body = AgentStartupMsg(agent_name, agent_module, self.host_ip, str(self.event_port), str(idx)) 
             startup_msg = "STARTUP," + ','.join(str(s) for s in body)
             log.info("Sending startup msg: %s", startup_msg)
             conn.send(startup_msg + '\n') 
@@ -151,26 +147,6 @@ class AgentProxy():
             pc_str = format("PC at %s " % (agent_conn.ip_addr)) # label for conn status reporting
             if agent_conn.status.is_connected:
                 status_str = pc_str + " is connected"
-                while self.event_receiver[idx].available():
-                    incoming = self.event_receiver[idx].get()[1]  # msg tuple is: sender_addr, msg
-                    '''
-                    if idx == 0:
-                         print(status_str, incoming, RemoteMsgProtocol.EvtMsgHeader, RemoteMsgProtocol.EvtMsgHeader in incoming )
-                    '''
-                    msg = RemoteMsgProtocol.decode(incoming)
-                    if msg:
-                        # print(msg.sim_connection_state_str, msg.ride_status_str)
-                        self.states[idx] = msg.state
-                        self.ridetime[idx] = msg.ridetime
-                        # self.show_connection_status(idx, pc_str, True, msg.sim_connection_state_str)
-                        self.gui.report_connection_status(idx, pc_str, msg.sim_connection_state_str)
-                        if idx == 0: # respond to the first agents events
-                            self.gui.report_coaster_status(msg.ride_status_str)
-                            self._transform  = msg.transform
-                        # todo add cpu!gpu temperatures to msg and check limits (40, 60), (75, 90))
-                    else:
-                        #self.show_connection_status(idx, pc_str, True, "waiting for event")
-                        self.gui.report_connection_status(idx, pc_str, 'waiting for event!orange')
             else:
                 # here if not connected to agent
                 if self.is_connected[idx] == True: # check if previously connected
@@ -179,5 +155,24 @@ class AgentProxy():
                 status_str = 'not connected'
                 # self.show_connection_status(idx, pc_str, False, status_str)
                 self.gui.report_connection_status(idx, pc_str, 'not connected!red')
+
+        while self.event_receiver.available():
+            addr, msg = self.event_receiver.get()  
+            msg = RemoteMsgProtocol.decode(msg)
+            if msg:
+                # print(msg.sim_connection_state_str, msg.ride_status_str)
+                idx = msg.agent_id
+                self.states[idx] = msg.state
+                self.ridetime[idx] = msg.ridetime
+                # self.show_connection_status(idx, pc_str, True, msg.sim_connection_state_str)
+                self.gui.report_connection_status(idx, pc_str, msg.sim_connection_state_str)
+                if idx == 0: # respond to the first agents events
+                    self.gui.report_coaster_status(msg.ride_status_str)
+                    self._transform  = msg.transform
+                # todo add cpu!gpu temperatures to msg and check limits (40, 60), (75, 90))
+            else:
+                #self.show_connection_status(idx, pc_str, True, "waiting for event")
+                self.gui.report_connection_status(idx, pc_str, 'waiting for event!orange')
+
 
 

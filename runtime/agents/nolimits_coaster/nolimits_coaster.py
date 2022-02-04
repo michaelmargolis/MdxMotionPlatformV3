@@ -123,8 +123,8 @@ colors = ["green", "orange", "red"] # for warning level text
 
 class InputInterface(AgentBase):
 
-    def __init__(self, event_addr, event_sender):
-        super(InputInterface, self).__init__(event_addr, event_sender)
+    def __init__(self, instance_id, event_addr, event_sender):
+        super(InputInterface, self).__init__(instance_id, event_addr, event_sender)
         self.sleep_func = kb_sleep
         self.name = "NoLimitss Coaster"
         self.cmd_func = None
@@ -365,74 +365,9 @@ class InputInterface(AgentBase):
                 self.set_transform(self.nl2.get_transform())
 
         dummy_frame =  time.time()-self.debug_start_time
-        event = RemoteMsgProtocol.encode(self.get_ridetime(), dummy_frame, self.coasterState.state, self.nl2.is_paused(),
+        event = RemoteMsgProtocol.encode(self.instance_id, self.get_ridetime(), dummy_frame, self.coasterState.state, self.nl2.is_paused(),
                                 self.get_transform(), self.coaster_status_str, self.sim_connection_state_str)
         self.event_sender.send(event.encode('utf-8'), self.event_address)
-
-    """  
-    def old_service(self):
-        if self.connect():
-            self.nl2.service_nl2Q()
-            if self.temp_is_preparing_to_run:
-               self.coaster_status_str = "Preparing to dispatch!orange"
-               print("wha 1")
-            else:
-                self.nl2.is_train_in_station()
-                bit_train_in_station = 0x800
-                bit_current_train_in_station = 0x1000
-                if self.nl2.system_status.is_in_play_mode:
-                    speed, transform = self.nl2.get_telemetry(.1)
-                    if speed:
-                        print("wha 2a speed not none")
-                        #  here if valid telemetry data
-                        self.speed = speed
-                        self.sim_connection_state_str = 'sim connected'
-                        
-                        code below triggers paused event if nl2 is paused
-                        else 
-                           stopped event if at station
-                           reset event if nl2 state is resetting (or disabled ??)
-                           
-                           if nl2.is_paused() self._state != RideState.PAUSED:
-                           
-                        if self.nl2.system_status.is_paused == False:
-                            if self.check_is_stationary(self.speed):
-                                self.coasterState.process_ride_event(RideEvent.STOPPED)
-                                #  here if coaster not moving and not paused
-                                #  print "Auto Reset"
-                            else:
-                                if self.coasterState.state == RideState.DISABLED:
-                                    # coaster is moving at startup
-                                    self.coasterState.process_ride_event(RideEvent.RESETEVENT)
-                                else:
-                                    self.coasterState.process_ride_event(RideEvent.UNPAUSED)
-                            print("wha 3 not paused")
-                        else:
-                            self.coasterState.process_ride_event(RideEvent.PAUSED)
-                        #  print isRunning, speed
-                            print("wha 4 paused")
-
-                        if transform and len(transform) == 6:  # check if we have data for all 6 DOF
-                            self.set_transform(transform)
-                            print("wha 5 got transform")
-                    else:
-                         print("wha 5a speed none")
-                else:
-                    log.error("Coaster not in play mode")
-                    if self.nl2.system_status.is_nl2_connected:
-                        errMsg = format("Telemetry err: %s" % self.nl2.get_telemetry_err_str())
-                        log.error(errMsg)
-                    print("wha 6 nl2 not in play")
-        else:
-            log.error("No connection to NoLimits, is it running?")
-            self.sim_connection_state_str = 'sim not connected'
-            print("wha 7 nl2 not connected")
-        dummy_frame =  time.time()-self.debug_start_time
-        print("wha 8", self.sim_connection_state_str)
-        event = RemoteMsgProtocol.encode(self.get_ridetime(), dummy_frame, self.coasterState.state, self.nl2.system_status.is_paused,
-                                self.get_transform(), self.coaster_status_str, self.sim_connection_state_str)
-        self.event_sender.send(event.encode('utf-8'), self.event_address)
-    """
 
 def man():
     parser = argparse.ArgumentParser(description='Platform Controller\nAMDX motion platform control application')

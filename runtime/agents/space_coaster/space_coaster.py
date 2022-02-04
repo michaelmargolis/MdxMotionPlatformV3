@@ -47,8 +47,8 @@ class ConnectionException(Exception):
 
 class InputInterface(AgentBase): # todo  rename to AgentInterface ??
 
-    def __init__(self, event_addr, event_sender):
-        super(InputInterface, self).__init__(event_addr, event_sender)
+    def __init__(self, instance_id, event_addr, event_sender):
+        super(InputInterface, self).__init__(instance_id, event_addr, event_sender)
         self.sleep_func = time.sleep # todo - replace with function that checks  kbhit
         self.name = "Space Coaster"
         self.log = None
@@ -218,7 +218,7 @@ class InputInterface(AgentBase): # todo  rename to AgentInterface ??
                         x=x1 
                     self.xyzrpyQ.queue.clear()
 
-            event = RemoteMsgProtocol.encode(self.frame_interval*self.frame_number, self.frame_number, self.state, self.is_paused,
+            event = RemoteMsgProtocol.encode(self.instance_id, self.frame_interval*self.frame_number, self.frame_number, self.state, self.is_paused,
                                     self.get_transform(), self.coaster_status_str, self.sim_connection_state_str)
             self.event_sender.send(event.encode('utf-8'), self.event_address)
 

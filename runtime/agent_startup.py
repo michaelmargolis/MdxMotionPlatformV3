@@ -33,7 +33,7 @@ FRAME_RATE_ms = 50
 sim_exe = {
             "space_coaster": os.path.join(desktop, 'Vr', 'SpaceCoaster.lnk'), 
             "nolimits_coaster": os.path.join(desktop, 'Vr', 'NoLimits 2.lnk').encode(), 
-            "Test_Agent": ''  # test agent does not have a path
+            "Test_agent": 'None'  # test agent does not have a path
           }
 
 class AgentStartup(object):
@@ -49,19 +49,20 @@ class AgentStartup(object):
     def startup(self, fields):
         # startup sim and agent specified in given fields
         log.info("processing startup msg for %s",  fields[1])
-        msg = tuple(fields[1:5])
+        msg = tuple(fields[1:6])
         msg = AgentStartupMsg._make(msg) # cast to startup namedtuple
+        #  print(msg)
         if msg.sim_name != 'NONE':
             try:
                 sim_path = sim_exe[msg.sim_name]
-                if sim_path :
+                if sim_path != 'None':
                     log.info("starting sim : %s", sim_path)
                     os.startfile(sim_path)
                 agent = fields[2]
                 if msg.agent_module != "NONE":
                     import_path = 'agents.' + msg.sim_name + '.' + msg.sim_name
                     event_address = (msg.ip_addr, int(msg.event_port)) # addr udp socket will send events to
-                    agent = importlib.import_module(import_path).InputInterface(event_address, self.event_sender)
+                    agent = importlib.import_module(import_path).InputInterface(msg.agent_id, event_address, self.event_sender)
                     return agent
             except Exception as e:
                 log.error("agent startup error %s", str(e))
@@ -89,7 +90,7 @@ class AgentStartup(object):
                         hostname = socket.gethostname()   
                         IPAddr = socket.gethostbyname(hostname)  
                         event_msg = format("test event from %s @ %s" % (hostname, IPAddr))
-                        log.info("sending event msg: %s", event_msg)
+                        log.info("sending event msg: %s to %s", event_msg, str((ip_addr,event_port)))
                         self.event_sender.send(event_msg.encode('utf-8'),(ip_addr,event_port))
                     else:
                         if self.agent:

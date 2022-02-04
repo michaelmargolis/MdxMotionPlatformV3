@@ -1,7 +1,6 @@
 # agent_coms_test.py
 
 from  platform_config import cfg
-from agents.agent_config import AgentStartupMsg
 from common.tcp_client import TcpClient
 from common.udp_tx_rx import UdpReceive
 
@@ -25,24 +24,21 @@ import logging
 log = logging.getLogger(__name__)
 
 class AgentComsTest():
-    def __init__(self, address_list, startup_cmd_port, first_event_port):
+    def __init__(self, address_list, startup_cmd_port, event_port):
         self.addresses = address_list  # (ipaddr, port),
         self.nbr_agents = len(address_list)
         self.nbr_connected = 0
         self.conn = [None] * self.nbr_agents
         self.is_connected = [False] * self.nbr_agents
-        self.event_ports = [None] * self.nbr_agents  # ports to receive telemetry for each agent
-        self.event_receiver = [None] * self.nbr_agents # upd receiver objects for each agent
-
+        self.event_port = event_port
+        self.event_receiver = UdpReceive(self.event_port)
+        log.info("creating UDP event receiver on port %d", self.event_port)
+        
         for idx, addr in enumerate(self.addresses):
             log.info("Initialising socket for comms to agent at %s:%d",addr, startup_cmd_port) 
             self.conn[idx] = TcpClient(addr, startup_cmd_port)
         self.controller_ip = self.conn[0].get_local_ip()
-        for i in range(len(self.event_receiver)):
-            self.event_ports[i] = first_event_port + i
-            self.event_receiver[i] = UdpReceive(self.event_ports[i])
-            log.info("creating UDP event receiver on port %d for agent at %s", self.event_ports[i], self.addresses[i])
-
+        
     def connect(self):
         for idx, addr in enumerate(self.addresses):
             if self.is_connected[idx] == False:
@@ -58,16 +54,16 @@ class AgentComsTest():
                         log.error("----> PC at %s UNREACHABLE via ping", str(addr))
 
     def send_event_test(self, idx):
-        event_test_msg = format('EVENT_TEST,%s,%d' % (self.controller_ip, self.event_ports[idx]))
+        event_test_msg = format('EVENT_TEST,%s,%d' % (self.controller_ip, self.event_port))
         log.info("Sending agent at %s event request test msg: %s", str(self.addresses[idx]), event_test_msg)
         self.conn[idx].send(event_test_msg + '\n')
 
         start = time.time()         
         timeout = 2
         while( time.time() < start  + timeout): # listen for two seconds
-            rx  = self.event_receiver[idx]
-            if rx.available():
-                log.info("GOT: %s from %s", rx.get(), self.addresses[idx])
+            if self.event_receiver.available():
+                addr, event = self.event_receiver.get()
+                log.info("GOT: %s from %s", event, addr)
                 return
         log.error("--> No event received from %s after %d seconds", self.addresses[idx], timeout) 
 

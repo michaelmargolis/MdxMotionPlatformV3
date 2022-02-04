@@ -20,7 +20,8 @@ AgentStartupMsg = namedtuple('AgentMsg', [
                              'sim_name', # key used by remote PC startup to lookup executable file path to run
                              'agent_module', # python agent module to import and run on PC running sim
                              'ip_addr',  # ip address of controlller pc (Vr pc sends events to this address) 
-                             'event_port'])  # port for above
+                             'event_port', # port for above
+                             'agent_id']) # the id that identifies this agent instance to the proxy 
                                   
 
 class AgentCfg():

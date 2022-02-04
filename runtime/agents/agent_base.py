@@ -8,7 +8,7 @@ all but the most basic agents will override these methods
 """
 from collections import namedtuple
 
-AgentEvt = namedtuple('AgentMsg', ['ridetime', 'frame', 'state', 'is_paused',
+AgentEvt = namedtuple('AgentMsg', ['agent_id', 'ridetime', 'frame', 'state', 'is_paused',
                                    'transform', 'ride_status_str', 'sim_connection_state_str'])
 
 # sim_connection_state_str :  'waiting sim connection', 'sim connected', 'sim not connected'
@@ -18,9 +18,9 @@ class RemoteMsgProtocol(object):  # AgentEventProtocol  was RemoteMsgProtocol in
     EvtMsgHeader = 'AgentEvent'
 
     @staticmethod
-    def encode(ridetime, frame, state, is_paused, transform, ride_status_str, sim_connection_state_str):
+    def encode(agent_id, ridetime, frame, state, is_paused, transform, ride_status_str, sim_connection_state_str):
         xform =  ','.join('%0.4f' % item for item in transform) 
-        return format("%s,%d,%d,%d,%d;%s;%s;%s\n" % (RemoteMsgProtocol.EvtMsgHeader, ridetime, frame, state,
+        return format("%s,%s,%d,%d,%d,%d;%s;%s;%s\n" % (RemoteMsgProtocol.EvtMsgHeader, agent_id,  ridetime, frame, state,
                                                      is_paused, xform, ride_status_str, sim_connection_state_str))
 
     @staticmethod
@@ -28,22 +28,24 @@ class RemoteMsgProtocol(object):  # AgentEventProtocol  was RemoteMsgProtocol in
         if remote_msg[:len(RemoteMsgProtocol.EvtMsgHeader)] == RemoteMsgProtocol.EvtMsgHeader:
             fields = remote_msg.split(';')
             context = fields[0].split(',')
-            ridetime = int(context[1])
-            frame = int(context[2])
-            state = int(context[3])
-            is_paused = int(context[4])
+            agent_id = int(context[1])
+            ridetime = int(context[2])
+            frame = int(context[3])
+            state = int(context[4])
+            is_paused = int(context[5])
             transform_str =  fields[1].split(',')
             transform = [float(x) for x in transform_str]
             ride_status_str = fields[2]
             sim_connection_state_str = fields[3]
-            return  AgentEvt(ridetime, frame, state, is_paused, transform, ride_status_str, sim_connection_state_str)
+            return  AgentEvt(agent_id, ridetime, frame, state, is_paused, transform, ride_status_str, sim_connection_state_str)
         else:
             return None # this was not an agent event msg
 
 class AgentBase(object):  # was ClientApi
  
-    def __init__(self, event_address, event_sender):
+    def __init__(self, instance_id, event_address, event_sender):
         """Constructor.  May be extended, do not override."""
+        self.instance_id = instance_id
         self.event_address = event_address
         self.event_sender = event_sender
         # orientation is: x, y, z translations, roll, pitch , yaw
