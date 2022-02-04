@@ -86,7 +86,7 @@ class Controller(QtWidgets.QMainWindow):
         self.RemoteControl = RemoteControl(self, self.agent_proxy.gui.set_rc_label)
         self.local_control = None
         if os.name == 'posix':
-            if os.uname()[1] == 'raspberrypi':
+            if os.uname()[4].startswith("arm"):
                 try:
                     import RPi.GPIO as GPIO 
                     import RemoteControls.local_control_itf as local_control_itf
@@ -435,7 +435,7 @@ class Controller(QtWidgets.QMainWindow):
             self.echo_output(list(processed_xform), self.actuator_lengths, self.platform.percents)
             if processing_dur > 9: # anything less than 20 is acceptable but should average under 9 on raspberry pi
                 log.warning("Longer than expected transform processing duration: %d ms", processing_dur)
-            self.ui.lbl_processing_dur.setText(str(processing_dur))
+            self.ui.lbl_processing_dur.setText(format("%d ms" % (processing_dur)))
             if self.ui_tab == 2: # the output tab
                 # processing_dur = self.ma.next(processing_dur)
                 processing_percent = round((100 * processing_dur) / self.FRAME_RATE_ms)
