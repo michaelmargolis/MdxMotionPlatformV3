@@ -3,6 +3,9 @@
 import sys
 import time
 import os
+import logging
+
+log = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     import rotary_encoder as rotary_encoder
@@ -12,39 +15,24 @@ else:
     import RemoteControls.buttons as buttons
 
 
-USE_PCB = True
 
-if USE_PCB:
-    DISPATCH_PIN = 18
-    PAUSE_PIN = 17
-    RESET_PIN = 23
-    ACTIVATE_PIN = 22
-    ENCODER_A = 3
-    ENCODER_B = 4
-    ENCODER_SW_PIN = 2
-else:
-    DISPATCH_PIN = 5 
-    PAUSE_PIN = 6
-    RESET_PIN = 13
-    ACTIVATE_PIN = 19
-    ENCODER_A = 9
-    ENCODER_B = 11
-    ENCODER_SW_PIN = 26
+dual_reset_pcb_pins = {'DISPATCH_PIN':18, 'PAUSE_PIN':15, 'RESET_PIN_1':27, 'RESET_PIN_2':23, 'ACTIVATE_PIN':24, 'ENCODER_A':4, 'ENCODER_B':14, 'ENCODER_SW_PIN':17}
+single_reset_pcb_pins = {'DISPATCH_PIN':18, 'PAUSE_PIN':17, 'RESET_PIN_1':23,  'RESET_PIN_2':23, 'ACTIVATE_PIN':22, 'ENCODER_A':3, 'ENCODER_B':4, 'ENCODER_SW_PIN':2}
+wired_switch_pins = {'DISPATCH_PIN':5, 'PAUSE_PIN':6, 'RESET_PIN_1':13,  'RESET_PIN_2':13, 'ACTIVATE_PIN':19, 'ENCODER_A':9, 'ENCODER_B':11, 'ENCODER_SW_PIN':26}
+
+pi_switch_pins = {'dual_reset_pcb_pins':dual_reset_pcb_pins, 'single_reset_pcb_pins':single_reset_pcb_pins, 'wired_switch_pins':wired_switch_pins}
 
 class LocalControlItf(object):   # was SerialRemote(object):
     """ provide action strings associated with buttons on raspberry pi."""
 
-    def __init__(self, actions):
-        """ Call with dictionary of action strings.
+    def __init__(self, actions, pin_defs):
+        """ Call with dictionary of action strings, pin definitions.
  
         Keys are the strings associated with gpio pins,
         values are the functons to be called for the given key.
         """
-        global USE_PCB
-        if USE_PCB:
-           print("Initializing Raspberry Pi Touch Control Panel")
-        else:
-           print("Initializing Raspberry Pi using hard wired switches")
+        log.debug("Initializing Raspberry Pi Touch Control Panel with pins for %s", pin_defs)
+        self.pins = pi_switch_pins[pin_defs]
         self.actions = actions
         self.decoder = rotary_encoder.decoder(ENCODER_A, ENCODER_B, self.encoder_callback)
         self.intensity = 10
@@ -52,11 +40,11 @@ class LocalControlItf(object):   # was SerialRemote(object):
         self.enc_pushed = False
         self.park_inc = 0
         self.buttons = buttons.Buttons(self.button_callback)
-        self.buttons.append(DISPATCH_PIN,'dispatch', 'pullup','falling')
-        self.buttons.append(PAUSE_PIN,'pause', 'pullup','falling')
-        self.buttons.append(RESET_PIN,'reset', 'pullup','falling')
-        self.buttons.append(ACTIVATE_PIN,['activate', 'deactivate'], 'pullup','both')
-        self.buttons.append(ENCODER_SW_PIN,['enc_pushed', 'enc_released'], 'pullup','both')
+        self.buttons.append(pins['DISPATCH_PIN','dispatch', 'pullup','falling')
+        self.buttons.append(pins['PAUSE_PIN','pause', 'pullup','falling')
+        self.buttons.append(pins['RESET_PIN_1','reset', 'pullup','falling')
+        self.buttons.append(pins['ACTIVATE_PIN',['activate', 'deactivate'], 'pullup','both')
+        self.buttons.append(pins['ENCODER_SW_PIN',['enc_pushed', 'enc_released'], 'pullup','both')
 
     def encoder_callback(self, dir):
        if  self.enc_pushed == False:

@@ -90,9 +90,10 @@ class Controller(QtWidgets.QMainWindow):
                 try:
                     import RPi.GPIO as GPIO 
                     import RemoteControls.local_control_itf as local_control_itf
-                    if cfg.USE_PI_SWITCHES:
-                        self.local_control = local_control_itf.LocalControlItf(self.RemoteControl.actions)
-                        log.info("using local hardware switch control")
+                    pin_defines = cfg.PI_PIN_DEFINES
+                    if pin_defines != 'None':
+                        self.local_control = local_control_itf.LocalControlItf(self.RemoteControl.actions, pin_defines)
+                        log.info("using local hardware switch control %s", pin_defines)
                         if self.local_control.is_activated():
                             self.dialog.setWindowTitle('Emergency Stop must be down')
                             self.dialog.txt_info.setText("Flip Emergency Stop Switch down to proceed")
@@ -433,7 +434,7 @@ class Controller(QtWidgets.QMainWindow):
             self.platform.move_distance(self.actuator_lengths)
             processing_dur = int(round((time.perf_counter() - start) * 1000))
             self.echo_output(list(processed_xform), self.actuator_lengths, self.platform.percents)
-            if processing_dur > 9: # anything less than 20 is acceptable but should average under 9 on raspberry pi
+            if processing_dur > 15: # anything less than 20 is acceptable but should remain under 15 on raspberry pi
                 log.warning("Longer than expected transform processing duration: %d ms", processing_dur)
             self.ui.lbl_processing_dur.setText(format("%d ms" % (processing_dur)))
             if self.ui_tab == 2: # the output tab

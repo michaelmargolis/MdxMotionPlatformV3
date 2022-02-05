@@ -18,7 +18,7 @@ class cfg:
     HARD_CODED_IP = None  # default addr is '192.168.0.4'
     # note the default addr for optional computer running control software is 192.168.0.2
 
-    USE_PI_SWITCHES = True # uses hardware switches on Pi if set true, ignored if controller is not running on Pi
+    PI_PIN_DEFINES = 'dual_reset_pcb_pins' #  'single_reset_pcb_pins'   'wired_switch_pins'     
 
     #software network address assignments
     SIM_IP_ADDR =  ('192.168.1.109','192.168.1.166') #('192.168.0.183',) #('192.168.0.38',) #('192.168.1.24', '192.168.1.9') # first addr provides telemetry and encoder data
