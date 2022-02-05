@@ -34,7 +34,7 @@ class LocalControlItf(object):   # was SerialRemote(object):
         log.debug("Initializing Raspberry Pi Touch Control Panel with pins for %s", pin_defs)
         self.pins = pi_switch_pins[pin_defs]
         self.actions = actions
-        self.decoder = rotary_encoder.decoder(ENCODER_A, ENCODER_B, self.encoder_callback)
+        self.decoder = rotary_encoder.decoder(pins['ENCODER_A'], pins['ENCODER_B'], self.encoder_callback)
         self.intensity = 10
         self.prev_intensity = None
         self.enc_pushed = False
