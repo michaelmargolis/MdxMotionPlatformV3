@@ -1,5 +1,6 @@
 # btn_test.py
-import buttons
+from buttons import Buttons
+import time
      
 dual_reset_pcb_pins = {'DISPATCH_PIN':18, 'PAUSE_PIN':15, 'RESET_PIN_1':27, 'RESET_PIN_2':23, 'ACTIVATE_PIN':24, 'ENCODER_A':4, 'ENCODER_B':14, 'ENCODER_SW_PIN':17}
 single_reset_pcb_pins = {'DISPATCH_PIN':18, 'PAUSE_PIN':17, 'RESET_PIN_1':23, 'ACTIVATE_PIN':22, 'ENCODER_A':3, 'ENCODER_B':4, 'ENCODER_SW_PIN':2}
@@ -14,15 +15,15 @@ rev_wired = {value: key for key, value in wired_switch_pins.items()}
 wiring = (rev_dual, rev_single, rev_wired)
 wiring_str = ('dual_reset_pcb', 'single__reset_pcb', 'hand wired')
 
-def show(pin_str):
-     pin = int(str)
-     for idx, variant in enumerate(wiring):
+def show(pin):
+    for idx, variant in enumerate(wiring):
         try:
             assignment = variant[pin]
             if assignment:
                     print(pin, wiring_str[idx],assignment)
         except:
-            pass   
+            pass 
+    print()
     
 if __name__ == "__main__":    
     all_pins = (2,3,4,17,27,22,10,9,11,5,6,13,19,26,14,15,18,23,24,25,8,7,12,16,20,21)
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     buttons = Buttons(show)
 
     for pin in all_pins:
-            buttons.append(pin,str(pin), 'pullup','falling')
+            buttons.append(pin, pin, 'pullup','falling')
 
     print('Press buttons on control panel to verify if they are recognized')
     print('press ztrl-z to exit')
