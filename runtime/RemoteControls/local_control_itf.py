@@ -40,11 +40,11 @@ class LocalControlItf(object):   # was SerialRemote(object):
         self.enc_pushed = False
         self.park_inc = 0
         self.buttons = buttons.Buttons(self.button_callback)
-        self.buttons.append(pins['DISPATCH_PIN','dispatch', 'pullup','falling')
-        self.buttons.append(pins['PAUSE_PIN','pause', 'pullup','falling')
-        self.buttons.append(pins['RESET_PIN_1','reset', 'pullup','falling')
-        self.buttons.append(pins['ACTIVATE_PIN',['activate', 'deactivate'], 'pullup','both')
-        self.buttons.append(pins['ENCODER_SW_PIN',['enc_pushed', 'enc_released'], 'pullup','both')
+        self.buttons.append(pins['DISPATCH_PIN'],'dispatch', 'pullup','falling')
+        self.buttons.append(pins['PAUSE_PIN'],'pause', 'pullup','falling')
+        self.buttons.append(pins['RESET_PIN_1'],'reset', 'pullup','falling')
+        self.buttons.append(pins['ACTIVATE_PIN'],['activate', 'deactivate'], 'pullup','both')
+        self.buttons.append(pins['ENCODER_SW_PIN'],['enc_pushed', 'enc_released'], 'pullup','both')
 
     def encoder_callback(self, dir):
        if  self.enc_pushed == False:
