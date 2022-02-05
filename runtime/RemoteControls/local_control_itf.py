@@ -32,19 +32,19 @@ class LocalControlItf(object):   # was SerialRemote(object):
         values are the functons to be called for the given key.
         """
         log.debug("Initializing Raspberry Pi Touch Control Panel with pins for %s", pin_defs)
-        pins = pi_switch_pins[pin_defs]
+        self.pins = pi_switch_pins[pin_defs]
         self.actions = actions
-        self.decoder = rotary_encoder.decoder(pins['ENCODER_A'], pins['ENCODER_B'], self.encoder_callback)
+        self.decoder = rotary_encoder.decoder(self.pins['ENCODER_A'], self.pins['ENCODER_B'], self.encoder_callback)
         self.intensity = 10
         self.prev_intensity = None
         self.enc_pushed = False
         self.park_inc = 0
         self.buttons = buttons.Buttons(self.button_callback)
-        self.buttons.append(pins['DISPATCH_PIN'],'dispatch', 'pullup','falling')
-        self.buttons.append(pins['PAUSE_PIN'],'pause', 'pullup','falling')
-        self.buttons.append(pins['RESET_PIN_1'],'reset', 'pullup','falling')
-        self.buttons.append(pins['ACTIVATE_PIN'],['activate', 'deactivate'], 'pullup','both')
-        self.buttons.append(pins['ENCODER_SW_PIN'],['enc_pushed', 'enc_released'], 'pullup','both')
+        self.buttons.append(self.pins['DISPATCH_PIN'],'dispatch', 'pullup','falling')
+        self.buttons.append(self.pins['PAUSE_PIN'],'pause', 'pullup','falling')
+        self.buttons.append(self.pins['RESET_PIN_1'],'reset', 'pullup','falling')
+        self.buttons.append(self.pins['ACTIVATE_PIN'],['activate', 'deactivate'], 'pullup','both')
+        self.buttons.append(self.pins['ENCODER_SW_PIN'],['enc_pushed', 'enc_released'], 'pullup','both')
 
     def encoder_callback(self, dir):
        if  self.enc_pushed == False:
@@ -69,7 +69,7 @@ class LocalControlItf(object):   # was SerialRemote(object):
             self.actions[msg]()
 
     def is_activated(self):
-        return self.buttons.raw_value(ACTIVATE_PIN) == 'high'
+        return self.buttons.raw_value(self.pins['ACTIVATE_PIN']) == 'high'
 
     def service(self):
         """ Poll to service button requests."""
