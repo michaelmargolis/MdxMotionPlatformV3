@@ -188,28 +188,22 @@ class AgentGui(AgentGuiBase):
                 self.custom_btn_dispatch.set_attributes(False, False, 'Dispatch')  # not enabled, not checked
                 gutil.set_text(self.ui.lbl_coaster_status, "Coaster at Station but deactivated", "orange")
                 self.custom_btn_pause.set_attributes(True, False, "Prop Platform")  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
 
         elif new_state == RideState.RUNNING:
             self.custom_btn_dispatch.set_attributes(False, True, 'Dispatched')  # not enabled, checked
             self.custom_btn_pause.set_attributes(True, False, "Pause")  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Running", "green")
-            
+            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Running", "green")            
         elif new_state == RideState.PAUSED:
             self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
             self.custom_btn_pause.set_attributes(True, True, "Continue")  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
             gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Paused", "orange")
         elif new_state == RideState.EMERGENCY_STOPPED:
             self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
-            self.custom_btn_pause.set_attributes(False, True)  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
+            self.custom_btn_pause.set_attributes(False, True, 'E-Stopped')  # enabled, not checked
             gutil.set_text(self.ui.lbl_coaster_status, "Emergency Stop", "red")
         elif new_state == RideState.NON_SIM_MODE:
             self.custom_btn_dispatch.set_attributes(False, True)  # not enabled, checked
             self.custom_btn_pause.set_attributes(False, False)  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
             gutil.set_text(self.ui.lbl_coaster_status, "Coaster is resetting", "blue")
 
     def set_button_style(self, object, is_enabled, is_checked=None, text=None):
@@ -221,50 +215,3 @@ class AgentGui(AgentGuiBase):
         if is_enabled != None:
            object.setEnabled(is_enabled)
            
-"""
-    def show_state_change(self, new_state, isActivated):
-        log.debug("Coaster state changed to: %s (%s)", RideState.str(new_state), "Activated" if isActivated else "Deactivated")
-        if new_state == RideState.READY_FOR_DISPATCH:
-            if isActivated:
-                log.debug("Coaster is Ready for Dispatch")
-                self.set_button_style(self.ui.btn_dispatch, True, False)  # enabled, not checked
-                gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Ready for Dispatch", "green")
-                self.set_button_style(self.ui.btn_pause, True, False, "Pause")  # enabled, not checked
-            else:
-                log.debug("Coaster at Station but deactivated")
-                self.set_button_style(self.ui.btn_dispatch, False, False)  # not enabled, not checked
-                gutil.set_text(self.ui.lbl_coaster_status, "Coaster at Station but deactivated", "orange")
-                self.set_button_style(self.ui.btn_pause, True, False, "Prop Platform")  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-
-        elif new_state == RideState.RUNNING:
-            self.set_button_style(self.ui.btn_dispatch, False, True)  # not enabled, checked
-            self.set_button_style(self.ui.btn_pause, True, False, "Pause")  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Running", "green")
-            
-        elif new_state == RideState.PAUSED:
-            self.set_button_style(self.ui.btn_dispatch, False, True)  # not enabled, checked
-            self.set_button_style(self.ui.btn_pause, True, True, "Continue")  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Paused", "orange")
-        elif new_state == RideState.EMERGENCY_STOPPED:
-            self.set_button_style(self.ui.btn_dispatch, False, True)  # not enabled, checked
-            self.set_button_style(self.ui.btn_pause, False, True)  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            gutil.set_text(self.ui.lbl_coaster_status, "Emergency Stop", "red")
-        elif new_state == RideState.RESETTING:
-            self.set_button_style(self.ui.btn_dispatch, False, True)  # not enabled, checked
-            self.set_button_style(self.ui.btn_pause, False, False)  # enabled, not checked
-            self.set_button_style(self.ui.btn_reset_rift, True, False)  # enabled, not checked
-            gutil.set_text(self.ui.lbl_coaster_status, "Coaster is resetting", "blue")
-
-    def set_button_style(self, object, is_enabled, is_checked=None, text=None):
-        if text != None:
-           object.setText(text)
-        if is_checked!= None:
-           object.setCheckable(True)
-           object.setChecked(is_checked)
-        if is_enabled != None:
-           object.setEnabled(is_enabled)
-"""

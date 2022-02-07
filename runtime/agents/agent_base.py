@@ -51,11 +51,10 @@ class AgentBase(object):  # was ClientApi
         # orientation is: x, y, z translations, roll, pitch , yaw
         self.transform = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.is_normalized = True  # set to false if agent provides real world orientation values
-        self.state = 999
+        # self.state = 999
         self.ride_state = None
         self.is_connected = False
         self.gui = None
-
 
     def activate(self):
         """code to execute in agent when platform is activated goes here"""

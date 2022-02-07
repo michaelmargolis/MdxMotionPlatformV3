@@ -82,8 +82,15 @@ class Controller(QtWidgets.QMainWindow):
         except:
             raise
 
+                
     def init_remote_controls(self):
-        self.RemoteControl = RemoteControl(self, self.agent_proxy.gui.set_rc_label)
+        self.actions = {'detected remote': self.detected_remote, 'activate': self.activate,
+                   'deactivate': self.deactivate, 'pause': self.pause,
+                   'dispatch': self.dispatch, 'reset': self.reset_vr,
+                   'emergency_stop': self.emergency_stop, 'intensity' : self.set_intensity
+                   # ,'show_parks' : self.show_parks,'scroll_parks' : self.scroll_parks}
+                }
+        self.RemoteControl = RemoteControl(self.actions)
         self.local_control = None
         if os.name == 'posix':
             if os.uname()[4].startswith("arm"):
@@ -161,8 +168,8 @@ class Controller(QtWidgets.QMainWindow):
             self.output_gui.encoder_reset_callback(self.encoder_reset)
 
             # Create custom buttons
-            self.custom_btn_activate = gutil.CustomButton( self.ui.btn_activate, ('white','darkgreen'), ('black', 'lightgreen'), 6, 0) 
-            self.custom_btn_deactivate = gutil.CustomButton( self.ui.btn_deactivate, ('white','red'), ('white', 'darkred'), 12, 0) 
+            self.custom_btn_activate = gutil.CustomButton( self.ui.btn_activate, ('white','darkgreen'), ('black', 'lightgreen'), 0, 0) 
+            self.custom_btn_deactivate = gutil.CustomButton( self.ui.btn_deactivate, ('white','red'), ('white', 'darkred'), 0, 0) 
             # self.ui.btn_pause.setStyleSheet("background-color: orange;  border-radius:10px; border: 0px;QPushButton::pressed{background-color :yellow; }")
 
             self.dialog = ModelessDialog(self)
@@ -191,9 +198,6 @@ class Controller(QtWidgets.QMainWindow):
         while self.agent_proxy.connect() == False:
              app.processEvents()
         self.agent_proxy.init_gui(agent_gui, self.ui.frm_input)
-        self.cmd_dispatcher = {'detected remote': self.agent_proxy.gui.detected_remote, 'pause': self.agent_proxy.pause_pressed,
-                'dispatch': self.agent_proxy.dispatch_pressed, 'reset': self.agent_proxy.reset_vr, 'emergency_stop': self.emergency_stop,
-                'activate': self.activate, 'deactivate': self.deactivate, 'intensity' : self.set_intensity, 'info' : self.agent_proxy.remote_info }
         self.agent_proxy.send_startup(agent_name, agent_module)
 
     def set_activation_buttons(self, isEnabled): 
@@ -233,9 +237,12 @@ class Controller(QtWidgets.QMainWindow):
                     log.info("Encoders on %s", addr_str)
                 else:
                     # self.ui.tabWidget.setCurrentIndex(2)
+                    log.warning("FIXME message box warning that encoders not connected has been bypassed")
+                    """
                     QtWidgets.QMessageBox.warning(self, 'Encoder Connection Error!',
                         "Unable to connect to encoders on " + addr_str + 
                         "\nSelect Encoders in GUI to try again", QtWidgets.QMessageBox.Ok)
+                    """
                     self.output_gui.encoders_set_enabled(False)
                     self.encoder_server = None
             except Exception as e:
@@ -320,6 +327,14 @@ class Controller(QtWidgets.QMainWindow):
         self.set_activation_buttons(False)
         self.agent_proxy.deactivate()
 
+    def detected_remote(self, info):
+        if "Detected Remote" in info:
+            self.agent_proxy.gui.set_rc_label((info, "green"))
+        elif "Looking for Remote" in info:
+            self.agent_proxy.gui.set_rc_label((info, "orange"))
+        else:
+            self.agent_proxy.gui.set_rc_label((info, "red"))
+            
     def move_to_idle(self):
         log.debug("move to idle")
         # request = self.process_request(self.agent_proxy.get_transform())

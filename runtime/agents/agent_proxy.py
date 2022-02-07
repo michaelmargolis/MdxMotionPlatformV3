@@ -63,20 +63,23 @@ class AgentProxy():
             log.info("Sending startup msg: %s", startup_msg)
             conn.send(startup_msg + '\n') 
 
-    def command(self, msg):
+    def agent_command(self, msg):
+         # sends ride control commands to agent pc
         log.info("Sending msg: %s", msg)
         for conn in  self.conn:
             conn.send(msg + '\n') 
 
     def activate(self):
+        # called by platform_controller when platform is activated
         self.is_platform_activated = True
         self.gui.show_activated(self.states[0])
-        self.command("activate")
+        self.agent_command("activate")
 
     def deactivate(self):
+        # called by platform_controller when platform is deactivated
         self.is_platform_activated = False
         self.gui.show_deactivated(self.states[0])
-        self.command("deactivate")
+        self.agent_command("deactivate")
         
     def get_transform(self):
         # returns transform
@@ -92,25 +95,25 @@ class AgentProxy():
 
     def dispatch_pressed(self):
         if self.is_platform_activated:
-            self.command("dispatch")
+            self.agent_command("dispatch")
         else:
             log.info("dispatch ignored because platform not activated")
 
     def pause_pressed(self):
-        self.command("pause")
+        self.agent_command("pause")
 
     def reset_vr(self):
         log.info("reset all rifts")
-        self.command('reset\n')
+        self.agent_command('reset\n')
 
     def reset1(self):
         # fixme these resets are pc specific so need routing logic
         log.info("reset rift 1")
-        self.command('reset1\n')
+        self.agent_command('reset1\n')
 
     def reset2(self):
         log.info("reset rift 2")
-        self.command('reset2\n')
+        self.agent_command('reset2\n')
 
     def emergency_stop(self):
         log.info("emergency stop todo ")
@@ -119,7 +122,7 @@ class AgentProxy():
         log.info("set intensity todo")
 
     def select_ride(self, is_paused, park, seat):
-        self.command(format('ride_select,%s,%d\n' % (park, int(seat))))
+        self.agent_command(format('ride_select,%s,%d\n' % (park, int(seat))))
 
     def remote_info(self):
         log.warning("remote request for info not supported")
@@ -162,15 +165,18 @@ class AgentProxy():
             addr, msg = self.event_receiver.get()  
             msg = RemoteMsgProtocol.decode(msg)
             if msg:
-                # print(msg.sim_connection_state_str, msg.ride_status_str)
                 idx = msg.agent_id
-                self.states[idx] = msg.state
                 self.ridetime[idx] = msg.ridetime
                 # self.show_connection_status(idx, pc_str, True, msg.sim_connection_state_str)
                 self.gui.report_connection_status(idx, pc_str, msg.sim_connection_state_str)
                 if idx == 0: # respond to the first agents events
                     self.gui.report_coaster_status(msg.ride_status_str)
+                    if self.states[idx] != msg.state:
+                        self.gui.show_state_change(msg.state, self.is_platform_activated)
                     self._transform  = msg.transform
+                if self.states[idx] != msg.state:
+                    log.debug("id%d, %s,%s, state %s", msg.agent_id, msg.sim_connection_state_str, msg.ride_status_str, msg.state)   
+                self.states[idx] = msg.state
                 # todo add cpu!gpu temperatures to msg and check limits (40, 60), (75, 90))
             else:
                 #self.show_connection_status(idx, pc_str, True, "waiting for event")
