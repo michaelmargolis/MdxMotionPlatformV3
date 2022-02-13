@@ -42,3 +42,10 @@ class AgentGuiBase(object):
     def show_activated(self, state):
         """ platform activation state changed, can be used to update status string""" 
         pass 
+
+    def show_deactivated(self, state):
+        """ platform activation state changed, can be used to update status string""" 
+        pass 
+        
+    def show_state_change(self, state, is_platform_activated):
+        pass

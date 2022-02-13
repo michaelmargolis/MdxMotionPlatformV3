@@ -37,7 +37,7 @@ class PlatformConfig(object):
         #self.SWAP_ROLL_PITCH = False  # also swaps x and y
         
         # config for top front facing muscles 1 and 2
-        self.INVERT_AXIS = (1,1,-1,-1,-1,-1) # set element to -1 to invert axis direction
+        self.INVERT_AXIS = (1,1,1,-1,-1,-1) # set element to -1 to invert axis direction
         self.SWAP_ROLL_PITCH = True  # also swaps x and y
 
     
@@ -50,7 +50,8 @@ class PlatformConfig(object):
         self.center_to_lower_outer_joint = 585
 
         self.PLATFORM_MID_HEIGHT = 302  #
-        self.LOAD_RANGE = (20,90) # in Kg
+        self.INTENSITY_RANGE = (10, 50,150) # steps, min, max in percent
+        self.LOAD_RANGE = (15, 0, 360) # steps, min, max in Kg
 
         self.is_slider = True
         self.joint_min_offset = 130 # min distance from ball joint to slider center
@@ -64,20 +65,21 @@ class PlatformConfig(object):
         self.lower_coordinates = [] # slider midpoints
         self.lower_origin = [] # slider coordinates closest to center 
 
-        self.DISABLED_LEN = 0 # muscles fully relaxed
-        self.PROPPING_LEN = 0 # only used when platform has piston prop or stairs
-        self.HAS_PISTON = False  # True if platform has piston actuated prop
-        self.HAS_BRAKE = True # True if platform has electronic braking when parked
-
         #  the range in mm or radians from origin to max extent in a single DOF 
         self.limits_1dof = [60, 60, 75 , math.radians(12), math.radians(12), math.radians(12)]
+        self.limit_Z = self.limits_1dof [2] 
 
         # limits at extremes of movement
         self.limits_6dof = [40, 40, 50, math.radians(6), math.radians(6), math.radians(6)]
 
         self.MIN_ACTUATOR_LEN = 0  
         self.MAX_ACTUATOR_RANGE = self.slider_range
-        self.MAX_ACTUATOR_LEN = self.slider_range
+        self.MAX_ACTUATOR_LEN = self.slider_range        
+        
+        self.DISABLED_DISTANCES = [0] * 6 # platform parked postion
+        self.DISABLED_XFORM = [0, 0, -self.limit_Z, 0, 0, 0] # only used to echo slow moves 
+        self.HAS_PISTON = False  # True if platform has piston actuated prop
+        self.HAS_BRAKE = True # True if platform has electronic braking when parked
         
     def calculate_coords(self):
         self.joint_mid_offset = (self.joint_min_offset + self.joint_max_offset)/2  # offset at mid position

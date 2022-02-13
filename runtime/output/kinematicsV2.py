@@ -3,6 +3,7 @@ This module provides inverse kinematics for the Mdx motion platforms
   The core method, named inverse_kinematics is passed the desired orientation as: [surge, sway, heave, roll, pitch yaw]
   and returns the platform pose as an array of coordinates for the attachment points 
   Pose is converted to actuator lengths using the method: actuator_len_from_pose
+  NOTE: all length values returned represent muscle contraction amounts (not length of muscle)
  
 
 

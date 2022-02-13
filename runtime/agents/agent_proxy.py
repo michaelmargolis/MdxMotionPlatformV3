@@ -60,7 +60,7 @@ class AgentProxy():
         for idx, conn in  enumerate(self.conn):
             body = AgentStartupMsg(agent_name, agent_module, self.host_ip, str(self.event_port), str(idx)) 
             startup_msg = "STARTUP," + ','.join(str(s) for s in body)
-            log.info("Sending startup msg: %s", startup_msg)
+            log.debug("Sending startup msg: %s", startup_msg)
             conn.send(startup_msg + '\n') 
 
     def agent_command(self, msg):
@@ -86,8 +86,8 @@ class AgentProxy():
         return self._transform 
         
     def get_ride_state(self):
-        # returns ride state
-        pass
+        # returns ride state of the first agent
+        return self.states[0] 
         
     def get_timestamps(self):
         # returns tuple of timestamps of most recent agent messages
@@ -123,6 +123,12 @@ class AgentProxy():
 
     def select_ride(self, is_paused, park, seat):
         self.agent_command(format('ride_select,%s,%d\n' % (park, int(seat))))
+
+    def show_parks(self, isPressed):
+        self.gui.show_parks(isPressed)
+
+    def scroll_parks(self, dir):
+        self.gui.scroll_parks(dir)
 
     def remote_info(self):
         log.warning("remote request for info not supported")

@@ -27,6 +27,8 @@ The origin is the center of the circle intersecting the attachment points. The X
                  
 The attachment coordinates can be specified explicitly or with vectors from the origin to
  each attachment point. Uncomment the desired method of entry.
+ 
+Actuator length parameters are muscle lengths in mm, distance parms are muscle contraction in mm
 
 You only need enter values for the left side, the other side is a mirror image and is calculated ny this software
 """
@@ -54,20 +56,26 @@ class PlatformConfig(object):
         self.MAX_ACTUATOR_RANGE = self.MAX_ACTUATOR_LEN - self.MIN_ACTUATOR_LEN
         MID_ACTUATOR_LEN = self.MIN_ACTUATOR_LEN + (self.MAX_ACTUATOR_RANGE/2)
 
-        self.DISABLED_LEN = self.MAX_ACTUATOR_LEN *.95
-        self.PROPPING_LEN = self.MAX_ACTUATOR_LEN *.92  # length for attaching stairs or moving prop
-        self.HAS_PISTON = True  # True if platform has piston actuated prop
-        self.HAS_BRAKE = False # True if platform has electronic braking when parked
+        self.INTENSITY_RANGE = (10, 50,150) # steps, min, max in percent
+        self.LOAD_RANGE = (5, 0,100) # steps, min, max in Kg
         
+    
         self.INVERT_AXIS = (1,1,1,1,1,1) # set -1 to invert: x, y, z, roll, pitch, yaw
         self.SWAP_ROLL_PITCH = False   # set true to swap roll and pitch (also swaps x and y)
 
         #  the max movement in a single DOF
         self.limits_1dof = (100, 122, 140, math.radians(15), math.radians(20), math.radians(12))
-
+        self.limit_Z = self.limits_1dof[2] 
+        log.warning("fixme = check limits, are these doubled?") 
         # limits at extremes of movement
         self.limits_6dof = (80, 80, 80, math.radians(12), math.radians(12), math.radians(10))
 
+        self.DISABLED_DISTANCES = [self.MAX_ACTUATOR_LEN *.05] * 6
+        self.PROPPING_DISTANCES = [self.MAX_ACTUATOR_LEN *.08] * 6 # length for attaching stairs or moving prop
+        self.DISABLED_XFORM = [0, 0, -self.limit_Z, 0, 0, 0] # only used to echo slow moves
+        self.PROPPING_XFORM = [0, 0, -self.limit_Z, 0, 0, 0] # only used to echo slow moves 
+        self.HAS_PISTON = True  # True if platform has piston actuated prop
+        self.HAS_BRAKE = False # True if platform has electronic braking when parked
 
     def calculate_coords(self):
 

@@ -52,15 +52,6 @@ class CoasterState(object):
     @state.setter
     def state(self, value):
         self._state = value
-        print("wha setting state to", self.state)
-
-    """
-    def set_is_platform_active(self, isActive):
-        self._is_platform_active = isActive
-
-    def is_platform_active(self):
-        return self._is_platform_active
-    """
     
     def __str__(self):
         return self.string(self._state)
@@ -79,22 +70,22 @@ class CoasterState(object):
                     #  here if stopped at station
                     self._state = RideState.READY_FOR_DISPATCH
                     self.ridetime_end = time.time()
-                    log.debug("* state changed to ready for dispatch (stopped at station)")
+                    log.debug(" * state changed to ready for dispatch (stopped at station)")
 
                 elif event == RideEvent.DISPATCHED and self._state != RideState.RUNNING:
-                    log.debug("* state changed to running after dispatch")
+                    log.debug(" * state changed to running after dispatch")
                     self._state = RideState.RUNNING
 
-                elif event == RideEvent.PAUSED and self._state != RideState.PAUSED:
+                elif event == RideEvent.PAUSED and self._state == RideState.RUNNING:
                     self._state = RideState.PAUSED
-                    log.debug("* state changed to paused")
+                    log.debug(" * state changed to paused")
 
                 elif event == RideEvent.UNPAUSED and self._state == RideState.PAUSED:
                     self._state = RideState.RUNNING
-                    log.debug("* state changed to running after pause")
+                    log.debug(" * state changed to running after pause")
 
                 elif event == RideEvent.DISABLED and self._state != RideState.EMERGENCY_STOPPED:
-                    log.debug("* emergency stop")
+                    log.debug(" * emergency stop")
                     self._state = RideState.EMERGENCY_STOPPED
 
             else:
@@ -115,7 +106,7 @@ class CoasterState(object):
             if self.position_requestCB is not None:
                 self.position_requestCB(self._state)  
 
-            log.debug("> in state {%s} got coaster event {%s}, active state is %s, new state is {%s}", \
+            log.debug("> after process ride event, from state {%s} got coaster event {%s}, is_active is %s, new state is {%s}", \
                       self.string(self.prev_state), RideEvent.str(event), self._is_platform_active, self.string(self.state))
 
 colors = ["green", "orange", "red"] # for warning level text
@@ -168,7 +159,6 @@ class InputInterface(AgentBase):
         self.coasterState.process_ride_event(RideEvent.ACTIVATED)
         log.info("platform activated")
         self.nl2.reset_park(False)
-        # self.coaster.system_status.is_in_play_mode = False
         self.wait_park_ready()
 
     def deactivate(self):    
@@ -273,9 +263,7 @@ class InputInterface(AgentBase):
             self.sleep_func(1)
         log.debug("park is now ready, setting manual mode")
         self.nl2.set_manual_mode(True)
-        if self.nl2.is_paused():
-            log.debug("unpausing coaster")
-            self.nl2.set_pause(False)
+        self.nl2.set_pause(False) # make sure pause is off
         log.debug("selecting seat %s", self.seat)
         self.nl2.select_seat(self.seat)
         self.coasterState.process_ride_event(RideEvent.AT_STATION)
@@ -300,7 +288,7 @@ class InputInterface(AgentBase):
                 self.nl2.set_manual_mode(True)
                 version = self.nl2.get_nl2_version()
                 # self.ui.lbl_version.setText("Nl2 Version: " + self.nl2.get_nl2_version())
-                log.info("Connected to Nl2 coaster")
+                log.info("Connected to Nl2 coaster version %s", version)
                 return True
             else:
                 log.debug("coaster connect returned false, nl2 not connected!")

@@ -101,22 +101,25 @@ class Nl2_Link():
         reply = self.listen_for(msg_type)
         if reply == None:
             self.connection_state  = ConnState.DISCONNECTED
+            log.debug("No reply from nl2 tcp message %d", msg_type)
             #fixme check if none because connected but bad msg format ??
         else:
-            if 'Not in play mode' in str(reply):
+            if 'Not in play mode' in str(reply) or 'Application is busy' in str(reply):
                 self.connection_state = ConnState.NOT_IN_SIM_MODE
+                log.debug("busy or Not in play mode in message, %s", str(reply))
                 reply = None
             elif msg_type == Nl2MsgType.GET_TELEMETRY:
                 t = (unpack('>IIIIIIIIfffffffffff', reply))
-                # print("wha in nl2: telem state bit =", is_bit_set(t[0],0))
                 if is_bit_set(t[0],0): # check if in play mode
                     self.connection_state = ConnState.READY
                 else:
                     self.connection_state = ConnState.NOT_IN_SIM_MODE
+                    log.debug("Not in sim mode")
                     reply = None
             else:
                 if self.connection_state  == ConnState.DISCONNECTED:
                     self.connection_state = ConnState.NOT_IN_SIM_MODE
+                    log.debug("changed state from disconnected to not in sim")
         return reply
 
     def send_raw(self, msg):
@@ -155,14 +158,15 @@ class Nl2_Link():
         return None
 
     def _create_simple_message(self, msgId, requestId):  # message with no data
+        #  fields are: 'N' Message-Id reqest-Id 0 'L'
         result = pack(b'>cHIHc', b'N', msgId, requestId, 0, b'L')
         return result
 
-    def _create_NL2_message(self, msgId, requestId, msg):  # message is packed
-        #  fields are: N Message Id, reqest Id, data size, L
-        start = pack(b'>cHIH', b'N', msgId, requestId, len(msg))
+    def _create_NL2_message(self, msgId, requestId, data):  # message has data
+        #  fields are: 'N' Message-Id reqest-Id data-size data 'L'
+        start = pack(b'>cHIH', b'N', msgId, requestId, len(data))
         end = pack(b'>c', b'L')
-        result = start + msg + end
+        result = start + data + end
         return result
 
     def _get_msg_id(self):
@@ -239,23 +243,23 @@ class Nl2Messenger(Nl2_Link):
             self._decode_station_state(state[0])
             return True
             
-    def dispatch(self, train, station):
+    def dispatch(self, train=0, station=0):
         data = pack('>ii', train, station)  # coaster, station
         reply = self.send_msg(Nl2MsgType.DISPATCH, data)
 
-    def set_gates(self, mode): # True opens, False closes
+    def set_gates(self, mode=True): # True opens, False closes
         data = pack('>ii?', self.coaster, self.station, mode)
         reply = self.send_msg(Nl2MsgType.SET_GATES, data)
 
-    def set_harness(self, mode): # True opens, False closes
+    def set_harness(self, mode=True): # True opens, False closes
         data = pack('>ii?', self.coaster, self.station, mode)
         reply = self.send_msg(Nl2MsgType.SET_HARNESS, data)
 
-    def set_floor(self, mode): # True lowers, False raises
+    def set_floor(self, mode=True): # True lowers, False raises
         data = pack('>ii?', self.coaster, self.station, mode)  
         reply = self.send_msg(Nl2MsgType.SET_PLATFORM, data)
 
-    def set_manual_mode(self, mode):
+    def set_manual_mode(self, mode=True):
         data = pack('>ii?', self.coaster, self.station, mode)  # True sets manual mode, false sets auto
         reply = self.send_msg(Nl2MsgType.SET_MANUAL_MODE, data)
 
@@ -274,11 +278,14 @@ class Nl2Messenger(Nl2_Link):
     def close_park(self):
         self.send_msg(Nl2MsgType.CLOSE_PARK)
 
-    def set_pause(self, isPaused):
+    def set_pause(self, isPaused=True):
         data = pack('>?', isPaused) # pause if arg is True
         reply = self.send_msg(Nl2MsgType.SET_PAUSE, data)
 
-    def reset_park(self, start_paused):
+    def unpause(self):
+        self.set_pause(False)
+
+    def reset_park(self, start_paused=True):
         data = pack(b'>?', start_paused) # start paused if arg is True
         reply = self.send_msg(Nl2MsgType.RESET_PARK, data)
 
@@ -286,7 +293,7 @@ class Nl2Messenger(Nl2_Link):
         data = pack(b'>iiii', self.coaster, 0, 0, seat)  # coaster, train, car, seat 
         reply = self.send_msg(Nl2MsgType.SELECT_SEAT, data)
 
-    def set_attraction_mode(self, state):
+    def set_attraction_mode(self, state=True):
         data = pack(b'>?', state)   # enable mode if state True
         reply = self.send_msg(Nl2MsgType.SET_ATTRACTION_MODE, data)
 
@@ -314,42 +321,39 @@ class Nl2Messenger(Nl2_Link):
 
 
 if __name__ == "__main__":
+
+    def latency(): return int(nl2.reply_latency * 1000)
+
     #  identifyConsoleApp()
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(module)s: %(message)s',
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(module)s: %(message)s',
                             datefmt='%H:%M:%S')
     log.info("Python: %s", sys.version[0:5])
     log.debug("logging using debug mode")
 
+
     nl2 = Nl2Messenger()
+    cmds = {'m': nl2.set_manual_mode, 'd':nl2.dispatch, 'p':nl2.set_pause, 'u':nl2.unpause, 'r':nl2.reset_park}
     nl2.begin()
-    nl2.connect()
-    nl2.get_nl2_version()
-    print("reply latency was", nl2.reply_latency) 
-    
-    nl2.get_telemetry()
-    print("reply latency was", nl2.reply_latency) 
-    
-    nl2.update_station_state()
-    print("reply latency was", nl2.reply_latency) 
-
-    print("estop", nl2.e_stop)
-    print("manual dispatch", nl2.manual_dispatch )
-    print("can dispatch", nl2.can_dispatch )
-    print("can close gates", nl2.can_close_gates)
-    print("can open gates", nl2.can_open_gates )
-    print("can close harness", nl2.can_close_harness ) 
-    print("can open harness", nl2.can_open_harness )
-    print("can raise platform", nl2.can_raise_platform )
-    print("can lower platform", nl2.can_lower_platform )
-    print("train is in station", nl2.train_in_station)
-
-    nl2.set_manual_mode(True)
-    print("reply latency was", nl2.reply_latency) 
-    
-    nl2.reset_park(False)
-    print("reply latency was", nl2.reply_latency) 
-
-    nl2.is_train_in_station()
-
+    if nl2.connect():
+        version = nl2.get_nl2_version()
+        print('connected to NL2, version', version,  latency(),'ms')
+        print('commands are: t:telemetry, d:dispatch, m:manual mode, p:pause, u:unpause, i:is train in station, r:reset park')
+        while True:
+            cmd = input('enter cmd (? help, q quit) ')
+            if cmd == '?':
+                print('cmds: t:telemetry, d:dispatch, m:manual mode, p:pause, u:unpause, i:is train in station, r:reset park')
+            elif cmd == 'q':
+                break
+            elif cmd == 't':   
+                telemetry_msg = nl2.get_telemetry()
+                print(telemetry_msg, latency(),'ms')
+            elif cmd == 'i':
+                print("train in station is",  nl2.is_train_in_station())
+            else:
+                func = cmds[cmd]
+                if func: func()
+    else:
+        print('not connected to nomlimits')
+  
 
 

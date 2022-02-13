@@ -28,6 +28,7 @@ class MuscleOutput(object):
         self.in_pressures = [0]*6
         self.progress_callback = None
         self.percent_factor = self.max_actuator_range / 100 #  divide distance by this factor to get percent
+        self.is_enabled = False
 
     def set_progress_callback(self, cb):
         self.progress_callback = cb
@@ -35,9 +36,12 @@ class MuscleOutput(object):
     def send_pressures(self, pressures):
         self.festo.send_pressures(pressures)
 
-    def brake(self):
+    def set_brake(self, state):
         # enables brakes on sliders to avoid unintended movement
-        print("todo brake")
+        if state:
+            print("todo turn brakes on")
+        else:
+            print("todo turn brakes off")
 
     def enable_poll_pressures(self, state):
         self.festo.enable_poll_pressure(state)
@@ -61,6 +65,16 @@ class MuscleOutput(object):
         #  Todo - was used on platforms without encoders, not yet supported in V3
         self.loaded_weight = payload_kg
 
+    def set_enable(self, state, current_actuator_lengths, target_actuator_lengths):
+        """
+        enable platform if True, disable if False        
+        moves from (if disabled) or to (if enabled) actuator_lengths needed to achieve current client orientation
+        """
+        #fixme check if passed lengths are muscle lengths
+        if self.is_enabled != state:
+            self.is_enabled = state
+            log.debug("Platform enabled state is %s", str(state))
+                
     def get_output_status(self):
         #  return string describing output status
         if self.festo.wait:
@@ -126,15 +140,16 @@ class MuscleOutput(object):
         self.slow_pressure_move(0,3000, 1000)
 
     def slow_move(self, start, end, rate_cm_per_s):
+        raise Exception("slow_move method now implimented in platform_controller")
         # moves from the given start to end lengths at the given duration
         #  caution, this moves even if disabled
         rate_mm = rate_cm_per_s *10
         interval = .05  # ms between steps
-        distance = max(end - start, key=abs)
-        # print("max distance=", distance)
+        # distance = max(end - start, key=abs)
+        distance = max([abs(j-i) for i,j in zip(start, end)])
+        print("max distance=", distance)
         dur = abs(distance) / rate_mm
         steps = int(dur / interval)
-        #print("steps", steps, type(steps))
         if steps < 1:
             self.move_distance(end)
         else:

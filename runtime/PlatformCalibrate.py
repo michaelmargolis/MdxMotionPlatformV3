@@ -425,14 +425,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     # self.purge_messages(True)
                     completed += step_percent
                     self.step_platform(step*self.step_size, step_delay, step, 0, r)
-                    self.ui.progressBar.setValue(completed)  
+                    self.ui.progressBar.setValue(round(completed))  
                 for step in range(steps+1):
                     if self.is_calibrating == False:
                         self.ui.btn_calibrate.setText("Restart")
                         return                       
                     completed += step_percent
                     self.step_platform((end_step-step*self.step_size), step_delay, step, 1, r)
-                    self.ui.progressBar.setValue(completed)
+                    self.ui.progressBar.setValue(round(completed))
 
             self.ui.CalibrateGroupBox.setStyleSheet('QGrouBox  {color: black;}')
             self.ui.CalibrateGroupBox.setStyleSheet('QGroupBox  {color: black;}')
@@ -527,7 +527,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
 
     def step_platform(self, pressure, step_delay, step, dir, repeat):
-        pressures = [pressure]*6
+        pressures = [int(pressure)]*6
         self.muscle_output.send_pressures(pressures)
         self.show_pressures(pressures)
         print("Step:", pressure, step, dir, repeat, step_delay)
@@ -661,7 +661,8 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(6):
             rect =  self.pressure_bars[i].rect()
             width = pressures[i] / 20
-            rect.setWidth(width)
+            if width < 1: width = 1
+            rect.setWidth(round(width))
             self.pressure_bars[i].setFrameRect(rect)
             self.txt_muscles[i].setText(format("%d mb" % pressures[i])) #may  be overwritten with actuals 
         if self.ui.chk_festo_actuals.isChecked():

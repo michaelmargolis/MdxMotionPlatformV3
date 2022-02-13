@@ -3,6 +3,7 @@ import binascii
 import logging
 
 log = logging.getLogger(__name__)
+VERBOSE_LOG = False # set true for verbose debug logging
 
 class TcpTxRx():
     """
@@ -31,7 +32,8 @@ class TcpTxRx():
     def send(self, msg):
         if self.is_connected:
             try:
-                # log.debug('Attempting to send %s', str(msg))
+                if VERBOSE_LOG:
+                    log.debug('Attempting to send %s', str(msg))
                 self.sck.sendall(msg)
             except socket.error as error:
                 if error.errno == socket.errno.WSAECONNRESET:

@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 class Dynamics(object):
     def __init__(self, frame_rate=0.05):
         self.frame_rate = frame_rate
-        self.intensity = 1.0 #  factor to adjust final gain from remote control
         self.use_gui = False
 
     def init_gui(self, frame):
@@ -73,22 +72,15 @@ class Dynamics(object):
         self.gains[idx] = value
         #  print "in shape", idx, " gain set to ", value
 
-    def set_master_gain(self, value):
-        self.master_gain = float(value)
-        #  print "in shape, master gain set to ", value
-
     def get_master_gain(self):
-        return self.master_gain
+        return self.master_gain # range 0 to 1.0
 
     def set_intensity(self, value):
-        #  expects float between 0 and 1.0
-        self.intensity = value
+        #  expects int value between 0 and 150
+        self.ui.sld_master_6.setValue(value)
 
     def get_intensity(self):
-        return self.master_gain * self.intensity
-
-    def get_overall_intensity(self):
-        return self.master_gain * self.intensity
+        return self.master_gain # range 0-1.5 (0 to 150%)
         
     def set_washout(self, idx, value):
         #  expects washout duration (time to decay below 2%)
@@ -108,7 +100,7 @@ class Dynamics(object):
     # returns real values adjusted for intensity and washout
         # print request
     
-        r = np.multiply(request, self.gains) * self.master_gain* self.intensity
+        r = np.multiply(request, self.gains) * self.master_gain
         np.clip(r, -1, 1, r)  # clip normalized values
         #  print "clipped", r
 

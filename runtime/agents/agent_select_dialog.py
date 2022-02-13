@@ -28,7 +28,7 @@ class AgentSelect(QDialog):
         self._pc_addresses = pc_addresses
 
         self.setObjectName("AgentSelect")
-        self.resize(485, 476)
+        self.resize(485, 430)
         self.setModal(True)
         self.init_fonts()
         self.setWindowTitle("Select Experience")
@@ -41,7 +41,7 @@ class AgentSelect(QDialog):
         self.agent_rb = []
         self._agent_index = 0
         self.agent_cfg = AgentCfg()
-        y = 10
+        y = 0
         inc = 50
         if len( self.agent_cfg.agents) < 4: inc += 20
         for agent in  self.agent_cfg.agents:
@@ -55,7 +55,7 @@ class AgentSelect(QDialog):
         self.agent_rb[self.agent_cfg.default].setChecked(True)
 
         self.gb_sim_pcs = QtWidgets.QGroupBox(self)
-        self.gb_sim_pcs.setGeometry(QtCore.QRect(20, 240, 421, 130))
+        self.gb_sim_pcs.setGeometry(QtCore.QRect(20, 230, 421, 130))
         self.gb_sim_pcs.setFont(self.font14)
         self.gb_sim_pcs.setTitle("Sim Pcs")
 
@@ -63,13 +63,13 @@ class AgentSelect(QDialog):
         self.ip_addr = []
 
         self.lbl_info = QtWidgets.QLabel(self)
-        self.lbl_info.setGeometry(QtCore.QRect(30, 385, 400, 20))
+        self.lbl_info.setGeometry(QtCore.QRect(30, 400, 400, 20))
         self.lbl_info.setFont(self.font12)
         self.lbl_info.setAlignment(QtCore.Qt.AlignCenter)
         self.lbl_info.setText("To change IP address, edit file platform_config.py ")
 
         self.btn_continue = QtWidgets.QPushButton(self)
-        self.btn_continue.setGeometry(QtCore.QRect(170, 420, 101, 31))
+        self.btn_continue.setGeometry(QtCore.QRect(170, 360, 101, 31))
         self.btn_continue.setFont(self.font12)
         self.btn_continue.setText("Continue")
         self.btn_continue.clicked.connect(self.proceed)

@@ -1,4 +1,10 @@
-""" Local control interface"""
+""" 
+    Local control interface
+    detects physical button and switch presses on Raspberry pi
+    dictionaries for different wiring configurations map pins to logical function
+    action dictionary passed to init maps logical function to handler method
+    
+"""
 
 import sys
 import time
@@ -25,18 +31,22 @@ pi_switch_pins = {'dual_reset_pcb_pins':dual_reset_pcb_pins, 'single_reset_pcb_p
 class LocalControlItf(object):   # was SerialRemote(object):
     """ provide action strings associated with buttons on raspberry pi."""
 
-    def __init__(self, actions, pin_defs):
+    def __init__(self, actions, pin_defs, intensity_range, payload_range):
         """ Call with dictionary of action strings, pin definitions.
  
         Keys are the strings associated with gpio pins,
         values are the functons to be called for the given key.
         """
         log.debug("Initializing Raspberry Pi Touch Control Panel with pins for %s", pin_defs)
-        self.pins = pi_switch_pins[pin_defs]
+        self.pins = pi_switch_pins[pin_defs] # pin_defs says which wiring option is selected in platform config
+        self.intensity_range = intensity_range
+        self.payload_range = payload_range        
         self.actions = actions
         self.decoder = rotary_encoder.decoder(self.pins['ENCODER_A'], self.pins['ENCODER_B'], self.encoder_callback)
-        self.intensity = 10
+        self.intensity = 100
+        self.payload = 100
         self.prev_intensity = None
+        self.prev_payload = None
         self.enc_pushed = False
         self.park_inc = 0
         self.buttons = buttons.Buttons(self.button_callback)
@@ -47,28 +57,41 @@ class LocalControlItf(object):   # was SerialRemote(object):
         self.buttons.append(self.pins['ENCODER_SW_PIN'],['enc_pushed', 'enc_released'], 'pullup','both')
 
     def encoder_callback(self, dir):
-       if  self.enc_pushed == False:
-           self.intensity += dir
-           if self.intensity > 10:
-               self.intensity = 10
-           if self.intensity < 0:
-               self.intensity = 0
-       else:
-           print("button pushed") 
-           self.park_inc += dir
+        # scroll parks if encoder sw is pushed,
+        # else: adj intensity if is_activated, adj load if not activated  
+        if  self.enc_pushed == False:
+            if self.is_activated():
+                self.intensity += dir * self.intensity_range[0]
+                if self.intensity > self.intensity_range[2]:
+                    self.intensity = self.intensity_range[2]
+                if self.intensity < self.intensity_range[1]:
+                    self.intensity = self.intensity_range[1]
+            else:
+                self.payload += dir * self.payload_range[0]
+                if self.payload > self.payload_range[2]:
+                    self.payload = self.payload_range[2]
+                if self.payload <  self.payload_range[1]:
+                    self.payload = self.payload_range[1]
+        else:
+            # print("button pushed") 
+            if not self.is_activated(): # only scroll parks when not activated
+                self.park_inc += dir
     
     def button_callback(self, msg):
-        #  print('local control', msg)
+        # print('local control', msg)
         if msg == 'enc_pushed':
-             self.enc_pushed = True
-             self.actions['show_parks']('True')
+            self.enc_pushed = True
+            if not self.is_activated():
+                self.actions['show_parks']('True')
         elif msg == 'enc_released':
-             self.enc_pushed = False
-             self.actions['show_parks']('False')
+            self.enc_pushed = False
+            if not self.is_activated():
+                self.actions['show_parks']('False')
         else:
             self.actions[msg]()
 
     def is_activated(self):
+        # log.debug("activate switch pin is %s", str(self.buttons.raw_value(self.pins['ACTIVATE_PIN'])))
         return self.buttons.raw_value(self.pins['ACTIVATE_PIN']) == 'high'
 
     def service(self):
@@ -79,6 +102,11 @@ class LocalControlItf(object):   # was SerialRemote(object):
             # print(msg)
             self.actions['intensity'](msg)
             self.prev_intensity = self.intensity
+        if self.prev_payload != self.payload:
+            msg = format("payload=%d" % (self.payload))
+            # print(msg)        
+            self.actions['payload'](msg)
+            self.prev_payload = self.payload
         if self.park_inc > 1:
             # print self.park_inc
             self.actions['scroll_parks']('1')
