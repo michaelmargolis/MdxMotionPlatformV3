@@ -66,7 +66,7 @@ class PlatformConfig(object):
         #  the max movement in a single DOF
         self.limits_1dof = (100, 122, 140, math.radians(15), math.radians(20), math.radians(12))
         self.limit_Z = self.limits_1dof[2] 
-        log.warning("fixme = check limits, are these doubled?") 
+        print("fixme = check limits, are these doubled?") 
         # limits at extremes of movement
         self.limits_6dof = (80, 80, 80, math.radians(12), math.radians(12), math.radians(10))
 
