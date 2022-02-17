@@ -46,7 +46,7 @@ class Status():
     @is_thr_alive.setter
     def is_thr_alive(self, state):
         self.mutex.acquire()
-        self._is_thr_alive = state
+        self._thr_is_alive = state
         self.mutex.release()
 
 class TcpClient(object):
@@ -91,7 +91,7 @@ class TcpClient(object):
 
     def disconnect(self):
         self.status.is_connected = False
-        while self.status.thr_is_alive:
+        while self.status.is_thr_alive:
             time.sleep(.1)
             # print("*", end =" ")
         log.debug("thread no longer running")

@@ -175,7 +175,7 @@ class Controller(QtWidgets.QMainWindow):
 
     def create_activation_toggle(self):
         self.chk_activate = gutil.ToggleSwitch(self.ui.frame_activate, "Activated", "Deactivated")
-        self.chk_activate.setGeometry(QtCore.QRect(10, 5, 250, 38))
+        self.chk_activate.setGeometry(QtCore.QRect(10, 5, 220, 38))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.chk_activate.setFont(font)
@@ -331,6 +331,7 @@ class Controller(QtWidgets.QMainWindow):
         actuator_distances = self.k.actuator_lengths(xform)
         self.slow_move(actuator_distances, pfm.DISABLED_DISTANCES, xform, pfm.DISABLED_XFORM,100)
         self.park_platform(True)
+        self.agent_proxy.parked()
         ### self.platform.set_enable(False,  self.actuator_distances, pfm.DISABLED_DISTANCES)
 
 

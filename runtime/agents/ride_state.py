@@ -1,6 +1,7 @@
 """
 RideState represents the high level state of the motion sim 
 each sim must map its internal ride state to these states
+added PARKED event 13 Feb 2022 mem
 
 """
 
@@ -22,6 +23,7 @@ class RideState:
 class RideEvent:
     ''' Ride events: 
         DISABLED - platform deactivated 
+        PARKED - platform deactivated and parked
         ACTIVATED - platform activated
         PAUSED - sim commaned to pause
         UNPAUSED - sim commaned to unpause
@@ -30,11 +32,11 @@ class RideEvent:
         AT_STATION - sim arrrived at station at end of run (was STOPPED)
         NON_SIM_MODE sim resetting or in another non-telemetry mode    (was RESETEVENT)
     '''
-    DISABLED, ACTIVATED, PAUSED, UNPAUSED, DISPATCHED, ESTOPPED, AT_STATION, NON_SIM_MODE = list(range(8))
+    DISABLED, PARKED, ACTIVATED, PAUSED, UNPAUSED, DISPATCHED, ESTOPPED, AT_STATION, NON_SIM_MODE = list(range(9))
 
     @staticmethod
     def str(event):
-        return ("DISABLED", "ACTIVATED", "PAUSED", "UNPAUSED", "DISPATCHED", "ESTOPPED", "AT_STATION", "NON_SIM_MODE")[event]
+        return ("DISABLED", "PARKED",  "ACTIVATED", "PAUSED", "UNPAUSED", "DISPATCHED", "ESTOPPED", "AT_STATION", "NON_SIM_MODE")[event]
 
 class ConnectionState:
     # NET_NOT_CONNECTED: no connection between agent proxy and agent_startup 

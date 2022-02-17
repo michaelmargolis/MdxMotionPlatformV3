@@ -184,6 +184,9 @@ class AgentGui(AgentGuiBase):
 
     def show_deactivated(self, state):
         self.show_state_change(state, False)
+        
+    def show_parked(self):
+        gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Parked", "black")
 
     def temperature_status_changed(self, status):
         gutil.set_text(self.ui.lbl_temperature_status, status[0], status[1])

@@ -121,7 +121,7 @@
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>30</x>
       <y>150</y>
       <width>341</width>
       <height>131</height>
@@ -209,9 +209,9 @@
    <widget class="QFrame" name="frame_3">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>390</x>
       <y>150</y>
-      <width>331</width>
+      <width>381</width>
       <height>181</height>
      </rect>
     </property>
@@ -336,7 +336,7 @@
    <widget class="QComboBox" name="cmb_select_ride">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>30</x>
       <y>287</y>
       <width>271</width>
       <height>41</height>
@@ -351,7 +351,7 @@
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>350</x>
+      <x>310</x>
       <y>300</y>
       <width>51</width>
       <height>16</height>

@@ -192,7 +192,7 @@
      <rect>
       <x>7</x>
       <y>370</y>
-      <width>791</width>
+      <width>308</width>
       <height>41</height>
      </rect>
     </property>
@@ -200,7 +200,10 @@
      <enum>QFrame::StyledPanel</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <enum>QFrame::Plain</enum>
+    </property>
+    <property name="lineWidth">
+     <number>0</number>
     </property>
     <widget class="QLabel" name="lbl_festo_status">
      <property name="geometry">
@@ -220,30 +223,12 @@
       <string/>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chk_festo_wait">
-     <property name="geometry">
-      <rect>
-       <x>310</x>
-       <y>10</y>
-       <width>181</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Festo Msg Check</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="lbl_parked">
      <property name="geometry">
       <rect>
        <x>239</x>
        <y>10</y>
-       <width>61</width>
+       <width>58</width>
        <height>20</height>
       </rect>
      </property>
@@ -268,6 +253,24 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chk_festo_wait">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>380</y>
+      <width>181</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Festo Msg Check</string>
     </property>
    </widget>
   </widget>

@@ -7,6 +7,7 @@ from common.tcp_client import TcpClient
 from common.udp_tx_rx import UdpReceive
 from common.ip_utils import get_ip
 
+import time
 import importlib
 import logging
 log = logging.getLogger(__name__)
@@ -18,6 +19,9 @@ class AgentProxy():
         self.addresses = address_list  # (ipaddr, port),
         self.nbr_agents = len(address_list)
         self.conn = [None] * self.nbr_agents
+        self.startup_msg = [None] * self.nbr_agents # msg to be sent to start selected agent
+        self.heartbeat_timeout = 2.0 # dur in secs if no event to report error
+        self.heartbeat = [None] * self.nbr_agents # this will hold time of most recent event
         self.is_connected = [False] * self.nbr_agents
         self.event_port = event_port
         self.event_receiver = UdpReceive(self.event_port)
@@ -44,6 +48,7 @@ class AgentProxy():
                 if self.conn[idx].connect():
                     log.info("Connected to PC at %s", str(addr))
                     self.is_connected[idx] = True
+                    self.heartbeat[idx] = time.perf_counter()
                 else:
                     log.info("failed to connect to %s: is agent running on that PC?", str(addr))
         if None in self.is_connected:
@@ -59,9 +64,9 @@ class AgentProxy():
         self.host_ip = get_ip()
         for idx, conn in  enumerate(self.conn):
             body = AgentStartupMsg(agent_name, agent_module, self.host_ip, str(self.event_port), str(idx)) 
-            startup_msg = "STARTUP," + ','.join(str(s) for s in body)
-            log.debug("Sending startup msg: %s", startup_msg)
-            conn.send(startup_msg + '\n') 
+            self.startup_msg[idx] = "STARTUP," + ','.join(str(s) for s in body)
+            log.debug("Sending startup msg: %s", self.startup_msg[idx])
+            conn.send(self.startup_msg[idx] + '\n') 
 
     def agent_command(self, msg):
          # sends ride control commands to agent pc
@@ -78,9 +83,14 @@ class AgentProxy():
     def deactivate(self):
         # called by platform_controller when platform is deactivated
         self.is_platform_activated = False
-        self.gui.show_deactivated(self.states[0])
+        # self.gui.show_deactivated(self.states[0])
         self.agent_command("deactivate")
+        self.gui.show_deactivated(self.states[0])
         
+    def parked(self):
+        # called when the deactivated platform is propped or braked
+        self.gui.show_parked()
+
     def get_transform(self):
         # returns transform
         return self._transform 
@@ -156,12 +166,20 @@ class AgentProxy():
     def service(self):
         for idx, agent_conn in enumerate(self.conn):
             pc_str = format("PC at %s " % (agent_conn.ip_addr)) # label for conn status reporting
-            if agent_conn.status.is_connected:
+            if agent_conn.status.is_connected and time.perf_counter() - self.heartbeat[idx] < self.heartbeat_timeout:
                 status_str = pc_str + " is connected"
             else:
                 # here if not connected to agent
-                if self.is_connected[idx] == True: # check if previously connected
+                if self.startup_msg[idx] != None: # check if previously connected
                     log.error("Agent at %s is no longer connected", agent_conn.ip_addr)
+                    self.conn[idx].disconnect() # ensure tcp socket is closed before retrying
+                    log.info("reconnecting to agent at %s", str(self.addresses[idx]))
+                    if self.conn[idx].connect():
+                        log.info("reconnected to PC at %s", str(self.addresses[idx]))
+                        self.is_connected[idx] = True
+                        self.heartbeat[idx] = time.perf_counter()
+                        log.debug("Sending startup msg: %s", self.startup_msg[idx])
+                        self.conn[idx].send(self.startup_msg[idx] + '\n') 
                 self.is_connected[idx] = False
                 status_str = 'not connected'
                 # self.show_connection_status(idx, pc_str, False, status_str)
@@ -172,6 +190,7 @@ class AgentProxy():
             msg = RemoteMsgProtocol.decode(msg)
             if msg:
                 idx = msg.agent_id
+                self.heartbeat[idx] = time.perf_counter()
                 self.ridetime[idx] = msg.ridetime
                 # self.show_connection_status(idx, pc_str, True, msg.sim_connection_state_str)
                 self.gui.report_connection_status(idx, pc_str, msg.sim_connection_state_str)
