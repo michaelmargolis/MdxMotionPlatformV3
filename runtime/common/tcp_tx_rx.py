@@ -1,3 +1,5 @@
+# tcp_rx_tx.py  a single threaded tcp client
+
 import socket
 import binascii
 import logging

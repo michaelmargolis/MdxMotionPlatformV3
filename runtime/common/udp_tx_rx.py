@@ -1,7 +1,7 @@
 """
  udp_tx_rx.py
  
- Simple classes for sending and receiving UDP text messages
+ single threaded classes for sending and receiving UDP text messages
 """
 
 import socket
@@ -62,6 +62,7 @@ class UdpReceive(object):
                 print("Udp listen error", e)
 
 
+""" the following is for testing """
     
 def man():
     parser = argparse.ArgumentParser(description='UDP tx rx tester')

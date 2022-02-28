@@ -7,11 +7,11 @@ added PARKED event 13 Feb 2022 mem
 
 class RideState:
     ''' Ride states: 
-        DISABLED - platform is disabled and parked
+        DISABLED - platform is parked and disabled
         READY_FOR_DISPATCH - platform may be parked if platform state is inactive
         RUNNING - sim not paused
         PAUSED 
-        EMERGENCY_STOPPED -  estop switch pressed
+        EMERGENCY_STOPPED -  estop switch pressed while running or paused
         NON_SIM_MODE - connected but not responsive to telemetry (was named RESETTING)
     '''
     DISABLED, READY_FOR_DISPATCH, RUNNING, PAUSED, EMERGENCY_STOPPED, NON_SIM_MODE = list(range(6))

@@ -8,6 +8,7 @@ from agents.agent_gui_base import AgentGuiBase
 from agents.agent_base import  RemoteMsgProtocol
 from platform_config import cfg
 from common.udp_tx_rx import UdpSend
+import traceback
 
 ui, base = uic.loadUiType("agents/test_agent/simple_input_gui.ui")
 
@@ -34,7 +35,7 @@ class AgentGui(AgentGuiBase):
 
         self.ui.btn_mid_pos.clicked.connect(self.set_mid_pos)
         self.transform = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.event_address = ('127.0.0.1', cfg.FIRST_AGENT_PROXY_EVENT_PORT)
+        self.event_address = ('127.0.0.1', cfg.AGENT_PROXY_EVENT_PORT)
         self.event_sender = UdpSend()
 
     def move_slider_changed(self, sender_id):
@@ -44,6 +45,8 @@ class AgentGui(AgentGuiBase):
             self.update()
         except Exception as e:
             log.error("Client input error: %s", e)
+            print(traceback.format_exc())
+            
 
     def update_sliders(self):
         for idx, val in enumerate(self.transform):
@@ -61,5 +64,5 @@ class AgentGui(AgentGuiBase):
         pass
         
     def update(self):
-        event = RemoteMsgProtocol.encode(0, 0, 0, False, self.transform, "", "")
+        event = RemoteMsgProtocol.encode(0, 0, 0, 0, False, self.transform, "", "")
         self.event_sender.send(event.encode('utf-8'), self.event_address)

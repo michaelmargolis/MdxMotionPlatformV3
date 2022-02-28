@@ -1,4 +1,4 @@
-# sim class for dcs_gateway
+# sim class for dcs flight simulator
 from SimpleSims.dcs_gateway import DCS_gateway as dcs
 import os
 import time
@@ -11,7 +11,7 @@ class Sim():
         self.interval_ms = interval_ms
         self.gateway = None
         self.is_connected = False
-        self.norm_factors = [1, 1, 1, 1, 1, 1] # these are set in the gateway
+        self.norm_factors = [1, 1, 1, 1, 1, 1] # these are updated in the dcs gateway
         self.name = "DCS"
         self.dcs = dcs()
 

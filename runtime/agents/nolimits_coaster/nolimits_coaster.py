@@ -2,8 +2,8 @@
 nolimits_coaster agent module for V3 software. (was named coaster_client)
 Copyright Michael Margolis, Middlesex University 2019; see LICENSE for software rights.
 
-module coordinates chair activity with logical coaster state
-This version requires NoLimits attraction license and NL ver 2.5.3.5 or later
+module coordinates motion platform activity with logical coaster state
+This version uses NoLimits attraction license and NL ver 2.5.3.5 or later
 """
 
 import sys
@@ -37,10 +37,9 @@ telemetry_log = TelemetryLogger(False)
 #  this state machine determines current coaster state from button and telemetry events
 class CoasterState(object):
 
-    def __init__(self, position_requestCB):
-        self._state = None
+    def __init__(self, state_change_callback):
         self._state = RideState.DISABLED
-        self.position_requestCB = position_requestCB
+        self.state_change_callback = state_change_callback
         self._is_platform_active = False
         self.prev_event = None  # only used for debug
 
@@ -64,7 +63,7 @@ class CoasterState(object):
         if event != self.prev_event:
             new_state = self._state 
             if self._is_platform_active:
-                if event == RideEvent.AT_STATION: # and self._state != RideState.READY_FOR_DISPATCH:
+                if event == RideEvent.AT_STATION:
                     #  here if stopped at station
                     new_state = RideState.READY_FOR_DISPATCH
                     self.ridetime_end = time.time()
@@ -106,8 +105,8 @@ class CoasterState(object):
                           self.string(self._state), RideEvent.str(event), self._is_platform_active, self.string(new_state))
                 self._state = new_state        
                 # tell local user interface that state has changed
-                if self.position_requestCB is not None:
-                    self.position_requestCB(self._state)  
+                if self.state_change_callback is not None:
+                    self.state_change_callback(self._state)  
             """
             else:
                 print(format(">> after process ride event, from state {%s} got coaster event {%s}, is_active is %s, new state is {%s}" % \
@@ -123,16 +122,14 @@ class InputInterface(AgentBase):
     def __init__(self, instance_id, event_addr, event_sender):
         super(InputInterface, self).__init__(instance_id, event_addr, event_sender)
         self.sleep_func = kb_sleep
-        self.name = "NoLimitss Coaster"
+        self.name = "NoLimits Coaster"
         self.cmd_func = None
         self.is_normalized = True
         self.is_chair_activated = False
-        self.temp_is_preparing_to_run = False  # set True while unparking and checking load
         self.nl2 = Nl2Messenger()
         # self.gui = CoasterGui(self.dispatch_pressed, self.pause_pressed, self.reset_vr)
         self.prev_movement_time = 0  # holds the time of last reported movement from NoLimits
         self.seat = 0
-        self.isLeavingStation = False  # set true on dispatch, false when no longer in station
         self.coasterState = CoasterState(self.show_state_change) # form state msgs 
         self.coaster_status_str = "Initializing!orange"
         self.sim_connection_state_str = 'waiting sim connection'
@@ -176,20 +173,14 @@ class InputInterface(AgentBase):
     def dispatch(self):
         log.debug("->Dispatch command")
         if self.coasterState.state == RideState.READY_FOR_DISPATCH:
-            # print "preparing to dispatch"
-            self.temp_is_preparing_to_run = True
             self.coasterState.process_ride_event(RideEvent.DISPATCHED)
             log.warning("auto dispatch disabled!")
-            # while not self.nl2.prepare_for_dispatch():
-            #     self.sleep_func(.5)
-            self.temp_is_preparing_to_run = False
             self.nl2.dispatch(0, 0)
             log.debug("coaster dispatched")
             self.prev_movement_time = time.time()  # set time that train started to move
             self.isLeavingStation = True
             while self.nl2.is_train_in_station():
                 self.sleep_func(.05)
-            self.isLeavingStation = False
             self.ridetime_start = time.time()
             self.pausetime = 0
             telemetry_log.start()
@@ -223,20 +214,6 @@ class InputInterface(AgentBase):
             self.load_park(True, park, int(seat))
         except Exception as e:
             log.error("error handling ride select msg: %s", str(e))
-
-    '''
-    def show_parks(self, isPressed):
-        self.gui.show_parks(isPressed)
-
-    def scroll_parks(self, msg):
-        if msg == '1':
-            self.gui.scroll_parks('<Down>')
-        elif msg == '-1':
-            self.gui.scroll_parks('<Up>')
-        else:
-            log.warning("in scroll_parks, got unexpected msg: %s", msg)
-    '''
-    
 
     def show_state_change(self, new_state):
         # self.RemoteControl.send(str(new_state))
@@ -276,17 +253,14 @@ class InputInterface(AgentBase):
         log.debug("selecting seat %s", self.seat)
         self.nl2.select_seat(self.seat)
         self.coasterState.process_ride_event(RideEvent.AT_STATION)
-
-        
+     
     def fin(self):
         # exit code goes here
         pass
 
     def begin(self):
         log.info("Starting NoLimits coaster agent")
-        # self.cmd_func = cmd_func
         self.nl2.begin()
-        # self.gui.set_park_callback(self.load_park)
         self.debug_start_time = time.time()
         self.wait_park_ready() # attempt connection and return when ready
 
@@ -296,13 +270,11 @@ class InputInterface(AgentBase):
             if self.nl2.connect():
                 self.nl2.set_manual_mode(True)
                 version = self.nl2.get_nl2_version()
-                # self.ui.lbl_version.setText("Nl2 Version: " + self.nl2.get_nl2_version())
                 log.info("Connected to Nl2 coaster version %s", version)
                 self.coaster_status_str = "Coaster connected but deactivated!black"
                 return True
             else:
                 log.debug("coaster connect returned false, nl2 not connected!")
-                # self.gui.set_coaster_connection_label(("No connection to NoLimits, is it running on " + self.get_address(), "red"))
                 self.sleep_func(.5)
                 return False
         else:

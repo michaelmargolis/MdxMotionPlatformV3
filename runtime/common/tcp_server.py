@@ -1,7 +1,7 @@
 """
  tcp_server.py
  
- A threaded TCP server. See main method at bottom of this file for example usage
+ A threaded TCP server. See main method at end of this file for example usage
 """
 
 import argparse

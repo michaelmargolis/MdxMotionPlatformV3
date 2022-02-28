@@ -2,9 +2,9 @@
 """ 
 SimInterface.py
 
-Code to drive  platform from sim using simple api
+Code to drive  platform from various sims using a simple protocol
 
-api: "xyzrpy,x,y,z,roll,pitch,yaw\n"
+protocol: "xyzrpy,x,y,z,roll,pitch,yaw\n"
 where parameters are float values ranging between -1 and 1
 """
 
@@ -26,7 +26,6 @@ import common.gui_utils as gutil # for sleep QT func
 from common.dynamics import Dynamics
 from output.kinematicsV2 import Kinematics
 from output.configNextgen import *
-import output.d_to_p_prep as d_to_p_prep
 from  platform_config import  cfg
 #  from output.ConfigV3 import *
 
@@ -42,8 +41,6 @@ DATA_PERIOD =  50 - LATENCY  # ms between samples
 
 ECHO_UDP_IP = "127.0.0.1"
 echo_address = ((ECHO_UDP_IP, 10020),(ECHO_UDP_IP, 10021))
-
-print(echo_address)
 
 slider_config_module = "configNextgen"
 chair_config_module = "ConfigV3"
@@ -69,7 +66,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sim = None
         self.time_interval = DATA_PERIOD / 1000.0
         self.slider_values = [0]*6  # the actual slider percents (-100 to 100)
-        self.lagged_slider_values = [0]*6  # values used for sending to festo
+        self.lagged_slider_values = [0]*6  # values used for calculating pressures
 
         self.target_pressures = [] # pressures sent to festo
 
@@ -161,7 +158,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def data_update(self):
         #  todo if self.estopped then call loadpos and return
 
-        if self.is_ready == False:
+        if not self.is_ready:
             print("ignoring update because not ready")
             return # don't output if distance to pressure file has not been loaded
 
