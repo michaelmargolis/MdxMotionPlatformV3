@@ -17,7 +17,10 @@ import csv
 import operator  # for map sub
 import traceback
 
-from PlatformCalibrate.calibration_gui_defs import *
+from PyQt5 import QtWidgets, uic, QtCore, QtGui
+from PyQt5.QtWidgets import QMessageBox
+
+# from PlatformCalibrate.calibration_gui_defs import *
 
 from common.serialSensors import SerialContainer, Encoder, IMU, Scale, ServoModel
 from common.dynamics import Dynamics
@@ -39,6 +42,12 @@ SAMPLES = (1000/DATA_PERIOD) * MINUTES * 60
 
 
 SCALE__PERIOD = 250
+
+qtcreator_file  = "PlatformCalibrate/calibration_gui.ui"
+Ui_MainWindow, QtBaseClass = uic.loadUiType(qtcreator_file)
+
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -120,9 +129,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.chk_delta_capture.stateChanged.connect(self.delta_capture_state_changed)
         self.ui.btn_create_d_to_p.clicked.connect(self.create_d_to_p)
         self.ui.btn_merge_d_to_p.clicked.connect(self.merge_d_to_p)
+        self.ui.btn_encoder_update.clicked.connect(self.encoder_update)
+        self.ui.btn_encoder_reset.clicked.connect(self.encoder_reset)
 
     def configure_serial(self):
+        encoder_directions = [-1,1,1,1,1,1]
+        log.info("encoder directions are: %s", str(encoder_directions))
         self.encoder = SerialContainer(Encoder(), self.ui.cmb_encoder_port, "encoder", self.ui.lbl_encoders, 115200)
+        self.encoder.sp.set_direction(encoder_directions)
         self.imu = SerialContainer(IMU(), self.ui.cmb_imu_port, "imu", self.ui.lbl_imu, 57600)
         self.scale = SerialContainer(Scale(), self.ui.cmb_scale_port, "scale", self.ui.lbl_scale, 57600)
         self.model = SerialContainer(ServoModel(), self.ui.cmb_model_port, "model", self.ui.lbl_model, 57600)
@@ -139,7 +153,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ser.combo.addItems(ports)
         if ser.desc in serial_defaults.dict:
             port = serial_defaults.dict[ser.desc]
-            log.info("%s port is %s", ser.desc, port)
+            log.info("%s default port is %s", ser.desc, port)
             index = ser.combo.findText(port, QtCore.Qt.MatchFixedString)
             if index >= 0:
                 ser.combo.setCurrentIndex(index)
@@ -281,6 +295,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.btn_serial_connect.setText("    Connect    ")
         else:
             self.open_port(self.encoder)
+            if self.encoder.sp.is_open():
+                self.encoder.sp.reset()
             self.open_port(self.imu)
             self.open_port(self.scale)
             if self.scale.sp.is_open():
@@ -418,6 +434,7 @@ class MainWindow(QtWidgets.QMainWindow):
             completed = 0.0
             self.step_data = []
             for r in range(repeats):
+                # self.encoder_reset()
                 for step in range(steps+1):
                     if self.is_calibrating == False:
                         self.ui.btn_calibrate.setText("Restart")
@@ -563,15 +580,23 @@ class MainWindow(QtWidgets.QMainWindow):
             percents = self.k.actuator_percents(request)
             self.muscle_output.move_percent(percents)
 
+    def encoder_update(self):
+        encoder_data,timestamp = self.encoder.sp.read()
+        if timestamp != 0:
+            for i in range(len(self.encoder_values)):
+                self.encoder_values[i].setText(encoder_data[i])
+
+    def encoder_reset(self):
+        self.encoder.sp.reset()
+
     def data_update(self):
         timestamp = 0
         self.prev_timestamp = 0
         try:
             encoder_data,timestamp = self.encoder.sp.read()
             if timestamp != 0:
-                #print(encoder_data, len(encoder_data))
                 for i in range(len(self.encoder_values)):
-                    self.encoder_values[i].setText(encoder_data[i]) 
+                    self.encoder_values[i].setText(encoder_data[i])
                 if self.is_capturing_data:
                     self.time.append(timestamp)
                     if timestamp != 0 and self.prev_timestamp != 0:

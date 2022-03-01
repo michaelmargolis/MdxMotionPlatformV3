@@ -19,27 +19,35 @@ class SerialContainer(object):
 class Encoder(SerialProcess):
     def __init__(self):
         super(Encoder, self).__init__()
+        self.direction = (1,1,1,1,1,1)
 
     def read(self):
         data = super(Encoder, self).read()
         if data:
             data = data.rstrip('\r\n}').split(',')
             # Data format for mm:     D0,e1,e2,e3,e4,e5,e6,timestamp\n"
+            values = []
             if len(data) >= 8:
-                return data[1:7], data[7]
+                for idx, val in enumerate(data[1:7]):
+                    v = int(val) * self.direction[idx] 
+                    values.append(str(v))                  
+                return values, data[7]
         return None, 0
 
+    def set_direction(self, values):
+        self.direction = values
+    
     def reset(self):
-        self.s.write("R")
+        self.s.write("R".encode())
 
     def set_error_mode(self):
-        self.s.write("M=E")
+        self.s.write("M=E".encode())
 
     def set_distance_mode(self):
-        self.s.write("M=D")
+        self.s.write("M=D".encode())
 
     def get_info(self):
-        self.s.write("?")
+        self.s.write("?".encode())
 
 class IMU(SerialProcess):
     def __init__(self):
@@ -50,7 +58,7 @@ class IMU(SerialProcess):
         return msg.rstrip('\r\n}')
 
     def tare(self):
-        self.write("T")
+        self.write("T".encode())
 
 class Scale(SerialProcess):
     def __init__(self):
@@ -62,7 +70,7 @@ class Scale(SerialProcess):
     def update(self):
         if self.is_open():
             try:
-                self.write('{"measure":"kg"}')
+                self.write('{"measure":"kg"}'.encode())
                 msg = super(Scale, self).read()
                 if '"measurement"' in msg:
                     msg = msg.split(":")
