@@ -55,9 +55,9 @@ class AgentProxy():
             return False
         return True
     
-    def init_gui(self, agent_gui, frame):
+    def init_gui(self, agent_gui, layout, frame):
         gui_module = importlib.import_module(agent_gui)
-        self.gui = gui_module.AgentGui(frame, self)
+        self.gui = gui_module.AgentGui(frame, layout, self)
         self.gui.select_ride_callback(self.select_ride)
 
     def send_startup(self, agent_name, agent_module):
@@ -166,8 +166,10 @@ class AgentProxy():
     def service(self):
         for idx, agent_conn in enumerate(self.conn):
             pc_str = format("PC at %s " % (agent_conn.ip_addr)) # label for conn status reporting
-            if agent_conn.status.is_connected and time.perf_counter() - self.heartbeat[idx] < self.heartbeat_timeout:
+            if agent_conn.status.is_connected: 
                 status_str = pc_str + " is connected"
+                if time.perf_counter() - self.heartbeat[idx] < self.heartbeat_timeout:
+                    status_str = pc_str + " missed heartbeat"
             else:
                 # here if not connected to agent
                 if self.startup_msg[idx] != None: # check if previously connected
@@ -200,7 +202,7 @@ class AgentProxy():
                         self.gui.show_state_change(msg.state, self.is_platform_activated)
                     self._transform  = msg.transform
                 if self.states[idx] != msg.state:
-                    log.debug("id%d, %s,%s, state %s", msg.agent_id, msg.sim_connection_state_str, msg.ride_status_str, msg.state)   
+                    log.debug("id %d, %s,%s, state %s", msg.agent_id, msg.sim_connection_state_str, msg.ride_status_str, msg.state)   
                 self.states[idx] = msg.state
                 # todo add cpu!gpu temperatures to msg and check limits (40, 60), (75, 90))
             else:

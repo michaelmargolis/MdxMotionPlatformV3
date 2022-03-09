@@ -27,8 +27,10 @@ class frame_gui(QtWidgets.QFrame, ui):
 
 class AgentGui(AgentGuiBase):
 
-    def __init__(self, frame, proxy):
+    def __init__(self, frame, layout, proxy):
         self.ui = frame_gui(frame)
+        layout.addWidget(self.ui)
+        
         self.lbl_pc_conn_status = [ self.ui.lbl_pc_conn_status_0, self.ui.lbl_pc_conn_status_1,
               self.ui.lbl_pc_conn_status_2, self.ui.lbl_pc_conn_status_3, self.ui.lbl_pc_conn_status_4]
 

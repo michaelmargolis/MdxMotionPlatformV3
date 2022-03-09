@@ -21,8 +21,9 @@ class frame_gui(QtWidgets.QFrame, ui):
         self.setupUi(self)
 
 class AgentGui(AgentGuiBase):
-    def __init__(self, frame, proxy):
+    def __init__(self, frame, layout,  proxy):
         self.ui = frame_gui(frame)
+        layout.addWidget(self.ui)
 
         self.sliders = [self.ui.sld_x_0, self.ui.sld_y_1,self.ui.sld_z_2,self.ui.sld_roll_3,
                                   self.ui.sld_pitch_4,self.ui.sld_yaw_5]

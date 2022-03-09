@@ -12,10 +12,8 @@ import socket
 # from math import radians, degrees
 from threading import Thread, Lock
 import time
-try:
-    from queue import Queue
-except ImportError:
-    from Queue import Queue
+from queue import Queue
+
 
 import traceback
 import csv,os
@@ -40,7 +38,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class SC_State:  # these are space coaster specific states
-    initializing, waiting, ready, running, completed = list(range(0,5))
+    disconnected, initializing, waiting, ready, running, completed = list(range(-1,5))
 
 class ConnectionException(Exception):
     pass
@@ -51,6 +49,7 @@ class InputInterface(AgentBase): # todo  rename to AgentInterface ??
         super(InputInterface, self).__init__(instance_id, event_addr, event_sender)
         self.sleep_func = time.sleep # todo - replace with function that checks  kbhit
         self.name = "Space Coaster"
+        log.debug("initializing %s with id %s", self.name, self.instance_id)
         self.log = None
         self.is_normalized = True
         self.expect_degrees = False # convert to radians if True
@@ -145,53 +144,43 @@ class InputInterface(AgentBase): # todo  rename to AgentInterface ??
         pass
 
     def connect(self):
-        self.is_coaster_connected = -1
-        self.sleep_func(3)
+        self.is_coaster_connected = False
         log.info("Connecting to space coaster sim")
-        if self.is_coaster_connected != 1:
-            # todo send msg to proxy to show status:
-            """
-            self.dialog.setWindowTitle('Coaster not detected')
-            self.dialog.txt_info.setText("If coaster not yet started, start CoasterMSU")
-            self.dialog.show()
-            """
-        while self.is_coaster_connected != 1:
-            self.report_sim_connection_status('waiting sim connection!orange')
-            self.sleep_func(2)
-        if self.is_coaster_connected == 0:
-            self.report_sim_connection_status('sim not connected!red')
-        else:
-            self.report_sim_connection_status('sim connected!green')
-            # self.dialog.close()
-            log.info("Connected to space coaster sim")
-
-    def report_sim_connection_status(self, status_str):
-        self.sim_connection_state_str = status_str
+        self.sim_connection_state_str = 'waiting sim connection!orange'
+        while not self.is_coaster_connected:
+            self.sim_connection_state_str = 'waiting sim connection!orange'
+            log.debug("waiting for connection")
+            self.service()
+            self.sleep_func(.25) # proxy heartbeat expects < 1 sec between msgs            
+        self.sim_connection_state_str = 'sim connected!green'
+        # self.dialog.close()
+        log.info("Connected to space coaster sim")
 
     def handle_command(self, command):
-        if command in self.actions:
-            self.actions[command]()
+        if command[0] in self.actions:
+            self.actions[command[0]]()
         else:
             log.warning("unhandled command (%s)", command)
 
     def service(self):
-        if self.is_coaster_connected == 0:
-            self.report_sim_connection_status('sim not connected!red')
-        else:
-            self.report_sim_connection_status('sim connected!green')
         msg = None
         try:
             while  self.cmdQ.qsize() > 0:
                 sc_state = self.cmdQ.get()
-                self.process_state(sc_state)
+                if sc_state == SC_State.disconnected:
+                    self.sim_connection_state_str = 'sim connected!green'
+                else:
+                    self.is_coaster_connected = True
+                    self.process_state(sc_state)
 
-            if self.xyzrpyQ.qsize() == 0:
+            if self.xyzrpyQ.qsize() == 0:               
                 status = "Stopped at telemetry frame %d" % (self.frame_number)
                 self.coaster_status_str = status + "!orange"
                 if not self.is_paused:
                     log.warning("in service, setting is_paused True because coaster q is empty")
                     self.is_paused = True
             else:
+                self.is_coaster_connected = True
                 if self.state == RideState.RUNNING:
                     try:
                         self.set_transform(self.telemetry[self.frame_number])
@@ -289,20 +278,22 @@ class InputInterface(AgentBase): # todo  rename to AgentInterface ??
             while True:
                 try:
                     msg = sc_sock.recv(MAX_MSG_LEN).decode('utf-8')
-                    self.is_coaster_connected = 1
-                    # print(msg)
-                    msg = msg.rstrip()
-                    if msg is not None:
-                        if msg.find("xyzrpy") == 0:
-                            now = time.time()
-                            self.xyzrpyQ.put([now,msg])
-                        elif msg.find("command") == 0:
-                            self.cmdQ.put(msg)
-                        elif msg.find("config") == 0:
-                            self.cmdQ.put(msg) # config messages go onto command queue
-                        elif msg.find("state") == 0:
-                             s = msg.split(',')
-                             self.cmdQ.put(int(s[1])) # state messages go onto command queue
+                    if msg == '':
+                       self.cmdQ.put(SC_State.disconnected)
+                    else:
+                        if msg is not None:
+                            msg = msg.rstrip()
+                            # print(msg)
+                            if msg.find("xyzrpy") == 0:
+                                now = time.time()
+                                self.xyzrpyQ.put([now,msg])
+                            elif msg.find("command") == 0:
+                                self.cmdQ.put(msg)
+                            elif msg.find("config") == 0:
+                                self.cmdQ.put(msg) # config messages go onto command queue
+                            elif msg.find("state") == 0:
+                                 s = msg.split(',')
+                                 self.cmdQ.put(int(s[1])) # state messages go onto command queue
 
                 except Exception as e:
                     s = traceback.format_exc()
@@ -310,12 +301,11 @@ class InputInterface(AgentBase): # todo  rename to AgentInterface ??
                         log.error("listener err %s,%s, msg(%s)", e, s, msg)
                     else:
                         log.error("listener err %s,%s", e, s)
-                    self.is_coaster_connected = 0
-                    self.report_sim_connection_status("Coaster connection error!red")
+                    self.cmdQ.put(SC_State.disconnected)
         except Exception as e:
             s = traceback.format_exc()
             log.fatal("Space coaster connection thread init err %s,%s", e, s)
-            self.is_coaster_connected = 0
+            self.cmdQ.put(SC_State.disconnected)
 
     def read_telemetry(self):
         try:

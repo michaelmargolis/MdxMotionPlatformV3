@@ -23,7 +23,7 @@ class SerialProcess(object):
         self.is_started = False
         self.data = None
         self.term_char = '\n'
-        log.info("TODO in SerialProcess, check default term char")
+        log.debug("TODO in SerialProcess, check default term char")
 
     @staticmethod
     def list_ports():
@@ -79,6 +79,8 @@ class SerialProcess(object):
             data = None
             with self.lock:
                 data = self.data
+            if data:
+                data = data.decode()
             return data
 
     def available(self):

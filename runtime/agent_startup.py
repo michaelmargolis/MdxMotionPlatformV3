@@ -52,7 +52,7 @@ class AgentStartup(object):
         log.info("processing startup msg for %s",  fields[1])
         msg = tuple(fields[1:6])
         msg = AgentStartupMsg._make(msg) # cast to startup namedtuple
-        #  print(msg)
+        log.debug("got statup msg: %s", msg)
         if msg.sim_name != 'NONE':
             try:
                 sim_path = sim_exe[msg.sim_name]
@@ -62,6 +62,7 @@ class AgentStartup(object):
                 agent = fields[2]
                 if msg.agent_module != "NONE":
                     import_path = 'agents.' + msg.sim_name + '.' + msg.sim_name
+                    log.debug("loading agent model %s", import_path)
                     event_address = (msg.ip_addr, int(msg.event_port)) # addr udp socket will send events to
                     agent = importlib.import_module(import_path).InputInterface(msg.agent_id, event_address, self.event_sender)
                     return agent
@@ -73,9 +74,9 @@ class AgentStartup(object):
     def cmd_handler(self):
         # process commands from agent_proxy
         if self.server.available() > 0:
-            name, data = self.server.get()
+            addr, data = self.server.get()
             if 'quit' in data:
-                self.running = False
+                self.running = False                
             else:
                 log.info("got cmd: %s", data.strip())
                 fields = data.strip().split(',')
@@ -83,9 +84,9 @@ class AgentStartup(object):
                     if fields[0] == 'STARTUP':
                         self.agent = self.startup(fields)
                         if self.agent != None:
-                             self.agent.begin()
+                            self.agent.begin()
                     elif fields[0] == 'EVENT_TEST':
-                        print("event msg:", fields)
+                        print("event test msg for debug:", fields)
                         ip_addr = fields[1]
                         event_port = int(fields[2])
                         # fixme replace following two lines with util get_ip
@@ -107,7 +108,7 @@ class AgentStartup(object):
             while self.server.available() > 0:
                 self.cmd_handler()
             if self.agent:
-                self.agent.service()
+               self.agent.service()
             if kb_sleep(FRAME_RATE_ms * 0.001) == False:
                 break
 

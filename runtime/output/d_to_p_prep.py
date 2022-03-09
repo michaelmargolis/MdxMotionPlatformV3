@@ -119,18 +119,18 @@ class D_to_P_prep(object):
             for a in range(6): # actuators
                 up_lines = []
                 down_lines = []
-                for c in range(self.nbr_cycles):
-                    up_lines += axs[a/2, a%2,].plot(up[c][:,a], linestyle=linestyles[c], color='r')
-                    down_lines += axs[a/2, a%2,].plot(down[c][:,a], linestyle=linestyles[c], color='b')
+                for c in range(self.nbr_cycles):                     
+                    up_lines += axs[a//2, a%2,].plot(up[c][:,a], linestyle=linestyles[c], color='r')
+                    down_lines += axs[a//2, a%2,].plot(down[c][:,a], linestyle=linestyles[c], color='b')
 
-                up_lines +=  axs[a/2, a%2,].plot(np.mean(up[:,:,a], axis=0), color='c')
-                up_lines +=  axs[a/2, a%2,].plot(np.median(up[:,:,a], axis=0), color='black')
-                down_lines +=  axs[a/2, a%2,].plot(np.mean(down[:,:,a], axis=0), color='g')
-                down_lines +=  axs[a/2, a%2,].plot(np.median(down[:,:,a], axis=0), color='black')
-                axs[a/2, a%2].set_title('Actuator ' + str(a))
-                axs[a/2, a%2,].legend(up_lines, up_lbl +['Up mean', 'Up median'], loc='upper left', frameon=False)
-                down_lgnd = Legend(axs[a/2, a%2,], down_lines, down_lbl+['Down mean', 'Down median'],  loc='lower right', frameon=False)
-                axs[a/2, a%2,].add_artist(down_lgnd)
+                up_lines +=  axs[a//2, a%2,].plot(np.mean(up[:,:,a], axis=0), color='c')
+                up_lines +=  axs[a//2, a%2,].plot(np.median(up[:,:,a], axis=0), color='black')
+                down_lines +=  axs[a//2, a%2,].plot(np.mean(down[:,:,a], axis=0), color='g')
+                down_lines +=  axs[a//2, a%2,].plot(np.median(down[:,:,a], axis=0), color='black')
+                axs[a//2, a%2].set_title('Actuator ' + str(a))
+                axs[a//2, a%2,].legend(up_lines, up_lbl +['Up mean', 'Up median'], loc='upper left', frameon=False)
+                down_lgnd = Legend(axs[a//2, a%2,], down_lines, down_lbl+['Down mean', 'Down median'],  loc='lower right', frameon=False)
+                axs[a//2, a%2,].add_artist(down_lgnd)
 
 
             xtick = self.step_size/10
@@ -181,9 +181,9 @@ class D_to_P_prep(object):
             for a in range(6): # actuators
                 up_lines = []
                 down_lines = []
-                axs[a/2, a%2,].plot(np.std(up[:,:,a], axis=0), color='r')
-                axs[a/2, a%2,].plot(np.std(down[:,:,a], axis=0), color='b')
-                axs[a/2, a%2].set_title('Actuator ' + str(a))
+                axs[a//2, a%2,].plot(np.std(up[:,:,a], axis=0), color='r')
+                axs[a//2, a%2,].plot(np.std(down[:,:,a], axis=0), color='b')
+                axs[a//2, a%2].set_title('Actuator ' + str(a))
 
             xtick = self.step_size/10
             for ax in axs.flat:

@@ -17,6 +17,7 @@ import numpy as np
 
 # from main_gui import *
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
+logging.getLogger("PyQt5").setLevel(logging.WARNING) # suppress debug logs
 
 from agents.agent_select_dialog import AgentSelect
 from agents.agent_config import AgentCfg
@@ -61,15 +62,16 @@ class Controller(QtWidgets.QMainWindow):
                 # use ip from config file of not overridden on cmd line
                 festo_ip = cfg.Festo_IP_ADDR
             self.is_alive = True  # set False to terminate
-            self.init_gui()
+            self.dynam = Dynamics()
             self.init_kinematics()
             self.platform = MuscleOutput(self.DtoP.distance_to_pressure, festo_ip, pfm.MAX_ACTUATOR_RANGE)
+
+            self.init_gui()
             self.platform_status_str = None
             self.is_output_enabled = False
             self.encoder_server = None
             self.connect_encoder()
-            self.dynam = Dynamics()
-            self.dynam.init_gui(self.ui.frm_dynamics)
+
             self.dynam.begin(pfm.limits_1dof, "gains.cfg")
             log.warning("Dynamics module has washout disabled, test if this is acceptable")
             self.payload = 100  # default payload in kg
@@ -155,15 +157,19 @@ class Controller(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.setWindowIcon(QtGui.QIcon('platform_icon.png'))
         self.ui.tabWidget.currentChanged.connect(self.tab_changed)
-        self.ui_tab = 0
+        self.ui_tab = 0       
         self.select_agent()
         self.create_activation_toggle()
-        try:
+        try:     
+   
+            self.dynam.init_gui(self.ui.tab_2)
+            self.ui.dynam_layout.addWidget(self.dynam.ui)
             self.output_gui = output_gui.OutputGui()
-            self.output_gui.init_gui(self.ui.frm_output, pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_RANGE)
+            self.output_gui.init_gui(self.ui.tab_3, pfm.MIN_ACTUATOR_LEN, pfm.MAX_ACTUATOR_RANGE)
+            self.ui.output_layout.addWidget(self.output_gui.ui)  
             self.ui.lbl_platform.setText("Platform: " + pfm.PLATFORM_NAME)
             self.ui.btn_exit.clicked.connect(self.quit)
-            self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
+            # self.ui.chk_festo_wait.stateChanged.connect(self.festo_check) 
             self.chk_activate.clicked.connect(self.activation_clicked) 
             self.output_gui.encoder_change_callback(self.encoder_select_event)
             self.output_gui.encoder_reset_callback(self.encoder_reset)
@@ -175,18 +181,38 @@ class Controller(QtWidgets.QMainWindow):
 
     def create_activation_toggle(self):
         self.chk_activate = gutil.ToggleSwitch(self.ui.frame_activate, "Activated", "Deactivated")
-        self.chk_activate.setGeometry(QtCore.QRect(10, 5, 220, 38))
+        self.chk_activate.setGeometry(QtCore.QRect(-15, 0, 220, 38))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.chk_activate.setFont(font)
         self.chk_activate.setChecked(False)    
+
+    def init_vr_reset(self, agent_addresses):
+        self.ui.cmb_reset_vr.addItem("Reset all Vr headsets")
+        model =  self.ui.cmb_reset_vr.model()
+        colors = ('red', 'blue', 'green', 'cyan', 'magenta', 'yellow')
+        for row in range(len(agent_addresses)):
+            item = QtGui.QStandardItem("Reset @ " + agent_addresses[row])
+            item.setForeground(QtGui.QColor(colors[row]))
+            model.appendRow(item)
+        self.ui.cmb_reset_vr.currentIndexChanged.connect(self.vr_reset_selection_changed)
+        
+    def vr_reset_selection_changed(self, index):
+        print(index)
+        if(index > 0): # first index (all) color not changed)
+            colors = ('red', 'blue', 'green', 'cyan', 'magenta', 'yellow')
+            self.ui.cmb_reset_vr.setStyleSheet("QComboBox:editable{{ color: {} }}".format(colors[index-1]))
     
     def select_agent(self):
         agent_cfg = AgentCfg()
+        if len(cfg.SIM_IP_ADDR) > 6:
+            log.error("More than SIX PCs were entered in platform_config.py, fix this and restart")
+            sys.exit() 
         dialog =  AgentSelect(self, cfg.SIM_IP_ADDR)
         if dialog.exec_(): 
             self.start_agent(dialog.agent_name, dialog.agent_module, dialog.agent_gui, dialog.selected_pc_addresses())
             self.ui.lbl_client.setText("Agent: " + dialog.agent_name)
+            self.init_vr_reset(dialog.selected_pc_addresses())   
         else:
             sys.exit() 
 
@@ -197,13 +223,14 @@ class Controller(QtWidgets.QMainWindow):
         self.agent_proxy = AgentProxy(addresses, cfg.STARTUP_SERVER_PORT, cfg.AGENT_PROXY_EVENT_PORT)    
         while self.agent_proxy.connect() == False:
              app.processEvents()
-        self.agent_proxy.init_gui(agent_gui, self.ui.frm_input)
+        self.agent_proxy.init_gui(agent_gui, self.ui.input_layout,  self.ui.tab_1) # was frm_input)
         self.agent_proxy.send_startup(agent_name, agent_module)
 
     def set_activation_buttons(self, isEnabled): 
         self.chk_activate.setChecked(isEnabled)
 
     def festo_check(self, state):
+        # fixme this code is not used in this version
         if state == QtCore.Qt.Checked:
             log.info("System will wait for Festo msg confirmations")
             self.platform.set_wait_ack(True)
@@ -522,7 +549,7 @@ class Controller(QtWidgets.QMainWindow):
                         self.do_transform(transform)
                         if self.platform_status_str != self.platform.get_output_status():
                             self.platform_status_str = self.platform.get_output_status()
-                            gutil.set_text(self.ui.lbl_festo_status, self.platform_status_str[0], self.platform_status_str[1])
+                            # gutil.set_text(self.ui.lbl_festo_status, self.platform_status_str[0], self.platform_status_str[1])
                         if self.dynam.get_intensity() != int(self.intensity * 100):
                             self.intensity = int(self.dynam.get_intensity() * 100)
                             self.show_intensity_payload()
@@ -532,7 +559,7 @@ class Controller(QtWidgets.QMainWindow):
             else:
                 self.prev_service = time.time()
                 # self.f = open("timer_test.csv", "w")
-                log.warning("starting service timing latency capture to file: timer_test.csv")
+                # log.warning("starting service timing latency capture to file: timer_test.csv")
             QtCore.QTimer.singleShot(1, self.service)
         else:
             self.agent_proxy.fin()
@@ -592,7 +619,7 @@ def main():
 
     if controller:
         controller.close()
-    app .exit()
+    app.exit()
     sys.exit()
     log.info("Exiting Platform Controller\n")
     log.shutdown()

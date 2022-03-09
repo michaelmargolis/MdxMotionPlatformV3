@@ -62,6 +62,7 @@ class TcpServer(socketserver.ThreadingTCPServer, object):
         t.start()
 
     def finish(self):
+        log.debug("tcp server finishing")
         for client in tuple(self.clients):
             client.finish()
             self._remove_client(client)
@@ -120,7 +121,9 @@ class CustomHandler(socketserver.BaseRequestHandler, object):
                 self.request.sendall(outgoing)
 
         if self.readable:
-            incoming = self.request.recv(512).decode('utf-8')
+            incoming = self.request.recv(1024)
+            log.debug("tcp incoming= {%s}", incoming)
+            incoming = incoming.decode('utf-8')               
             if incoming != '':
                 self.in_buffer += incoming
                 while True:
@@ -130,6 +133,7 @@ class CustomHandler(socketserver.BaseRequestHandler, object):
                     else:
                         break
             else:
+                log.debug("calling finish in tcp service")
                 self.finish()
  
 

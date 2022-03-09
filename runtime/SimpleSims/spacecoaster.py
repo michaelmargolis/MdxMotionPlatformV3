@@ -122,6 +122,7 @@ class Sim(object):
         pass # space coaster cannot select ride
 
     def load(self, loader):
+        # this method is not used by agent_startup
         try:
             log.info("Starting Spacecoaster executing: " + loader)
             os.startfile(loader)

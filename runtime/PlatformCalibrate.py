@@ -133,7 +133,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btn_encoder_reset.clicked.connect(self.encoder_reset)
 
     def configure_serial(self):
-        encoder_directions = [-1,1,1,1,1,1]
+        encoder_directions = [1,-1,1,1,1,-1]
         log.info("encoder directions are: %s", str(encoder_directions))
         self.encoder = SerialContainer(Encoder(), self.ui.cmb_encoder_port, "encoder", self.ui.lbl_encoders, 115200)
         self.encoder.sp.set_direction(encoder_directions)

@@ -19,9 +19,10 @@ class frame_gui(QtWidgets.QFrame, ui):
         self.setupUi(self)
 
 class AgentGui(AgentGuiBase):
-    def __init__(self, frame, proxy):
+    def __init__(self, frame, layout, proxy):
 
         self.ui = frame_gui(frame)
+        layout.addWidget(self.ui)
 
         self.lbl_pc_conn_status = [ self.ui.lbl_pc_conn_status_0, self.ui.lbl_pc_conn_status_1,
               self.ui.lbl_pc_conn_status_2, self.ui.lbl_pc_conn_status_3, self.ui.lbl_pc_conn_status_4]
@@ -48,6 +49,9 @@ class AgentGui(AgentGuiBase):
 
     def show_deactivated(self, state):
         self.show_state_change(state, False)
+        
+    def show_parked(self):
+        gutil.set_text(self.ui.lbl_coaster_status, "Coaster is Parked", "black")
 
     def report_coaster_status(self, text):
         # msg string format is: text!color
