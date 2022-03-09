@@ -181,7 +181,7 @@ class Controller(QtWidgets.QMainWindow):
 
     def create_activation_toggle(self):
         self.chk_activate = gutil.ToggleSwitch(self.ui.frame_activate, "Activated", "Deactivated")
-        self.chk_activate.setGeometry(QtCore.QRect(-15, 0, 220, 38))
+        self.chk_activate.setGeometry(QtCore.QRect(0, 0, 240, 38))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.chk_activate.setFont(font)
@@ -198,10 +198,8 @@ class Controller(QtWidgets.QMainWindow):
         self.ui.cmb_reset_vr.currentIndexChanged.connect(self.vr_reset_selection_changed)
         
     def vr_reset_selection_changed(self, index):
-        print(index)
-        if(index > 0): # first index (all) color not changed)
-            colors = ('red', 'blue', 'green', 'cyan', 'magenta', 'yellow')
-            self.ui.cmb_reset_vr.setStyleSheet("QComboBox:editable{{ color: {} }}".format(colors[index-1]))
+        colors = ('black', 'red', 'blue', 'green', 'cyan', 'magenta', 'yellow')
+        self.ui.cmb_reset_vr.setStyleSheet("QComboBox:editable{{ color: {} }}".format(colors[index]))
     
     def select_agent(self):
         agent_cfg = AgentCfg()
