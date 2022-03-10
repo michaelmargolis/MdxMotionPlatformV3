@@ -2,7 +2,7 @@
 CAD files are licensed for educational use only
 
 
-![Control Box with 10 inch screen](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/CAD/Solidworks/Pi_control_box/large_screen/large%screen%control%box.jpg)
+![Control Box with 10 inch screen](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/CAD/Solidworks/Pi_control_box/large_screen/large%20screen%20control%20box.jpg)
 
 
 ![Control Box with 7 inch screen](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/CAD/Solidworks/Pi_control_box/small_screen/images/control%20box.jpg)
