@@ -13,3 +13,5 @@ This repository contains software and hardware description for version 3 of the 
 
 
 ![side view](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Platform%20Side%20View.gif)
+
+![motion transforms](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Platform_Animation.gif)
