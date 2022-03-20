@@ -9,9 +9,4 @@ This repository contains software and hardware description for version 3 of the 
 + The controller converts the telemetry received from the agent into real world platform coordinates for controller the platform orientation.
 
 
-![platform v3](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/FlyingPlatform.gif)
-
-
-![side view](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Platform%20Side%20View.gif)
-
 ![motion transforms](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Platform_Animation.gif)
