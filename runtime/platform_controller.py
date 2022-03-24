@@ -572,7 +572,8 @@ class Controller(QtWidgets.QMainWindow):
         self.is_alive = False # this will trigger exit in the service routine
 
 
-app = QtWidgets.QApplication(sys.argv) 
+app = QtWidgets.QApplication(sys.argv)
+app.setStyle('Fusion') # fusion is default on the pi ?
 
 def man():
     parser = argparse.ArgumentParser(description='Platform Controller\nAMDX motion platform control application')

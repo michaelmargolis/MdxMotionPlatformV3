@@ -59,7 +59,7 @@ class Telemetry(object):
         self.start_time = 0
         self.frame_number = 0
 
-        self.coaster = sc.InputInterface()
+        self.coaster = sc.SimInterface()
         self.is_spacecoaster = False
 
 

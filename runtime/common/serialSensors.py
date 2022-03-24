@@ -25,11 +25,11 @@ class Encoder(SerialProcess):
         data = super(Encoder, self).read()
         if data:
             data = data.rstrip('\r\n}').split(',')
-            # Data format for mm:     D0,e1,e2,e3,e4,e5,e6,timestamp\n"
+            # Data format for mm:     ">,e1,e2,e3,e4,e5,e6,timestamp\n"
             values = []
             if len(data) >= 8:
                 for idx, val in enumerate(data[1:7]):
-                    v = int(val) * self.direction[idx] 
+                    v = float(val) * self.direction[idx] 
                     values.append(str(v))                  
                 return values, data[7]
         return None, 0
@@ -39,7 +39,16 @@ class Encoder(SerialProcess):
     
     def reset(self):
         self.s.write("R".encode())
+        
+    def set_interval(self, interval_ms):
+        msg = format("I=%d" % (interval_ms))
+        self.s.write(msg.encode()) 
+        
+    def set_precision(self, precision): # nbr digits after decimal point
+        msg = format("P=%d" % (precision))
+        self.s.write(msg.encode()) 
 
+    """ not supported in this version
     def set_error_mode(self):
         self.s.write("M=E".encode())
 
@@ -48,7 +57,8 @@ class Encoder(SerialProcess):
 
     def get_info(self):
         self.s.write("?".encode())
-
+    """
+    
 class IMU(SerialProcess):
     def __init__(self):
         super(IMU, self).__init__()

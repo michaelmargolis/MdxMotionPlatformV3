@@ -30,7 +30,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QFrame" name="frm_input">
+    <widget class="QWidget" name="frm_input" native="true">
      <property name="minimumSize">
       <size>
        <width>791</width>
@@ -40,29 +40,14 @@
      <property name="styleSheet">
       <string notr="true">background-color: #f0f0f0</string>
      </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
-     </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
-       <widget class="QFrame" name="buttons_frame">
+       <widget class="QWidget" name="buttons_widget" native="true">
         <property name="minimumSize">
          <size>
           <width>352</width>
           <height>65</height>
          </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
@@ -189,18 +174,12 @@
        </widget>
       </item>
       <item>
-       <widget class="QFrame" name="status_frame">
+       <widget class="QWidget" name="status_widget" native="true">
         <property name="minimumSize">
          <size>
           <width>0</width>
           <height>41</height>
          </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
         </property>
         <widget class="QLabel" name="lbl_coaster_status">
          <property name="geometry">
@@ -229,28 +208,16 @@
        </widget>
       </item>
       <item>
-       <widget class="QFrame" name="info_frame">
+       <widget class="QWidget" name="info_widget" native="true">
         <property name="minimumSize">
          <size>
           <width>0</width>
           <height>208</height>
          </size>
         </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QFrame" name="frame_2">
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
+          <widget class="QWidget" name="widget_2" native="true">
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
              <widget class="QFrame" name="frame_5">
@@ -359,18 +326,12 @@
           </widget>
          </item>
          <item>
-          <widget class="QFrame" name="frame_4">
+          <widget class="QWidget" name="widget_4" native="true">
            <property name="minimumSize">
             <size>
              <width>0</width>
              <height>207</height>
             </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>

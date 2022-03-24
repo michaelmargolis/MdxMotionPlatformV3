@@ -43,10 +43,10 @@ class SC_State:  # these are space coaster specific states
 class ConnectionException(Exception):
     pass
 
-class InputInterface(AgentBase): # todo  rename to AgentInterface ??
+class SimInterface(AgentBase): # todo  rename to AgentInterface ??
 
     def __init__(self, instance_id, event_addr, event_sender):
-        super(InputInterface, self).__init__(instance_id, event_addr, event_sender)
+        super(SimInterface, self).__init__(instance_id, event_addr, event_sender)
         self.sleep_func = time.sleep # todo - replace with function that checks  kbhit
         self.name = "Space Coaster"
         log.debug("initializing %s with id %s", self.name, self.instance_id)

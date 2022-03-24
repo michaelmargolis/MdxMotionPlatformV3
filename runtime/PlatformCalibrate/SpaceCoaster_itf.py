@@ -33,7 +33,7 @@ class RideState:  # only used to contol LED in remote
     DISABLED, READY_FOR_DISPATCH, RUNNING, PAUSED, EMERGENCY_STOPPED, RESETTING = range(6)
 
 
-class InputInterface(object):
+class SimInterface(object):
     USE_GUI = True  # set True if using tkInter
     print "USE_GUI", USE_GUI
     
@@ -406,7 +406,7 @@ class InputInterface(object):
             
 if __name__ == "__main__":
 
-    coaster = InputInterface()
+    coaster = SimInterface()
     coaster.init_gui()
     while True:
         coaster.service()

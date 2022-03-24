@@ -211,18 +211,19 @@ def test_suite():
 if __name__ == "__main__":
     log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
-    ECHO_TO_SOLIDWORKS = False
-    from .configNextgen import *
+    ECHO_TO_SOLIDWORKS = True
+    log.info("echo to solidworks is %s", ECHO_TO_SOLIDWORKS)
+    from configNextgen import *
     #  from ConfigV3 import *  # comment above and uncomment this for chair
-    from . import plot_config
+    import plot_config
     import time
     if ECHO_TO_SOLIDWORKS:    
-        from . import sw_api as sw
+        import sw_api as sw
     
     cfg = PlatformConfig()
     cfg.calculate_coords()
     k = Kinematics()
-    print("using config for", cfg.PLATFORM_NAME) 
+
     k.set_geometry( cfg.BASE_POS, cfg.PLATFORM_POS)
     if cfg.PLATFORM_TYPE == "SLIDER":
         k.set_slider_params(cfg.joint_min_offset, cfg.joint_max_offset, cfg.strut_length, cfg.slider_angles)
@@ -234,17 +235,33 @@ if __name__ == "__main__":
     #  uncomment the following to plot the array coordinates
     # plot_config.plot(cfg.BASE_POS, cfg.PLATFORM_POS, cfg.PLATFORM_MID_HEIGHT, cfg.PLATFORM_NAME )
 
-    test_suite()    
+    # test_suite()    
 
     #  user input
+    print("translation values in mm, rotation in degrees")
     while True:
-        request = input("enter orientation on command line as: surge, sway, heave, roll, pitch yaw ")
-        if request == "":
+        inp = input("enter orientation on command line as: surge, sway, heave, roll, pitch yaw ")
+        if inp == "":
             exit()
-        request = list(map( float, request.split(',') ))
-        if len(request) == 6:
-            percents = k.actuator_percents(request)
-            print("percents:", percents)
+        inp_list = list(map( float, inp.split(',') ))
+        print("input", inp_list)
+        if len(inp_list) == 6:
+            request = []
+            for idx, val in enumerate(inp_list):
+                if idx < 3: 
+                    request.append(val)
+                else:
+                    request.append(val * 0.01745329)
+            print("request", request)
+            pose = k.inverse_kinematics(request)
+            if is_slider:
+               distances = k.len_from_pose(pose)
+               if ECHO_TO_SOLIDWORKS:   
+                   sw.set_struts(distances) 
+               print("slider distances:", distances)
+            else:
+               print(k.actuator_len_from_pose(k.inverse_kinematics(request)))
         else:
            print("expected 3 translation values in mm and 3 rotations values in radians")
+    
     

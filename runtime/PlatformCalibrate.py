@@ -32,8 +32,8 @@ from output.configNextgen import *
 from  platform_config import  cfg
 #  from output.ConfigV3 import *
 
+import PlatformCalibrate.d_to_p_prep as d_to_p_prep
 import output.d_to_p as d_to_p
-import output.d_to_p_prep as d_to_p_prep
 from output.muscle_output import MuscleOutput
 
 DATA_PERIOD = 10  # ms between samples
@@ -297,6 +297,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.open_port(self.encoder)
             if self.encoder.sp.is_open():
                 self.encoder.sp.reset()
+                self.encoder.sp.set_precision(0)
+                self.encoder.sp.set_interval(10)
             self.open_port(self.imu)
             self.open_port(self.scale)
             if self.scale.sp.is_open():
@@ -480,7 +482,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(self.ui.lst_d_to_p.count()):
              infiles.append(str(self.ui.lst_d_to_p.item(i).text()))  
         outfname = str(self.ui.txt_merged_d_to_p_fname.text())
-        self.DtoP.merge_d_to_p(infiles, outfname)
+        self.DtoP_prep.merge_d_to_p(infiles, outfname)
 
     def merge_d_to_p_x(self):
         weights = []

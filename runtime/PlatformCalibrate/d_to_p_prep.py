@@ -79,6 +79,8 @@ class D_to_P_prep(object):
         # returns array of distance to pressure values, row 0 is up, row 1 is down
         updevs = []  # stores standard deviations
         downdevs = []
+        print("up")
+        print(up)
         first_cycle = 1 # set to 1 to skip first cycle
         for a in range(6): # actuators
             updevs += [np.max(np.max(np.std(up[ first_cycle:,:,a], axis=0)))]
@@ -88,14 +90,16 @@ class D_to_P_prep(object):
         print("best index is", best_index, ", up std dev = ", updevs[best_index], "down=", downdevs[best_index])
         avg_up = np.median(up[first_cycle:,:,best_index], axis=0)
         avg_down = np.median(down[first_cycle:,:,best_index], axis=0)
-        self.show_charts( up, down, weight, ["Combined", "Individual", "Std Dev"])
-
+        charts_to_show = 'combined, Individual'
+        # charts_to_show = 'Combined, Individual, Std Dev'
+        self.show_charts( up, down, weight, charts_to_show) 
         up_d_to_p = self.create_distance_to_pressure_array(avg_up, pressure_step)
         down_d_to_p = self.create_distance_to_pressure_array(avg_down, pressure_step)
         return  np.vstack((up_d_to_p, down_d_to_p))
 
 
     def show_charts(self, up, down, weight, charts_to_show):
+        print("showing charts: ", charts_to_show)
         # displays charts of up and down data
         # charts_to_show argument contains strings identifying the chart(s) to display
         # todo linestyles = ['-', '--', '-.', ':', (1,8)] # for charts
@@ -174,7 +178,7 @@ class D_to_P_prep(object):
 
             plt.show()
             #plt.save_figures(title )
-
+         
         if "Std Dev" in charts_to_show:   
             # show standard deviation of readings across repeated cycles
             fig, axs = plt.subplots(3, 2, sharey=True )
@@ -261,24 +265,19 @@ class D_to_P_prep(object):
         else:
            print("no valid d to p files found")
 
-def test():
+def test(p_to_d_files):
      # test harness using PtoD_40.csv, PtoD_80.csv as inputs, DtoP_40.csv, DtoP_80.csv interim outputs
-    dp =  D_to_P(200)  # instantiate the D_to_P class for 200 distance values (0-199mm)
-    dp.is_V3_chair = True
-    if dp.is_V3_chair:
-        name_fragments = ['0.csv','1.csv','2.csv','3.csv','4.csv' ] # for V3 chair data
-        name_prefix = 'weight'
-    else:
-        name_fragments = ['40.csv','80.csv'] # weight file strings concatenated to input and output fnames
-        name_prefix = 'PtoD_'
+    dp =  D_to_P_prep(200)  # instantiate the D_to_P class for 200 distance values (0-199mm)
     
     # read p_to_d files and convert and save as d_to_p files
-    for frag in name_fragments:
-        up,down, weight, pressure_step = dp.munge_file(name_prefix + frag)
+    for file in p_to_d_files:
+        up,down, weight, pressure_step = dp.munge_file(file)
         d_to_p = dp.process_p_to_d(up,down, weight, pressure_step)
-        info = format("weight=%d" % weight)        
-        np.savetxt('DtoP_' + frag, d_to_p, delimiter=',', fmt='%0.1f', header= info)
+        info = format("weight=%d" % weight)  
+        frag = file[5:-4]
+        np.savetxt('test_DtoP_' + frag + '.csv', d_to_p, delimiter=',', fmt='%0.1f', header= info)
     # amalgamate individual d_to_p files into a single file
+    return
     infiles = []
     for frag in name_fragments:
         infiles.append('DtoP_' + frag)
@@ -292,7 +291,15 @@ def test():
     # to set the down-going index.
 
 if __name__ == "__main__": 
-   test()
+    path = os.getcwd()
+    if os.path.basename(path) != 'PlatformCalibrate':
+        print("run this from the PlatformCalibrate directory")
+    else:
+        path = '.' # location of csv input files
+        files = [x for x in os.listdir(path) if x.startswith('PtoD_') and x.endswith('.csv') and not 'old' in x]
+        inp = input("press c to process " + str(files) + " return to exit ") 
+        if inp == 'c':
+           test(files)
 
 
 

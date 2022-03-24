@@ -64,7 +64,7 @@ class AgentStartup(object):
                     import_path = 'agents.' + msg.sim_name + '.' + msg.sim_name
                     log.debug("loading agent model %s", import_path)
                     event_address = (msg.ip_addr, int(msg.event_port)) # addr udp socket will send events to
-                    agent = importlib.import_module(import_path).InputInterface(msg.agent_id, event_address, self.event_sender)
+                    agent = importlib.import_module(import_path).SimInterface(msg.agent_id, event_address, self.event_sender)
                     return agent
             except Exception as e:
                 log.error("agent startup error %s", str(e))

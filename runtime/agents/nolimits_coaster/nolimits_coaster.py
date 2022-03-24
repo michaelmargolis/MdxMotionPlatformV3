@@ -117,10 +117,10 @@ class CoasterState(object):
 
 colors = ["green", "orange", "red"] # for warning level text
 
-class InputInterface(AgentBase):
+class SimInterface(AgentBase):
 
     def __init__(self, instance_id, event_addr, event_sender):
-        super(InputInterface, self).__init__(instance_id, event_addr, event_sender)
+        super(SimInterface, self).__init__(instance_id, event_addr, event_sender)
         self.sleep_func = kb_sleep
         self.name = "NoLimits Coaster"
         self.cmd_func = None
@@ -347,7 +347,7 @@ def man():
 
 if __name__ == '__main__':
     import argparse
-    from nolimits_coaster import InputInterface
+    from nolimits_coaster import SimInterface
     
     args = man().parse_args()
     if args.logLevel == 'DEBUG':
@@ -366,7 +366,7 @@ if __name__ == '__main__':
 
     event_address = ('192.168.1.9', 10000) # addr udp socket will send events to
     print(event_address)
-    agent  = InputInterface(event_address)
+    agent  = SimInterface(event_address)
     agent.begin()
     while  True:
         agent.service()
