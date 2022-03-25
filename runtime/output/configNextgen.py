@@ -66,7 +66,7 @@ class PlatformConfig(object):
         self.lower_origin = [] # slider coordinates closest to center 
 
         #  the range in mm or radians from origin to max extent in a single DOF 
-        self.limits_1dof = [60, 60, 75 , math.radians(12), math.radians(12), math.radians(12)]
+        self.limits_1dof = [60, 60, 75 , math.radians(8), math.radians(12), math.radians(12)]
         self.limit_Z = self.limits_1dof [2] 
 
         # limits at extremes of movement
