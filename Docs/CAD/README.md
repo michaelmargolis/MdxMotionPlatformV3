@@ -2,6 +2,6 @@
 These files are licensed for educational use only
 
 
-![platform v3](https://github.com/michaelmargolis/MDXeMotionV3/blob/master/Docs/CAD/Platform%20without%20top.JPG)
+![motion transforms](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Platform_Animation_multiview.gif)
 
 
