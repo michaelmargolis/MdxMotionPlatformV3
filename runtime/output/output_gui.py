@@ -4,7 +4,6 @@ Copyright Michael Margolis, Middlesex University 2019; see LICENSE for software 
 display muscle lengths and platform orientation
 """
 
-#  from output_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 import copy
@@ -12,7 +11,6 @@ import copy
 from math import degrees
 import platform_config as cfg
 
-# from output.output_gui_defs import Ui_Frame
 ui, base = uic.loadUiType("output_gui.ui")
 
 class frame_gui(QtWidgets.QFrame, ui):
