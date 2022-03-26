@@ -2,10 +2,8 @@
 
 import traceback
 import numpy as np
-# from dynamics_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-# from common.dynamics_gui_defs import Ui_Frame
 ui, base = uic.loadUiType("common/dynamics_gui.ui")
 
 class frame_gui(QtWidgets.QFrame, ui):
