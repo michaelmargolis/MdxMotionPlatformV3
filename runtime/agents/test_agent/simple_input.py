@@ -2,7 +2,6 @@
   simple_input.py
 """
 import sys
-#  from simple_input_gui_defs import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from clients.test_client.simple_input_gui_defs import Ui_Frame
 from clients.client_api import ClientApi
