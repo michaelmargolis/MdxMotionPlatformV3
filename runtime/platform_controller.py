@@ -24,7 +24,6 @@ from agents.agent_config import AgentCfg
 from agents.ride_state import RideState
 
 import common.gui_utils as gutil
-from common.dynamics import Dynamics
 from common.encoders import EncoderClient
 from common.streaming_moving_average import StreamingMovingAverage as MA
 from common.dialog import ModelessDialog
@@ -38,7 +37,9 @@ pfm = importlib.import_module(platform_selection).PlatformConfig()
 
 from RemoteControls.RemoteControl import RemoteControl
 
-from output.kinematicsV2 import Kinematics
+from kinematics.kinematicsV2 import Kinematics
+from kinematics.dynamics import Dynamics
+
 from output.muscle_output import MuscleOutput
 import output.output_gui as output_gui
 import output.d_to_p as d_to_p

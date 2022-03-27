@@ -12,7 +12,7 @@
 ![agent example v3](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Example_agent.png)
 
 
-### Executable files:
+### Runtime files:
 * Files in the software runtime folder
   * platform_controller.py - This script exectutes the runtime code on the controller PCs
     * platform_config.py - Contains platform selection (suspended chair or sliding actuator) and IP address defines  
