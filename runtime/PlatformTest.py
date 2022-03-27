@@ -4,7 +4,7 @@ PlatformMover.py
 Code to move the platform in 6 DoF
 """
 
-import sys
+import sys, os
 import time
 
 import logging as log
@@ -19,13 +19,13 @@ import math # for conversion of radians to degrees
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 
-# from PlatformCalibrate.platformMover_gui_defs import *
+RUNTIME_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(RUNTIME_DIR))
 
-from common.dynamics import Dynamics
+from kinematics.dynamics import Dynamics
 
-from output.kinematicsV2 import Kinematics
+from kinematics.kinematicsV2 import Kinematics
 from output.configNextgen import *
-import output.d_to_p_prep as d_to_p_prep
 from  platform_config import  cfg
 #  from output.ConfigV3 import *
 import output.plot_config as plot_config   # for show_geometry

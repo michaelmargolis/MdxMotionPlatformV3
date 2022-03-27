@@ -22,9 +22,12 @@ import socket
 import traceback
 import math # for conversion of radians to degrees
 
+RUNTIME_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(RUNTIME_DIR))
+
 import common.gui_utils as gutil # for sleep QT func
-from common.dynamics import Dynamics
-from output.kinematicsV2 import Kinematics
+from kinematics.dynamics import Dynamics
+from kinematics.kinematicsV2 import Kinematics
 from output.configNextgen import *
 from  platform_config import  cfg
 #  from output.ConfigV3 import *
@@ -45,7 +48,7 @@ echo_address = ((ECHO_UDP_IP, 10020),(ECHO_UDP_IP, 10021))
 slider_config_module = "configNextgen"
 chair_config_module = "ConfigV3"
 
-qtcreator_file  = "SimInterface.ui"
+qtcreator_file  = "SimpleSims/SimInterface.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtcreator_file)
 
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling

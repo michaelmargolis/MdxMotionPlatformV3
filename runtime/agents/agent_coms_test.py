@@ -1,4 +1,7 @@
 # agent_coms_test.py
+import os, sys
+RUNTIME_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(RUNTIME_DIR))
 
 from  platform_config import cfg
 from common.tcp_client import TcpClient

@@ -4,7 +4,7 @@ import traceback
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-ui, base = uic.loadUiType("common/dynamics_gui.ui")
+ui, base = uic.loadUiType("kinematics/dynamics_gui.ui")
 
 class frame_gui(QtWidgets.QFrame, ui):
     def __init__(self, parent=None):
