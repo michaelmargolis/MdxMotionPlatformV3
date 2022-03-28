@@ -22,15 +22,18 @@ class Encoder(SerialProcess):
         self.direction = (1,1,1,1,1,1)
 
     def read(self):
-        data = super(Encoder, self).read()
-        if data:
-            data = data.rstrip('\r\n}').split(',')
+        msg = super(Encoder, self).read()
+        if msg:
+            data = msg.rstrip('\r\n}').split(',')
             # Data format for mm:     ">,e1,e2,e3,e4,e5,e6,timestamp\n"
             values = []
             if len(data) >= 8:
                 for idx, val in enumerate(data[1:7]):
-                    v = float(val) * self.direction[idx] 
-                    values.append(str(v))                  
+                    try:
+                        v = float(val) * self.direction[idx] 
+                        values.append(str(v))
+                    except ValueError:
+                        print("conversion error for serial value", val, "full message", msg)
                 return values, data[7]
         return None, 0
 

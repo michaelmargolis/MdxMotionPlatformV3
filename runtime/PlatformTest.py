@@ -317,7 +317,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(6):
             rect =  self.pressure_bars[i].rect()
             width = round(pressures[i] / 20)
-            rect.setWidth(width)
+            rect.setWidth(int(width))
             self.pressure_bars[i].setFrameRect(rect)
             self.txt_muscles[i].setText(format("%d mb" % pressures[i])) #may  be overwritten with actuals 
         if self.ui.chk_festo_actuals.isChecked():

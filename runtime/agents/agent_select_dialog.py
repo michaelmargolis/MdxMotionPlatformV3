@@ -89,8 +89,8 @@ class AgentSelect(QDialog):
         # self._pc_addresses = ['192.168.0.1', '192.168.0.2','192.168.0.3','192.168.0.4','192.168.0.5','192.168.0.6']
         assert(len(self._pc_addresses) > 0 and len(self._pc_addresses) <= 6)
         for idx, ip_addr in enumerate(self._pc_addresses):
-           x = 20 + (idx % 2) * (self.gb_sim_pcs.width()/2)
-           y = 30 + int(idx / 2) * 30
+           x = (int(20 + (idx % 2) * (self.gb_sim_pcs.width()/2)))
+           y = int(30 + int(idx / 2) * 30)
            self.chk_pc.append(QtWidgets.QCheckBox(self.gb_sim_pcs))
            self.chk_pc[-1].setGeometry(QtCore.QRect(x, y+7, 70, 17))
            self.chk_pc[-1].setChecked(True)
