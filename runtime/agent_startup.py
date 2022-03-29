@@ -72,7 +72,7 @@ class AgentStartup(object):
             return None
 
     def cmd_handler(self):
-        # process commands from agent_proxy
+        # process commands from agent_mux
         if self.server.available() > 0:
             addr, data = self.server.get()
             if 'quit' in data:

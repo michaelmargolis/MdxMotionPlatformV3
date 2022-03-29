@@ -73,7 +73,7 @@ if __name__ == "__main__":
     log.setLevel('DEBUG')
     log.info("starting comms test")
     addresses = cfg.SIM_IP_ADDR
-    agents = AgentComsTest(addresses, cfg.STARTUP_SERVER_PORT, cfg.AGENT_PROXY_EVENT_PORT)
+    agents = AgentComsTest(addresses, cfg.STARTUP_SERVER_PORT, cfg.AGENT_MUX_EVENT_PORT)
     for addr in addresses:
         addr = (addr, cfg.STARTUP_SERVER_PORT) # append port to addresses
     agents.connect()

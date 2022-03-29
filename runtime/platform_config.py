@@ -21,10 +21,10 @@ class cfg:
     PI_PIN_DEFINES = 'dual_reset_pcb_pins' # change if wired differently: 'single_reset_pcb_pins'   'wired_switch_pins'     
 
     #software network address assignments
-    SIM_IP_ADDR =  ('192.168.1.183','192.168.1.166') #('192.168.0.183',) #('192.168.0.38',) #('192.168.1.24', '192.168.1.9') # first addr provides telemetry and encoder data
+    SIM_IP_ADDR =  ('192.168.1.166', ) #('192.168.0.183',) #('192.168.0.38',) #('192.168.1.24', '192.168.1.9') # first addr provides telemetry and encoder data
     ECHO_IP_ADDR = '127.0.0.1' # transform and platform output echoed to this address using PLATFORM_ECHO_PORT
     # software network port assignments:
-    AGENT_PROXY_EVENT_PORT = 10000
+    AGENT_MUX_EVENT_PORT = 10000
     # RESERVER THE NEXT 7 PORTS
     STARTUP_SERVER_PORT =   10008
     SPACE_COASTER_PORT = 10009

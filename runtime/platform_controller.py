@@ -28,7 +28,7 @@ from common.encoders import EncoderClient
 from common.streaming_moving_average import StreamingMovingAverage as MA
 from common.dialog import ModelessDialog
 from common.udp_tx_rx import UdpReceive
-from agents.agent_proxy import AgentProxy
+from agents.agent_mux import AgentMux
 
 # Importlib used to load configurations for platform as selected in platform_config.py
 import importlib
@@ -92,7 +92,7 @@ class Controller(QtWidgets.QMainWindow):
                    'deactivate': self.deactivate, 'pause': self.pause, 'dispatch': self.dispatch,
                    'reset': self.reset_vr, 'emergency_stop': self.emergency_stop, 
                    'intensity' : self.set_intensity,  'payload' : self.set_payload,
-                   'show_parks' : self.agent_proxy.show_parks, 'scroll_parks' : self.agent_proxy.scroll_parks
+                   'show_parks' : self.agent_mux.show_parks, 'scroll_parks' : self.agent_mux.scroll_parks
                 }
         self.RemoteControl = RemoteControl(self.actions)
         self.local_control = None
@@ -219,11 +219,11 @@ class Controller(QtWidgets.QMainWindow):
         for addr in addresses:
             addr = (addr, cfg.STARTUP_SERVER_PORT) # append port to addresses
 
-        self.agent_proxy = AgentProxy(addresses, cfg.STARTUP_SERVER_PORT, cfg.AGENT_PROXY_EVENT_PORT)    
-        while self.agent_proxy.connect() == False:
+        self.agent_mux = AgentMux(addresses, cfg.STARTUP_SERVER_PORT, cfg.AGENT_MUX_EVENT_PORT)    
+        while self.agent_mux.connect() == False:
              app.processEvents()
-        self.agent_proxy.init_gui(agent_gui, self.ui.input_layout,  self.ui.tab_1) # was frm_input)
-        self.agent_proxy.send_startup(agent_name, agent_module)
+        self.agent_mux.init_gui(agent_gui, self.ui.input_layout,  self.ui.tab_1) # was frm_input)
+        self.agent_mux.send_startup(agent_name, agent_module)
 
     def set_activation_buttons(self, isEnabled): 
         self.chk_activate.setChecked(isEnabled)
@@ -296,26 +296,26 @@ class Controller(QtWidgets.QMainWindow):
         self.ui_tab = tab_index
 
     def pause(self):
-        if self.agent_proxy.get_ride_state() == RideState.RUNNING or self.agent_proxy.get_ride_state() == RideState.PAUSED:
-            self.agent_proxy.pause_pressed()
+        if self.agent_mux.get_ride_state() == RideState.RUNNING or self.agent_mux.get_ride_state() == RideState.PAUSED:
+            self.agent_mux.pause_pressed()
         else:
             self.swell_for_access()
 
     def dispatch(self):
         if self.is_output_enabled:
-            self.agent_proxy.dispatch_pressed()
+            self.agent_mux.dispatch_pressed()
             """
             log.debug('preparing to dispatch')
             self.move_to_ready()
             self.park_platform(False)
-            self.agent_proxy.dispatch()
+            self.agent_mux.dispatch()
             """
         else:
             log.warning("Unable to dispatch because platform not enabled")
 
     def reset_vr(self):
        log.info("request to reset vr")
-       self.agent_proxy.reset_vr()
+       self.agent_mux.reset_vr()
 
     def emergency_stop(self):
        print("estop here")
@@ -332,11 +332,11 @@ class Controller(QtWidgets.QMainWindow):
 
     def deactivate(self):
         """remote controls call this method"""
-        self.agent_proxy.deactivate()
+        self.agent_mux.deactivate()
 
     def enable_platform(self):
         self.park_platform(False)
-        xform = self.process_request(self.agent_proxy.get_transform())
+        xform = self.process_request(self.agent_mux.get_transform())
         actuator_distances = self.k.actuator_lengths(xform)
         self.slow_move(pfm.DISABLED_DISTANCES, actuator_distances, pfm.DISABLED_XFORM, xform, 100)
         ###self.platform.set_enable(True, pfm.DISABLED_DISTANCES, self.actuator_distances)
@@ -345,29 +345,29 @@ class Controller(QtWidgets.QMainWindow):
             self.is_output_enabled = True
             log.debug("Platform Enabled")
         self.set_activation_buttons(True)
-        self.agent_proxy.activate()
+        self.agent_mux.activate()
 
     def disable_platform(self):
         if self.is_output_enabled:
             self.is_output_enabled = False
             log.debug("Platform Disabled")
         self.set_activation_buttons(False)
-        self.agent_proxy.deactivate()
-        xform = self.process_request(self.agent_proxy.get_transform())
+        self.agent_mux.deactivate()
+        xform = self.process_request(self.agent_mux.get_transform())
         actuator_distances = self.k.actuator_lengths(xform)
         self.slow_move(actuator_distances, pfm.DISABLED_DISTANCES, xform, pfm.DISABLED_XFORM,100)
         self.park_platform(True)
-        self.agent_proxy.parked()
+        self.agent_mux.parked()
         ### self.platform.set_enable(False,  self.actuator_distances, pfm.DISABLED_DISTANCES)
 
 
     def detected_remote(self, info):
         if "Detected Remote" in info:
-            self.agent_proxy.gui.set_rc_label((info, "green"))
+            self.agent_mux.gui.set_rc_label((info, "green"))
         elif "Looking for Remote" in info:
-            self.agent_proxy.gui.set_rc_label((info, "orange"))
+            self.agent_mux.gui.set_rc_label((info, "orange"))
         else:
-            self.agent_proxy.gui.set_rc_label((info, "red"))
+            self.agent_mux.gui.set_rc_label((info, "red"))
          
     def slow_move(self, begin_dist, end_dist, begin_xform, end_xform, rate_mm_per_sec):
         # moves from the given begin to end distances at the given duration
@@ -434,7 +434,7 @@ class Controller(QtWidgets.QMainWindow):
             header, intensity = intensity.split('=', 2)
         self.intensity = int(intensity) 
 
-        if True: # self.output_gui.encoders_is_enabled() or self.agent_proxy.get_ride_state() != RideState.READY_FOR_DISPATCH :
+        if True: # self.output_gui.encoders_is_enabled() or self.agent_mux.get_ride_state() != RideState.READY_FOR_DISPATCH :
             self.dynam.set_intensity(self.intensity)
             self.show_intensity_payload()
 
@@ -456,7 +456,7 @@ class Controller(QtWidgets.QMainWindow):
         self.show_intensity_payload()      
       
         """ fix and move this  
-            if self.agent_proxy.get_ride_state() == RideState.READY_FOR_DISPATCH:
+            if self.agent_mux.get_ride_state() == RideState.READY_FOR_DISPATCH:
                 index = intensity * self.DtoP.rows
                 self.d_to_p.up_curve_idx = [index]*6
                 self.d_to_p.down_curve_idx = [index]*6
@@ -465,7 +465,7 @@ class Controller(QtWidgets.QMainWindow):
                 
     def show_intensity_payload(self):
         status = format("%d percent Intensity, (payload %d kg)" % (self.dynam.get_intensity() * 100, self.payload))
-        self.agent_proxy.gui.intensity_status_changed((status, "green"))   
+        self.agent_mux.gui.intensity_status_changed((status, "green"))   
     
     def calibrate_load(self):
         # find closest curves for each muscle at the current load
@@ -491,7 +491,7 @@ class Controller(QtWidgets.QMainWindow):
 
     def process_request(self, transform):
         """ converts request to real world values if normalized"""
-        if self.agent_proxy.is_normalized:
+        if self.agent_mux.is_normalized:
             transform = self.dynam.regulate(transform)
         return transform
 
@@ -543,8 +543,8 @@ class Controller(QtWidgets.QMainWindow):
                         self.RemoteControl.service()
                         if self.local_control:
                             self.local_control.service()
-                        self.agent_proxy.service()
-                        transform = np.asarray(self.agent_proxy.get_transform())
+                        self.agent_mux.service()
+                        transform = np.asarray(self.agent_mux.get_transform())
                         self.do_transform(transform)
                         if self.platform_status_str != self.platform.get_output_status():
                             self.platform_status_str = self.platform.get_output_status()
@@ -561,7 +561,7 @@ class Controller(QtWidgets.QMainWindow):
                 # log.warning("starting service timing latency capture to file: timer_test.csv")
             QtCore.QTimer.singleShot(1, self.service)
         else:
-            self.agent_proxy.fin()
+            self.agent_mux.fin()
             # self.platform.fin()
             sys.exit()
 

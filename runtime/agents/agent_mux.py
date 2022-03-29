@@ -1,4 +1,5 @@
-# agent_proxy.py (todo? rename to agent_hub)
+# agent_mux.py 
+# Module to pass commands to and receive events from agents on Vr pcs
 
 from agents.ride_state import RideState
 from agents.agent_config import AgentStartupMsg
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 TIME_DELTA_THRESHOLD = .2 # max time deviation across agents before errors are logged
 
-class AgentProxy():
+class AgentMux():
     def __init__(self, address_list, startup_cmd_port, event_port): 
         self.addresses = address_list  # (ipaddr, port),
         self.nbr_agents = len(address_list)
