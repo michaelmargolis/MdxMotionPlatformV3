@@ -29,9 +29,9 @@ import common.serial_defaults as serial_defaults
 
 from kinematics.dynamics import Dynamics
 from kinematics.kinematicsV2 import Kinematics
-from output.cfg_SlidingActuators import *
+from kinematics.cfg_SlidingActuators import *
 from  system_config import  cfg
-#  from output.cfg_SuspendedChair import *
+#  from kinematics.cfg_SuspendedChair import *
 
 import d_to_p_prep
 import output.d_to_p as d_to_p
