@@ -5,8 +5,8 @@ system_config.py - select platform type and ip address default values
 """
 Uncomment one of the following to select the platform configuration
 """
-#  platform_selection = 'output.ConfigV3'
-platform_selection = 'output.configNextgen'
+#  platform_selection = 'kinematics.cfg_SuspendedChair'
+platform_selection = 'kinematics.cfg_SlidingActuators'
 
 """
 The following default values should be changed only if you know what you are doing
