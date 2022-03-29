@@ -25,9 +25,9 @@ sys.path.append(os.path.dirname(RUNTIME_DIR))
 from kinematics.dynamics import Dynamics
 
 from kinematics.kinematicsV2 import Kinematics
-from output.configNextgen import *
+from output.cfg_SlidingActuators import *
 from  system_config import  cfg
-#  from output.ConfigV3 import *
+#  from output.cfg_SuspendedChair import *
 import output.plot_config as plot_config   # for show_geometry
 
 import output.d_to_p as d_to_p
@@ -42,8 +42,8 @@ ECHO_UDP_IP = "127.0.0.1"
 ECHO_UDP_PORT = 10020
 echo_address = (ECHO_UDP_IP, ECHO_UDP_PORT )
 
-slider_config_module = "configNextgen"
-chair_config_module = "ConfigV3"
+slider_config_module = "cfg_SlidingActuators"
+chair_config_module = "cfg_SuspendedChair"
 
 slider_increments = (5)*6  # todo for slow moves
 

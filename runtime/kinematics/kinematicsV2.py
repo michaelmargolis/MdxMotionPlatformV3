@@ -213,8 +213,8 @@ if __name__ == "__main__":
     logging.basicConfig(level=log_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     ECHO_TO_SOLIDWORKS = True
     log.info("echo to solidworks is %s", ECHO_TO_SOLIDWORKS)
-    from configNextgen import *
-    #  from ConfigV3 import *  # comment above and uncomment this for chair
+    from cfg_SlidingActuators import *
+    #  from cfg_SuspendedChair import *  # comment above and uncomment this for chair
     import plot_config
     import time
     if ECHO_TO_SOLIDWORKS:    

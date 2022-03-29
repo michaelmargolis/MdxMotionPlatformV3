@@ -28,9 +28,9 @@ sys.path.append(os.path.dirname(RUNTIME_DIR))
 import common.gui_utils as gutil # for sleep QT func
 from kinematics.dynamics import Dynamics
 from kinematics.kinematicsV2 import Kinematics
-from output.configNextgen import *
+from output.cfg_SlidingActuators import *
 from  system_config import  cfg
-#  from output.ConfigV3 import *
+#  from output.cfg_SuspendedChair import *
 
 import output.d_to_p as d_to_p
 from output.muscle_output import MuscleOutput
@@ -45,8 +45,8 @@ DATA_PERIOD =  50 - LATENCY  # ms between samples
 ECHO_UDP_IP = "127.0.0.1"
 echo_address = ((ECHO_UDP_IP, 10020),(ECHO_UDP_IP, 10021))
 
-slider_config_module = "configNextgen"
-chair_config_module = "ConfigV3"
+slider_config_module = "cfg_SlidingActuators"
+chair_config_module = "cfg_SuspendedChair"
 
 qtcreator_file  = "SimpleSims/SimInterface.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtcreator_file)
