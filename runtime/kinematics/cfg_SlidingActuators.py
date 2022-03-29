@@ -26,7 +26,7 @@ import numpy as np
 
 class PlatformConfig(object):
        
-    PLATFORM_NAME = "Flying Platform"
+    PLATFORM_NAME = "Sliding Actuators"
     PLATFORM_TYPE = "SLIDER"
     PLATFORM_INVERTED = False
 
