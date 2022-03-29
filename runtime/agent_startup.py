@@ -10,7 +10,7 @@ from common.tcp_server import TcpServer
 from common.udp_tx_rx import UdpSend
 from common.kb_sleep import kb_sleep
 from common.ip_utils import get_ip
-from platform_config import cfg
+from system_config import cfg
 from agents.agent_config import AgentStartupMsg
 import time
 import os

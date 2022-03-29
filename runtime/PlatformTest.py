@@ -26,7 +26,7 @@ from kinematics.dynamics import Dynamics
 
 from kinematics.kinematicsV2 import Kinematics
 from output.configNextgen import *
-from  platform_config import  cfg
+from  system_config import  cfg
 #  from output.ConfigV3 import *
 import output.plot_config as plot_config   # for show_geometry
 
@@ -317,7 +317,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(6):
             rect =  self.pressure_bars[i].rect()
             width = round(pressures[i] / 20)
-            rect.setWidth(int(width))
+            rect.setWidth(width)
             self.pressure_bars[i].setFrameRect(rect)
             self.txt_muscles[i].setText(format("%d mb" % pressures[i])) #may  be overwritten with actuals 
         if self.ui.chk_festo_actuals.isChecked():

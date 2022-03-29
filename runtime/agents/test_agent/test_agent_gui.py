@@ -6,7 +6,7 @@ import common.gui_utils as gutil
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from agents.agent_gui_base import AgentGuiBase
 from agents.agent_base import  RemoteMsgProtocol
-from platform_config import cfg
+from system_config import cfg
 from common.udp_tx_rx import UdpSend
 import traceback
 
@@ -36,7 +36,7 @@ class AgentGui(AgentGuiBase):
 
         self.ui.btn_mid_pos.clicked.connect(self.set_mid_pos)
         self.transform = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.event_address = ('127.0.0.1', cfg.AGENT_PROXY_EVENT_PORT)
+        self.event_address = ('127.0.0.1', cfg.AGENT_MUX_EVENT_PORT)
         self.event_sender = UdpSend()
         
         self.ui.btn_animate.clicked.connect(self.start_animation)

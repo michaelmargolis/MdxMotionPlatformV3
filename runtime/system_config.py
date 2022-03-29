@@ -1,5 +1,5 @@
 """
-Platform_config.py - select platform type and ip address default values
+system_config.py - select platform type and ip address default values
 """
 
 """

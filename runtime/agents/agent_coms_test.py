@@ -3,7 +3,7 @@ import os, sys
 RUNTIME_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(RUNTIME_DIR))
 
-from  platform_config import cfg
+from  system_config import cfg
 from common.tcp_client import TcpClient
 from common.udp_tx_rx import UdpReceive
 from common.ip_utils import get_ip, ping_ip

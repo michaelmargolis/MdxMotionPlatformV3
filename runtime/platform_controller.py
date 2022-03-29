@@ -30,9 +30,9 @@ from common.dialog import ModelessDialog
 from common.udp_tx_rx import UdpReceive
 from agents.agent_mux import AgentMux
 
-# Importlib used to load configurations for platform as selected in platform_config.py
+# Importlib used to load configurations for platform as selected in system_config.py
 import importlib
-from  platform_config import platform_selection, cfg
+from  system_config import platform_selection, cfg
 pfm = importlib.import_module(platform_selection).PlatformConfig()
 
 from RemoteControls.RemoteControl import RemoteControl
@@ -205,7 +205,7 @@ class Controller(QtWidgets.QMainWindow):
     def select_agent(self):
         agent_cfg = AgentCfg()
         if len(cfg.SIM_IP_ADDR) > 6:
-            log.error("More than SIX PCs were entered in platform_config.py, fix this and restart")
+            log.error("More than SIX PCs were entered in system_config.py, fix this and restart")
             sys.exit() 
         dialog =  AgentSelect(self, cfg.SIM_IP_ADDR)
         if dialog.exec_(): 
@@ -249,7 +249,7 @@ class Controller(QtWidgets.QMainWindow):
 
     def connect_encoder(self):
         if pfm.PLATFORM_TYPE == "SLIDER":
-            # encoders connected to pc running sim, see platform_config for addr
+            # encoders connected to pc running sim, see system_config for addr
             if self.encoder_server == None:
                 self.encoder_server = EncoderClient(cfg.ENCODER_IP_ADDR, cfg.ENCODER_SERVER_PORT)
             try:
@@ -496,7 +496,7 @@ class Controller(QtWidgets.QMainWindow):
         return transform
 
     def orient_transform(self, transform):
-        """ adjusts transform for rotation of top as defined in platform_config"""
+        """ adjusts transform for rotation of top as defined in system_config"""
         transform = [inv * axis for inv, axis in zip(pfm.INVERT_AXIS, transform)]
         if pfm.SWAP_ROLL_PITCH:
             # swap roll, pitch and x,y

@@ -29,7 +29,7 @@ try:
     from common.tcp_server import TcpServer
     from common.dialog import ModelessDialog
 
-    from platform_config import cfg
+    from system_config import cfg
 except Exception as e:
     print(e, os.getcwd())
     print(traceback.format_exc())

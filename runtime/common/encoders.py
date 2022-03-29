@@ -101,7 +101,7 @@ def main():
     kb = KBHit()
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     serial_port = "COM3"
-    ENCODER_SERVER_PORT = 10016  # must be same as value in platform_config
+    ENCODER_SERVER_PORT = 10016  # must be same as value in system_config
     encoders = SerialEncoder(ENCODER_SERVER_PORT)
     cmd_channel = UdpReceive(ENCODER_SERVER_PORT+1)
     args = man().parse_args()

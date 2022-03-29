@@ -26,7 +26,7 @@ try:
     from agents.nolimits_coaster.nl2_messenger import Nl2Messenger, ConnState
     from common.dialog import ModelessDialog
     from common.kb_sleep import kb_sleep
-    from platform_config import cfg
+    from system_config import cfg
 except Exception as e:
     print(e, os.getcwd())
     print(traceback.format_exc())

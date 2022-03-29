@@ -66,7 +66,7 @@ class AgentSelect(QDialog):
         self.lbl_info.setGeometry(QtCore.QRect(30, 400, 400, 20))
         self.lbl_info.setFont(self.font12)
         self.lbl_info.setAlignment(QtCore.Qt.AlignCenter)
-        self.lbl_info.setText("To change IP address, edit file platform_config.py ")
+        self.lbl_info.setText("To change IP address, edit file system_config.py ")
 
         self.btn_continue = QtWidgets.QPushButton(self)
         self.btn_continue.setGeometry(QtCore.QRect(170, 360, 101, 31))
@@ -165,7 +165,7 @@ class AgentSelect(QDialog):
 
 if __name__ == "__main__":
     import sys
-    from  platform_config import cfg
+    from  system_config import cfg
     
     app = QApplication(sys.argv)
     w = QWidget()

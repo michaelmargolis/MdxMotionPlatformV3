@@ -29,7 +29,7 @@ import common.gui_utils as gutil # for sleep QT func
 from kinematics.dynamics import Dynamics
 from kinematics.kinematicsV2 import Kinematics
 from output.configNextgen import *
-from  platform_config import  cfg
+from  system_config import  cfg
 #  from output.ConfigV3 import *
 
 import output.d_to_p as d_to_p

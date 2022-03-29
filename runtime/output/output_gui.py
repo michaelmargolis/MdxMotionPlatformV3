@@ -9,7 +9,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import copy
 # import time
 from math import degrees
-import platform_config as cfg
+import system_config as cfg
 
 ui, base = uic.loadUiType("output_gui.ui")
 
