@@ -7,6 +7,8 @@
 *   After an Agent and its sim have been started, the controller converts the telemetry received from the agent into real world platform coordinates for controller the platform orientation.
 *   Motion sims are expected to remain in sync for duration of ‘ride’ but currently this is not enforced.
 
+### Control flow:
+![Control flow](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/platform_flow.animation.gif)
  
 ### Typical agent detail (space_coaster):
 ![agent example v3](https://github.com/michaelmargolis/MdxMotionPlatformV3/blob/master/Docs/Example_agent.png)
