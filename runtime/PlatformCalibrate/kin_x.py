@@ -82,7 +82,7 @@ class Kinematics(object):
     
 
 if __name__ == "__main__":
-    from configNextgen import *
+    from cfg_SlidingActuators import *
     import plot_config
     
     cfg = PlatformConfig()

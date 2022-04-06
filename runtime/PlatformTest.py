@@ -25,9 +25,9 @@ sys.path.append(os.path.dirname(RUNTIME_DIR))
 from kinematics.dynamics import Dynamics
 
 from kinematics.kinematicsV2 import Kinematics
-from output.cfg_SlidingActuators import *
+from kinematics.cfg_SlidingActuators import *
 from  system_config import  cfg
-#  from output.cfg_SuspendedChair import *
+#  from kinematics.cfg_SuspendedChair import *
 import output.plot_config as plot_config   # for show_geometry
 
 import output.d_to_p as d_to_p
@@ -268,7 +268,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.lbl_platform_image.setPixmap(QtGui.QPixmap("images/slider_small.jpg"))
             
     def load_config(self):
-        cfg_path =  'output.' + self.ui.txt_config_fname.text()
+        cfg_path =  'kinematics.' + self.ui.txt_config_fname.text()
         try:        
             cfg = importlib.import_module(cfg_path)
             self.cfg = cfg.PlatformConfig()

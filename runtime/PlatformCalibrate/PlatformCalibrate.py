@@ -24,7 +24,7 @@ RUNTIME_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(RUNTIME_DIR))
 
 from common.serialSensors import SerialContainer, Encoder, IMU, Scale, ServoModel
-import ride_scripts
+
 import common.serial_defaults as serial_defaults
 
 from kinematics.dynamics import Dynamics
@@ -63,8 +63,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.muscle_output = MuscleOutput(self.DtoP.distance_to_pressure, festo_ip)
         self.muscle_output.set_progress_callback(self.progress_callback)
 
-        self.ride = ride_scripts.RideMacros(self.muscle_output)
-
         self.timer_data_update = None
         self.timer_scale_update = None
         self.distance = None # distance buffer
@@ -87,10 +85,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pressure_deltas = []  # dif between commanded and actual pressure        
         self.imu_data = []  # roll, pitch, yaw
 
-        #the ride combo
-        rides = [f for f in os.listdir(os.getcwd()) if f.endswith('.' + 'ride')]
-        self.ui.cmb_ride.addItems(rides)
-
         # configures
         self.configure_timers()
         self.configure_signals()
@@ -107,9 +101,6 @@ class MainWindow(QtWidgets.QMainWindow):
                                
         self.timer_scale_update = QtCore.QTimer(self) # timer to update scale readings
         self.timer_scale_update.timeout.connect(self.scale_update)
-
-        self.ride_timer = QtCore.QTimer(self) # timer for ride macros
-        self.ride_timer.timeout.connect(self.ride_update)
         
         self.delta_timer = QtCore.QTimer(self) # timer for distance deltas
         self.delta_timer.timeout.connect(self.distance_delta_update)
@@ -122,7 +113,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btn_save_step_data.clicked.connect(self.save_step_data)
         self.ui.btn_save_raw.clicked.connect(self.save_raw_data)
         #  self.ui.btn_set_move.clicked.connect(self.move)
-        self.ui.btn_ride.clicked.connect(self.ride_control)
         self.ui.btn_estop.clicked.connect(self.estop)
         self.ui.tabWidget.currentChanged.connect(self.tab_changed)
         self.ui.btn_load_d_to_p.clicked.connect(self.load_d_to_p)
@@ -132,9 +122,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btn_merge_d_to_p.clicked.connect(self.merge_d_to_p)
         self.ui.btn_encoder_update.clicked.connect(self.encoder_update)
         self.ui.btn_encoder_reset.clicked.connect(self.encoder_reset)
+        self.ui.btn_move.clicked.connect(self.move)
+        self.ui.btn_move_actuator.clicked.connect(self.move_actuator)
 
     def configure_serial(self):
-        encoder_directions = [1,-1,1,1,1,-1]
+        encoder_directions = [-1,1,1,1,1,1]
         log.info("encoder directions are: %s", str(encoder_directions))
         self.encoder = SerialContainer(Encoder(), self.ui.cmb_encoder_port, "encoder", self.ui.lbl_encoders, 115200)
         self.encoder.sp.set_direction(encoder_directions)
@@ -194,6 +186,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.move_btn_group = QtWidgets.QButtonGroup()
         for i in range(len(self.move_rbuttons)):
            self.move_btn_group.addButton(self.move_rbuttons[i], i)
+        self.move_act_rbuttons = [self.ui.rb_A0, self.ui.rb_A1, self.ui.rb_A2, self.ui.rb_A3, self.ui.rb_A4, self.ui.rb_A5]
+        self.move_btn_act_group = QtWidgets.QButtonGroup()
+        for i in range(len(self.move_act_rbuttons)):
+           self.move_btn_act_group.addButton(self.move_act_rbuttons[i], i)
 
     def configure_kinematics(self):
         self.k = Kinematics()
@@ -276,7 +272,7 @@ class MainWindow(QtWidgets.QMainWindow):
            if self.muscle_output.distances:
                 encoder_data,timestamp = self.encoder.sp.read()
                 if encoder_data:
-                     encoder_data = map(int, encoder_data)
+                     # encoder_data = map(int, encoder_data)
                      delta = [e-d for e,d in zip(encoder_data, self.muscle_output.distances)]
                      data = ','.join(map(str, self.muscle_output.distances)) + ","  + ','.join(map(str, delta)) + "\n"
                      self.delta_file.write(data)
@@ -298,7 +294,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.open_port(self.encoder)
             if self.encoder.sp.is_open():
                 self.encoder.sp.reset()
-                self.encoder.sp.set_precision(0)
+                self.encoder.sp.set_precision(1)
                 self.encoder.sp.set_interval(10)
             self.open_port(self.imu)
             self.open_port(self.scale)
@@ -358,47 +354,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.estopped = True
             self.muscle_output.is_slow_moving = False # stop any running ride
             self.is_calibrating = False
-            self.ride.abort()
             self.ui.btn_estop.setText("Press to Clear")
             log.warning("todo lower platform")
 
     def progress_callback(self, percent):
         self.ui.progressBar.setValue(percent)
-
-    def ride_control(self):
-        if self.ride.is_running:
-            self.ride.abort()
-            self.ui.btn_ride.setText("Start")
-            self.ui.RideGroupBox.setStyleSheet('QGroupBox  {color: black;}')
-            self.ride.is_running = False
-            self.ride_timer.stop()
-            self.ui.progressBar.setValue(self.ride.percent_completed())
-        else:
-            self.ui.btn_ride.setText("Stop")
-            self.ride.start(self.ui.cmb_ride.currentText())
-            self.ui.RideGroupBox.setStyleSheet('QGroupBox  {color: red;}')
-            self.ride.is_running = True
-            self.ride_timer.start(self.muscle_output.SLOW_MOVE_TIMER_DUR)
-
-    def ride_update(self):
-        self.ride.service()
-        self.muscle_output.service()
-        action = self.ride.get_current_action()
-        if action == None:
-            self.ui.lbl_ride_action.setText("Ride Not Active")
-            if self.ride.is_running:
-                self.ride_control() # this will stop ride
-            self.activity_label = "idle"
-        else:
-            if action[0] == 'pause':
-                self.ui.lbl_ride_action.setText(format("pause for %.1f secs" % (action[2])))
-                self.activity_label = "ride paused"
-            else:
-                self.ui.lbl_ride_action.setText(format("%s %d%% over %.1f secs" % (action[0], action[1], action[2])))
-                self.activity_label = format("%s %d%%" %(action[0], action[1])) 
-            self.ui.progressBar.setValue(self.ride.percent_completed())
-            # if self.ride.elapsed_dur ==  self.ride.total_dur:
-            #     self.ride_control() # this will stop ride
 
     def calibrate(self):
         if self.is_calibrating:
@@ -527,24 +487,24 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def run_lookup(self):
         # find closest curves for each muscle at the current load
+        if self.ui.txt_nbr_indices.text() == '' or int(self.ui.txt_nbr_indices.text()) < 1:
+            print("You must load D-to-P file before running lookup")
+            return
         up_pressure = int(self.ui.txt_up_pressure.text())
         down_pressure = int(self.ui.txt_down_pressure.text())
         dur = int(self.ui.txt_lookup_dur.text())
-
         self.muscle_output.slow_pressure_move(0, up_pressure, dur)
         time.sleep(.5)
         encoder_data,timestamp = self.encoder.sp.read()
-        print("TODO, using hard coded encoder data")
-        encoder_data = np.array([123,125,127,129,133,136])
+        encoder_data = np.array(encoder_data )  #     [123,125,127,129,133,136])
         self.DtoP.set_index(up_pressure, encoder_data, 'up' )
-        self.ui.txt_up_index.setText(str(self.DtoP.up_curve_idx))
- 
+        self.ui.txt_up_index.setText(', '.join(str(i) for i in self.DtoP.up_curve_idx)) 
         self.muscle_output.slow_pressure_move(up_pressure, down_pressure, dur/2)
         time.sleep(.5)
         encoder_data,timestamp = self.encoder.sp.read()
-        encoder_data = np.array([98,100,102,104, 98,106])
+        encoder_data = np.array(encoder_data)  # [98,100,102,104, 98,106])
         self.DtoP.set_index(down_pressure, encoder_data, 'down' )
-        self.ui.txt_down_index.setText(str(self.DtoP.down_curve_idx))
+        self.ui.txt_down_index.setText(', '.join(str(i) for i in self.DtoP.down_curve_idx))
 
     def step_platform(self, pressure, step_delay, step, dir, repeat):
         pressures = [int(pressure)]*6
@@ -572,7 +532,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.step_data.append([repeat, dir, step, pressure, self.distances[-1], move_durations])
 
     def move(self):
-        if self.is_calibrating or self.estopped or self.ride.is_running:
+        if self.is_calibrating or self.estopped:
             print("Manual mode disabled while another activity is active")
         else:
             percent =  self.ui.sld_percent.value()
@@ -582,6 +542,17 @@ class MainWindow(QtWidgets.QMainWindow):
             request = self.dynam.regulate(request) # convert normalized to real values
             percents = self.k.actuator_percents(request)
             self.muscle_output.move_percent(percents)
+
+    def move_actuator(self):
+        if self.is_calibrating or self.estopped:
+            print("Manual mode disabled while another activity is active")
+        else:
+            percent =  self.ui.sld_percent_actuator.value()
+            idx = self.move_btn_act_group.checkedId() 
+            percents = [0]*6
+            percents[idx] = percent
+            self.muscle_output.move_percent(percents)
+            print("move percents:", percents)
 
     def encoder_update(self):
         encoder_data,timestamp = self.encoder.sp.read()
@@ -600,7 +571,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.actual_pressures = self.muscle_output.get_pressures()            
             if timestamp != 0:
                 for i in range(len(self.encoder_values)):
-                    self.encoder_values[i].setText(encoder_data[i])
+                    self.encoder_values[i].setText(str(encoder_data[i]))
                 if self.is_capturing_data:
                     self.time.append(timestamp)
                     if timestamp != 0 and self.prev_timestamp != 0:
