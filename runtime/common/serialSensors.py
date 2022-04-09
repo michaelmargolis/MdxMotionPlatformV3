@@ -6,7 +6,11 @@ try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
-from common.serialProcess import SerialProcess
+
+try:
+    from common.serialProcess import SerialProcess
+except:
+    from serialProcess import SerialProcess  
 
 class SerialContainer(object):
     def __init__(self, sp, combo, desc, label, baud):
@@ -22,19 +26,20 @@ class Encoder(SerialProcess):
         self.direction = (1,1,1,1,1,1)
 
     def read(self):
-        msg = super(Encoder, self).read()
-        if msg:
-            data = msg.rstrip('\r\n}').split(',')
-            # Data format for mm:     ">,e1,e2,e3,e4,e5,e6,timestamp\n"
-            values = []
-            if len(data) >= 8:
-                for idx, val in enumerate(data[1:7]):
-                    try:
-                        v = float(val) * self.direction[idx] 
-                        values.append(str(v))
-                    except ValueError:
-                        print("conversion error for serial value", val, "full message", msg)
-                return values, data[7]
+        if super(Encoder, self).available():
+            msg = super(Encoder, self).read()
+            if msg:
+                data = msg.rstrip('\r\n}').split(',')
+                # Data format for mm:     ">,e1,e2,e3,e4,e5,e6,timestamp\n"
+                values = []
+                if len(data) >= 8:
+                    for idx, val in enumerate(data[1:7]):
+                        try:
+                            v = float(val) * self.direction[idx] 
+                            values.append(v)
+                        except ValueError:
+                            print("conversion error for serial value", val, "full message", msg, "len=", len(data))
+                    return values, data[7]
         return None, 0
 
     def set_direction(self, values):
@@ -112,3 +117,27 @@ class ServoModel(SerialProcess):
             msg = msg.rstrip('\r\n}')
             return msg
         return None
+
+if __name__ == "__main__":
+    import time
+    import logging
+    log = logging.getLogger(__name__)
+    encoder_directions = [1,-1,1,1,1,-1]
+    log.info("encoder directions are: %s", str(encoder_directions))
+    port = "COM12"
+    encoder = SerialContainer(Encoder(), port, "encoder", None, 115200)
+    encoder.sp.set_direction(encoder_directions)
+    if encoder.sp.open_port(port, 115200):
+        print("port opened")
+        count = 0
+        while(True):
+            encoder_data,timestamp = encoder.sp.read()
+            if encoder_data:
+                if len(encoder_data) != 6:
+                    print("error, data len = ", len(encoder_data))
+                print(encoder_data, timestamp)    
+            # time.sleep(.005)
+        
+    else:
+       print(port + " port not available")
+    

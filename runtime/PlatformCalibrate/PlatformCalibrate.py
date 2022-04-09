@@ -30,8 +30,10 @@ import common.serial_defaults as serial_defaults
 from kinematics.dynamics import Dynamics
 from kinematics.kinematicsV2 import Kinematics
 from kinematics.cfg_SlidingActuators import *
-from  system_config import  cfg
 #  from kinematics.cfg_SuspendedChair import *
+from  system_config import  cfg
+
+from calibration_graph import CalibrationGraph
 
 import d_to_p_prep
 import output.d_to_p as d_to_p
@@ -84,6 +86,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.target_pressures = [] # pressures sent to festo
         self.pressure_deltas = []  # dif between commanded and actual pressure        
         self.imu_data = []  # roll, pitch, yaw
+        self.graph = CalibrationGraph("title here")
 
         # configures
         self.configure_timers()
@@ -92,7 +95,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.configure_defaults()
         self.configure_button_groups()
         self.configure_festo_info()
-
 
     def configure_timers(self):
         self.timer_data_update = QtCore.QTimer(self) # timer services muscle pressures and data
@@ -104,7 +106,6 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.delta_timer = QtCore.QTimer(self) # timer for distance deltas
         self.delta_timer.timeout.connect(self.distance_delta_update)
-
 
     def configure_signals(self):
         self.ui.btn_serial_connect.clicked.connect(self.connect)
@@ -180,7 +181,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.txt_lookup_dur.setText("2")
         self.ui.txt_delta_fname.setText("distance_deltas.csv")
         self.ui.btn_save_step_data.setEnabled(False)
-
+    
     def configure_button_groups(self):
         self.move_rbuttons = [self.ui.rb_X, self.ui.rb_Y, self.ui.rb_Z, self.ui.rb_Roll, self.ui.rb_Pitch, self.ui.rb_Yaw]
         self.move_btn_group = QtWidgets.QButtonGroup()
@@ -252,7 +253,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 log.error("unable to open %s", fname)
             else:
                 log.debug("opened %s", fname)
-                encoder_data,timestamp = self.encoder.sp.read()
+                encoder_data,timestamp = self.encoder_update()
                 if encoder_data == None:
                     log.warning("no encoder data, has the port been started?")
                 else:
@@ -262,15 +263,14 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.delta_timer.start(50)
         else:
             self.delta_timer.stop()
-            self.delta_file.close()
-            
+            self.delta_file.close()           
 
     def distance_delta_update(self):
         if  self.delta_file.closed:
             pass
         else:
            if self.muscle_output.distances:
-                encoder_data,timestamp = self.encoder.sp.read()
+                encoder_data,timestamp = self.encoder_update()
                 if encoder_data:
                      # encoder_data = map(int, encoder_data)
                      delta = [e-d for e,d in zip(encoder_data, self.muscle_output.distances)]
@@ -278,8 +278,6 @@ class MainWindow(QtWidgets.QMainWindow):
                      self.delta_file.write(data)
                 else:
                     log.error("no encoder data")
-             
- 
 
     def connect(self):
         if self.open_ports > 0:
@@ -343,8 +341,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btn_start_capture.setText("Start")
         self.ui.DataGroupBox.setStyleSheet('QGroupBox  {color: black;}')
         self.is_capturing_data = False
-    
-    
+        
     def estop(self):
         if self.estopped:
             self.estopped = False
@@ -396,6 +393,9 @@ class MainWindow(QtWidgets.QMainWindow):
             step_percent = (100.0 / (2*(steps+1))) / repeats
             completed = 0.0
             self.step_data = []
+            if self.ui.chk_graph.isChecked():
+                title = "Actuator Movement over Pressure Range for {}kg load".format(round(weight))
+                self.graph.begin(title, repeats, steps+1, 6, self.step_size ) 
             for r in range(repeats):
                 # self.encoder_reset()
                 for step in range(steps+1):
@@ -404,14 +404,18 @@ class MainWindow(QtWidgets.QMainWindow):
                         return 
                     # self.purge_messages(True)
                     completed += step_percent
-                    self.step_platform(step*self.step_size, step_delay, step, 0, r)
+                    if not self.step_platform(step*self.step_size, step_delay, step, 0, r):
+                        log.error("aborting due to encoder error")
+                        return
                     self.ui.progressBar.setValue(round(completed))  
                 for step in range(steps+1):
                     if self.is_calibrating == False:
                         self.ui.btn_calibrate.setText("Restart")
                         return                       
                     completed += step_percent
-                    self.step_platform((end_step-step*self.step_size), step_delay, step, 1, r)
+                    if not self.step_platform((end_step-step*self.step_size), step_delay, step, 1, r):
+                        log.error("aborting due to encoder error")
+                        return
                     self.ui.progressBar.setValue(round(completed))
 
             self.ui.CalibrateGroupBox.setStyleSheet('QGrouBox  {color: black;}')
@@ -495,30 +499,30 @@ class MainWindow(QtWidgets.QMainWindow):
         dur = int(self.ui.txt_lookup_dur.text())
         self.muscle_output.slow_pressure_move(0, up_pressure, dur)
         time.sleep(.5)
-        encoder_data,timestamp = self.encoder.sp.read()
+        encoder_data,timestamp = self.encoder_update()
         encoder_data = np.array(encoder_data )  #     [123,125,127,129,133,136])
         self.DtoP.set_index(up_pressure, encoder_data, 'up' )
         self.ui.txt_up_index.setText(', '.join(str(i) for i in self.DtoP.up_curve_idx)) 
         self.muscle_output.slow_pressure_move(up_pressure, down_pressure, dur/2)
         time.sleep(.5)
-        encoder_data,timestamp = self.encoder.sp.read()
+        encoder_data,timestamp = self.encoder_update()
         encoder_data = np.array(encoder_data)  # [98,100,102,104, 98,106])
         self.DtoP.set_index(down_pressure, encoder_data, 'down' )
         self.ui.txt_down_index.setText(', '.join(str(i) for i in self.DtoP.down_curve_idx))
 
-    def step_platform(self, pressure, step_delay, step, dir, repeat):
+    def step_platform(self, pressure, step_delay, step, updown, repeat):
         pressures = [int(pressure)]*6
         self.muscle_output.send_pressures(pressures)
         self.show_pressures(pressures)
-        print("Step:", pressure, step, dir, repeat, step_delay)
+        print("Step:", pressure, step, updown, repeat, step_delay)
         start_time = time.time()
         while len(self.distances) == 0 and time.time() - start_time < 0.1:
             app.processEvents()
         if len(self.distances) == 0:
             QtWidgets.QMessageBox.warning(self, 'Calibrate!', "Insufficient encoder data to start calibration",
                                            QtWidgets.QMessageBox.Ok)
-            return
-        distances = self.distances[-1]
+            return False # this will abort the stepping loop
+        distances = self.distances
         move_durations = [0.0]*6
         first_move_time = 0
         last_move_time =0
@@ -526,10 +530,13 @@ class MainWindow(QtWidgets.QMainWindow):
         while  time.time() - start_time < step_delay:
             app.processEvents()
             for i in range(6):
-                if self.distances[-1][i] !=  distances[i]:
+                if self.distances[i] !=  distances[i]:
                     move_durations[i] = time.time() - start_time
-                    distances[i] = self.distances[-1][i]
-        self.step_data.append([repeat, dir, step, pressure, self.distances[-1], move_durations])
+                    distances[i] = self.distances[i]
+        self.step_data.append([repeat, updown, step, pressure, self.distances, move_durations])
+        if self.ui.chk_graph.isChecked():
+            self.graph.update( updown, repeat, step, self.distances)
+        return True
 
     def move(self):
         if self.is_calibrating or self.estopped:
@@ -556,9 +563,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def encoder_update(self):
         encoder_data,timestamp = self.encoder.sp.read()
-        if timestamp != 0:
+        # print(encoder_data, timestamp)
+        if encoder_data and timestamp != 0:            
             for i in range(len(self.encoder_values)):
-                self.encoder_values[i].setText(encoder_data[i])
+                # temp for testing
+                if i > 0:
+                    encoder_data[i] = encoder_data[0] + i
+                self.encoder_values[i].setText(str(encoder_data[i]))
+            return encoder_data,timestamp
+        return None, None
 
     def encoder_reset(self):
         self.encoder.sp.reset()
@@ -567,11 +580,18 @@ class MainWindow(QtWidgets.QMainWindow):
         timestamp = 0
         self.prev_timestamp = 0
         try:
-            encoder_data,timestamp = self.encoder.sp.read()
+            encoder_data,timestamp = self.encoder_update()
             self.actual_pressures = self.muscle_output.get_pressures()            
-            if timestamp != 0:
-                for i in range(len(self.encoder_values)):
-                    self.encoder_values[i].setText(str(encoder_data[i]))
+            if encoder_data and timestamp != 0:
+                if len(encoder_data) == 6:
+                    self.distances = encoder_data
+                    try:
+                        for i in range(len(self.encoder_values)):
+                            self.encoder_values[i].setText(str(encoder_data[i]))
+                    except IndexError:
+                        print("index error, i = ", i, "values:", encoder_data)
+                else:
+                    print("bad encoder data ignored", encoder_data)
                 if self.is_capturing_data:
                     self.time.append(timestamp)
                     if timestamp != 0 and self.prev_timestamp != 0:
@@ -579,7 +599,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         if timestamp-self.prev_timestamp > 10:
                             print("missing message at timestamp", timestamp, "prev was", self.prev_timestamp, "diff=", timestamp-self.prev_timestamp)
                     self.activity_labels.append(self.activity_label)
-                    self.distances.append(encoder_data)
+    
                     out_pressures = self.muscle_output.festo.out_pressures
                     self.target_pressures.append(out_pressures)
                     delta = map(operator.sub, self.muscle_output.in_pressures , out_pressures)

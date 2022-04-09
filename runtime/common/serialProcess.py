@@ -14,15 +14,15 @@ from serial.tools import list_ports
 
 import logging
 log = logging.getLogger(__name__)
-
+TERM_CHARS = bytearray([10]) # expect newline terminated msgs 
+        
 class SerialProcess(object):
     def __init__(self, result_queue=None):
         self.queue = result_queue
         self.lock = threading.Lock()
         self.s = serial.Serial()
         self.is_started = False
-        self.data = None
-        self.term_char = '\n'
+        self.data = None    
         log.debug("TODO in SerialProcess, check default term char")
 
     @staticmethod
@@ -79,8 +79,6 @@ class SerialProcess(object):
             data = None
             with self.lock:
                 data = self.data
-            if data:
-                data = data.decode()
             return data
 
     def available(self):
@@ -94,22 +92,36 @@ class SerialProcess(object):
     def is_open(self):
         return self.s.isOpen()
 
-    def set_term_char(self, c):
-        self.term_char = c
-
+    def read_until(self, expected=TERM_CHARS ):
+        """\
+        Read until an expected sequence is found (line feed by default)
+        note this is running on the rx thread
+        """
+        lenterm = len(expected)
+        line = bytearray()
+        while True:
+            c = self.s.read(1)
+            if c:
+                line += c
+                if line[-lenterm:] == expected:
+                    break
+            else:
+                break
+        return bytes(line)
+        
     def rx_thread(self):
         while self.is_started == True:
             try:
-                # data = self.s.readline()
-                data = self.s.read_until(self.term_char)
+                # data = self.s.read_until().decode()   
+                data = self.read_until().decode()                                
                 if data:
                     if self.queue != None:
                         self.queue.put(data)
                     else:
-                        with self.lock:
+                        with self.lock: 
                             self.data = data
-                            # print data
-            except:
+            except Exception as e:
+                print(e)
                 log.error("unable to read line from serial")
         self.s.close()
         log.info("SerialProcess finished")
