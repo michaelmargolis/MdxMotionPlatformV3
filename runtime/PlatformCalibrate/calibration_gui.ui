@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>519</width>
-    <height>651</height>
+    <width>517</width>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -340,7 +340,7 @@ color:black;</string>
              <x>10</x>
              <y>10</y>
              <width>471</width>
-             <height>111</height>
+             <height>211</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -355,10 +355,10 @@ color:black;</string>
            <widget class="QPushButton" name="btn_calibrate">
             <property name="geometry">
              <rect>
-              <x>12</x>
-              <y>24</y>
+              <x>10</x>
+              <y>70</y>
               <width>75</width>
-              <height>23</height>
+              <height>41</height>
              </rect>
             </property>
             <property name="text">
@@ -462,7 +462,7 @@ color:black;</string>
             <property name="geometry">
              <rect>
               <x>58</x>
-              <y>72</y>
+              <y>25</y>
               <width>50</width>
               <height>20</height>
              </rect>
@@ -484,7 +484,7 @@ color:black;</string>
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>73</y>
+              <y>28</y>
               <width>44</width>
               <height>20</height>
              </rect>
@@ -502,9 +502,9 @@ color:black;</string>
            <widget class="QLineEdit" name="txt_p_to_d_fname">
             <property name="geometry">
              <rect>
-              <x>279</x>
-              <y>72</y>
-              <width>75</width>
+              <x>260</x>
+              <y>82</y>
+              <width>90</width>
               <height>20</height>
              </rect>
             </property>
@@ -516,7 +516,7 @@ color:black;</string>
             </property>
             <property name="maximumSize">
              <size>
-              <width>80</width>
+              <width>90</width>
               <height>16777215</height>
              </size>
             </property>
@@ -524,21 +524,21 @@ color:black;</string>
            <widget class="QLabel" name="label_22">
             <property name="geometry">
              <rect>
-              <x>190</x>
-              <y>74</y>
-              <width>81</width>
-              <height>16</height>
+              <x>110</x>
+              <y>84</y>
+              <width>151</width>
+              <height>20</height>
              </rect>
             </property>
             <property name="text">
-             <string>P to D filename</string>
+             <string>Pressure to distance filename</string>
             </property>
            </widget>
            <widget class="QPushButton" name="btn_save_step_data">
             <property name="geometry">
              <rect>
               <x>370</x>
-              <y>70</y>
+              <y>80</y>
               <width>75</width>
               <height>23</height>
              </rect>
@@ -550,14 +550,78 @@ color:black;</string>
            <widget class="QCheckBox" name="chk_graph">
             <property name="geometry">
              <rect>
-              <x>120</x>
-              <y>74</y>
-              <width>51</width>
+              <x>10</x>
+              <y>170</y>
+              <width>101</width>
               <height>18</height>
              </rect>
             </property>
             <property name="text">
-             <string>Graph</string>
+             <string>Realtime Graph</string>
+            </property>
+           </widget>
+           <widget class="QLabel" name="lbl_create_d_to_p">
+            <property name="geometry">
+             <rect>
+              <x>40</x>
+              <y>125</y>
+              <width>391</width>
+              <height>23</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="chk_individual_chart">
+            <property name="geometry">
+             <rect>
+              <x>250</x>
+              <y>170</y>
+              <width>111</width>
+              <height>18</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string> Individual charts</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="chk_combined_chart">
+            <property name="geometry">
+             <rect>
+              <x>140</x>
+              <y>170</y>
+              <width>101</width>
+              <height>18</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Combined chart</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QCheckBox" name="chk_std_dev">
+            <property name="geometry">
+             <rect>
+              <x>370</x>
+              <y>170</y>
+              <width>91</width>
+              <height>18</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Std Dev chart</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
            <zorder>label_7</zorder>
@@ -573,75 +637,10 @@ color:black;</string>
            <zorder>label_22</zorder>
            <zorder>btn_save_step_data</zorder>
            <zorder>chk_graph</zorder>
-          </widget>
-          <widget class="QGroupBox" name="groupBox_4">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>130</y>
-             <width>432</width>
-             <height>80</height>
-            </rect>
-           </property>
-           <property name="title">
-            <string>Create Distance to Pressure file</string>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_3">
-            <item row="0" column="1" colspan="2">
-             <widget class="QLabel" name="label_19">
-              <property name="text">
-               <string>Distance to pressure filename</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="3">
-             <widget class="QLineEdit" name="txt_d_to_p_fname_2"/>
-            </item>
-            <item row="0" column="4">
-             <widget class="QPushButton" name="btn_create_d_to_p">
-              <property name="text">
-               <string>Process</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_17">
-              <property name="text">
-               <string>Show Charts</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="chk_combined_chart">
-              <property name="text">
-               <string>Combined readings</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2" colspan="2">
-             <widget class="QCheckBox" name="chk_individual_chart">
-              <property name="text">
-               <string> Individual readings</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="4">
-             <widget class="QCheckBox" name="chk_std_dev">
-              <property name="text">
-               <string>Std Dev</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <zorder>lbl_create_d_to_p</zorder>
+           <zorder>chk_individual_chart</zorder>
+           <zorder>chk_combined_chart</zorder>
+           <zorder>chk_std_dev</zorder>
           </widget>
          </widget>
          <widget class="QWidget" name="tb_data">
@@ -658,30 +657,7 @@ color:black;</string>
             </rect>
            </property>
            <property name="title">
-            <string>Pressure to Distance files</string>
-           </property>
-           <widget class="QListWidget" name="lst_p_to_d">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>20</y>
-              <width>131</width>
-              <height>192</height>
-             </rect>
-            </property>
-           </widget>
-          </widget>
-          <widget class="QGroupBox" name="groupBox_6">
-           <property name="geometry">
-            <rect>
-             <x>200</x>
-             <y>10</y>
-             <width>151</width>
-             <height>211</height>
-            </rect>
-           </property>
-           <property name="title">
-            <string>Distance to Pressure files</string>
+            <string>Available D to P files</string>
            </property>
            <widget class="QListWidget" name="lst_d_to_p">
             <property name="geometry">
@@ -692,14 +668,58 @@ color:black;</string>
               <height>192</height>
              </rect>
             </property>
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::DragDrop</enum>
+            </property>
+            <property name="defaultDropAction">
+             <enum>Qt::MoveAction</enum>
+            </property>
+           </widget>
+          </widget>
+          <widget class="QGroupBox" name="groupBox_6">
+           <property name="geometry">
+            <rect>
+             <x>180</x>
+             <y>10</y>
+             <width>171</width>
+             <height>211</height>
+            </rect>
+           </property>
+           <property name="title">
+            <string>Drag here to select for merge</string>
+           </property>
+           <widget class="QListWidget" name="lst_to_merge">
+            <property name="geometry">
+             <rect>
+              <x>20</x>
+              <y>20</y>
+              <width>131</width>
+              <height>192</height>
+             </rect>
+            </property>
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::DragDrop</enum>
+            </property>
+            <property name="defaultDropAction">
+             <enum>Qt::MoveAction</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
            </widget>
           </widget>
           <widget class="QGroupBox" name="groupBox_7">
            <property name="geometry">
             <rect>
-             <x>360</x>
+             <x>350</x>
              <y>10</y>
-             <width>111</width>
+             <width>121</width>
              <height>111</height>
             </rect>
            </property>
@@ -745,6 +765,19 @@ color:black;</string>
              </rect>
             </property>
            </widget>
+          </widget>
+          <widget class="QLabel" name="lbl_merged">
+           <property name="geometry">
+            <rect>
+             <x>360</x>
+             <y>140</y>
+             <width>101</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
           </widget>
          </widget>
          <widget class="QWidget" name="tb_profiles">
@@ -2438,7 +2471,7 @@ QPushButton:pressed {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>519</width>
+     <width>517</width>
      <height>22</height>
     </rect>
    </property>

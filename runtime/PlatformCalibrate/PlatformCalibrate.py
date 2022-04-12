@@ -45,6 +45,8 @@ SAMPLES = (1000/DATA_PERIOD) * MINUTES * 60
 
 
 SCALE__PERIOD = 250
+D_TO_P_BASENAME = 'DtoP_'
+P_TO_D_BASENAME = 'PtoD_'
 
 qtcreator_file  = "PlatformCalibrate/calibration_gui.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtcreator_file)
@@ -119,12 +121,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btn_load_d_to_p.clicked.connect(self.load_d_to_p)
         self.ui.btn_run_lookup.clicked.connect(self.run_lookup)
         self.ui.chk_delta_capture.stateChanged.connect(self.delta_capture_state_changed)
-        self.ui.btn_create_d_to_p.clicked.connect(self.create_d_to_p)
         self.ui.btn_merge_d_to_p.clicked.connect(self.merge_d_to_p)
         self.ui.btn_encoder_update.clicked.connect(self.encoder_update)
         self.ui.btn_encoder_reset.clicked.connect(self.encoder_reset)
         self.ui.btn_move.clicked.connect(self.move)
         self.ui.btn_move_actuator.clicked.connect(self.move_actuator)
+        self.ui.txt_weight.textChanged.connect(self.weight_edited)
+        self.ui.lst_d_to_p.itemClicked.connect(self.list_clicked)
 
     def configure_serial(self):
         encoder_directions = [-1,1,1,1,1,1]
@@ -170,9 +173,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.txt_repeats.setText("3")
         self.ui.txt_weight.setText("waiting")
         self.ui.txt_weight_2.setText("waiting")
-        self.ui.txt_p_to_d_fname.setText("PtoD_.csv")
-        self.ui.txt_d_to_p_fname_2.setText("DtoP_.csv")
-        
+        self.ui.txt_p_to_d_fname.setText(P_TO_D_BASENAME + ".csv")
+       
         self.ui.txt_merged_d_to_p_fname.setText("output\\DtoP.csv")
         self.ui.txt_d_to_p_fname.setText("output\\DtoP.csv")
         
@@ -225,7 +227,31 @@ class MainWindow(QtWidgets.QMainWindow):
             if weight != None:
                 self.ui.txt_weight.setText(weight)
                 self.ui.txt_weight.setText_2(weight)
+                
+    def weight_edited(self):
+        try:
+            w = "{:03d}".format(int(self.ui.txt_weight.text()))
+            if len(w) == 3:
+                self.ui.txt_p_to_d_fname.setText(P_TO_D_BASENAME + w + ".csv")
+            else:
+                log.error("Valid weight >= 0 and <= 999")
+        except Exception as e:
+            print(str(e))
 
+    """
+    def p_to_d_fname_edited(self):
+        print(self.ui.txt_p_to_d_fname.text())
+        file_exists = len(glob.glob(self.ui.txt_p_to_d_fname.text())) == 1
+        if file_exists:
+           lbl_text = "Create D to P from " + self.ui.txt_p_to_d_fname.text()
+        else:     
+            lbl_text = "Enter existing P to D file"
+        self.ui.lbl_create_d_to_p.setText(lbl_text)
+    """
+
+    def list_clicked(self, item):
+        print( item.text())
+    
     def echo_to_model(self, percents, distances):
         if self.model.sp.is_open():
             msg = 'm,' + ','.join(map(str, percents)) + '\n'
@@ -240,10 +266,10 @@ class MainWindow(QtWidgets.QMainWindow):
         else:       
             self.ui.ProgressGroupBox.hide()
         if tab_index == 2:
-            self.ui.lst_p_to_d.clear()
-            self.ui.lst_p_to_d.addItems(glob.glob("PtoD_*.csv"))
             self.ui.lst_d_to_p.clear()
             self.ui.lst_d_to_p.addItems(glob.glob("DtoP_*.csv"))
+            self.ui.lst_to_merge.clear()
+            self.ui.lbl_merged.setText("")
 
     def delta_capture_state_changed(self, int):
         if self.ui.chk_delta_capture.isChecked():
@@ -381,6 +407,7 @@ class MainWindow(QtWidgets.QMainWindow):
             log.info("todo reset encoders to zero")
             self.ui.CalibrateGroupBox.setStyleSheet('QGroupBox  {color: red;}')
             self.ui.btn_calibrate.setText("Cancel")
+            self.ui.lbl_create_d_to_p.setText("")
             end_step = 6000  # step pressure
             self.activity_label = "calibrate pressure"
             self.is_calibrating = True
@@ -425,36 +452,31 @@ class MainWindow(QtWidgets.QMainWindow):
             self.stop_capture()  # stop capturing data
             self.activity_label = "idle"
             self.ui.btn_save_step_data.setEnabled(True)
-
-    def create_d_to_p(self):
-        infname = self.check_fname("Pressure to Distance", self.ui.txt_p_to_d_fname.text(), "PtoD_")
-        if infname == "":
-            return 
-        outfname = self.check_fname("Distance to Pressure", self.ui.txt_d_to_p_fname_2.text(), "DtoP_") 
-        if outfname == "":
-            return 
-        up,down, weight, pressure_step = self.DtoP_prep.munge_file(infname)
-        d_to_p = self.DtoP_prep.process_p_to_d(up, down, weight, pressure_step)
-        info = format("weight=%d" % weight)        
-        np.savetxt(outfname, d_to_p, delimiter=',', fmt='%0.1f', header= info)
-
+            self.ui.lbl_create_d_to_p.setText("Press Save to create data files")
 
     def merge_d_to_p(self):
         weights = []
         up_d_to_p = []
         down_d_to_p = []
-        infiles = []   
-        for i in range(self.ui.lst_d_to_p.count()):
-             infiles.append(str(self.ui.lst_d_to_p.item(i).text()))  
+        infiles = []
+        count = self.ui.lst_to_merge.count()
+        for i in range(count):
+             infiles.append(str(self.ui.lst_to_merge.item(i).text()))  
         outfname = str(self.ui.txt_merged_d_to_p_fname.text())
-        self.DtoP_prep.merge_d_to_p(infiles, outfname)
+        try:
+           self.DtoP_prep.merge_d_to_p(infiles, outfname)
+           self.ui.lst_to_merge.clear()
+           self.ui.lbl_merged.setText("{} files merged".format(count))
+        except Exception as e:
+            log.error(str(e))
+   
 
     def merge_d_to_p_x(self):
         weights = []
         up_d_to_p = []
         down_d_to_p = []
-        for index in range(self.ui.lst_d_to_p.count()):
-            fname = str(self.ui.lst_d_to_p.item(index).text())
+        for index in range(self.ui.lst_to_merge.count()):
+            fname = str(self.ui.lst_to_merge.item(index).text())
             with open(fname) as fp:
                 header = fp.readline()
                 if 'weight=' in header:
@@ -587,7 +609,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.distances = encoder_data
                     try:
                         for i in range(len(self.encoder_values)):
-                            self.encoder_values[i].setText(str(encoder_data[i]))
+                            self.encoder_values[i].setText(format("%.1f" % (encoder_data[i])))
                     except IndexError:
                         print("index error, i = ", i, "values:", encoder_data)
                 else:
@@ -614,31 +636,12 @@ class MainWindow(QtWidgets.QMainWindow):
             s = traceback.format_exc()
             print("error reading serial data", e, s)
 
-
-    def check_fname(self, desc, fname, base):
-        try:
-            fname = str(fname)
-            print(format("checking(%s) using base(%s)" % (fname, base)))
-            if fname.startswith(base):
-                t = fname.split('.')
-                if len(t) == 2:
-                    t1  = t[0].split('_')
-                    print(t1)
-                    if t[1] == 'csv' and len(t1) == 2 and t1[1].isdigit():
-                        return fname
-        except Exception as e:
-            print(str(e), traceback.format_exc())
-        QtWidgets.QMessageBox.warning(self, 'Invalid ' + desc + " file name!",
-                format("Name must begin with %s followed by integer weight.\n  example: %s40.csv" %(base,base)),
-                QtWidgets.QMessageBox.Ok)
-        return ""
-
     def save_step_data(self):
-        fname = self.check_fname("Pressure to Distance", self.ui.txt_p_to_d_fname.text(), "PtoD_")
-        if fname == "":
+        dtop_fname = self.ui.txt_p_to_d_fname.text()
+        if dtop_fname == "":
             return 
         try:
-            self.outfile = open(fname,"w")
+            self.outfile = open(dtop_fname,"w")
             # self.outfile.write("data using weight: " +  self.ui.txt_weight.text()+"\n")
             self.outfile.write("WEIGHT," + self.ui.txt_weight.text()+"\n")
             self.outfile.write("STEPS," + self.ui.txt_steps.text()+"\n")
@@ -651,11 +654,39 @@ class MainWindow(QtWidgets.QMainWindow):
                 data = step[:4] + step[4] + step[5]
                 line = ','.join(str(n) for n in data)
                 self.outfile.write(line + "\n")
-            self.ui.btn_save_step_data.setEnabled(False)
+            self.outfile.close()
+            self.create_d_to_p(dtop_fname)
         except Exception as e:
             s = traceback.format_exc()
             log.error("Error saving data file, is it already open? %s %s", e, s)
 
+    
+    def form_dtop_fname(self, ptod_fname):
+        try:
+            t = ptod_fname.split('.')
+            t1  = t[0].split('_')
+            if t1[0] == P_TO_D_BASENAME[:-1]:
+                return D_TO_P_BASENAME + t1[1] + '.csv'
+        except Exception as e:
+            print(str(e), traceback.format_exc())
+
+        return None
+        
+    def create_d_to_p(self, infname):
+        if infname == "":
+            return 
+        outfname = self.form_dtop_fname(infname)
+        if outfname:
+            log.info("D to P: creating %s from %s", infname, outfname)
+
+            up,down, weight, pressure_step = self.DtoP_prep.munge_file(infname)
+
+            d_to_p = self.DtoP_prep.process_p_to_d(up, down, weight, pressure_step)
+            info = format("weight=%d" % weight)    
+           
+            np.savetxt(outfname, d_to_p, delimiter=',', fmt='%0.1f', header= info)
+            self.ui.lbl_create_d_to_p.setText("Pressure to Distance file saved as " + outfname)
+            
     def save_raw_data(self):
         try:
             self.outfile = open(self.ui.txt_raw_data_fname.text(),"w")
