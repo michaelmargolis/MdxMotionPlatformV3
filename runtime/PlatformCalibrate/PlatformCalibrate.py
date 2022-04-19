@@ -589,8 +589,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if encoder_data and timestamp != 0:            
             for i in range(len(self.encoder_values)):
                 # temp for testing
-                if i > 0:
-                    encoder_data[i] = encoder_data[0] + i
+                #  if i > 0:
+                #    encoder_data[i] = encoder_data[0] + i
                 self.encoder_values[i].setText(str(encoder_data[i]))
             return encoder_data,timestamp
         return None, None
