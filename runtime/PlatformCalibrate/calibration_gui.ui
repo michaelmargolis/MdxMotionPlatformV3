@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>644</height>
+    <width>519</width>
+    <height>648</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -665,7 +665,7 @@ color:black;</string>
               <x>10</x>
               <y>20</y>
               <width>131</width>
-              <height>192</height>
+              <height>171</height>
              </rect>
             </property>
             <property name="dragEnabled">
@@ -676,6 +676,19 @@ color:black;</string>
             </property>
             <property name="defaultDropAction">
              <enum>Qt::MoveAction</enum>
+            </property>
+           </widget>
+           <widget class="QLabel" name="label_17">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>200</y>
+              <width>151</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Click on item to display chart</string>
             </property>
            </widget>
           </widget>
@@ -697,7 +710,7 @@ color:black;</string>
               <x>20</x>
               <y>20</y>
               <width>131</width>
-              <height>192</height>
+              <height>171</height>
              </rect>
             </property>
             <property name="dragEnabled">
@@ -2471,7 +2484,7 @@ QPushButton:pressed {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>517</width>
+     <width>519</width>
      <height>22</height>
     </rect>
    </property>
