@@ -90,8 +90,8 @@ class D_to_P_prep(object):
         print("best index is", best_index, ", up std dev = ", updevs[best_index], "down=", downdevs[best_index])
         avg_up = np.median(up[first_cycle:,:,best_index], axis=0)
         avg_down = np.median(down[first_cycle:,:,best_index], axis=0)
-        charts_to_show = 'combined, Individual'
-        # charts_to_show = 'Combined, Individual, Std Dev'
+        # charts_to_show = 'Combined, Individual'
+        charts_to_show = 'Combined, Individual, Std Dev'
         self.show_charts( up, down, weight, charts_to_show) 
         up_d_to_p = self.create_distance_to_pressure_array(avg_up, pressure_step)
         down_d_to_p = self.create_distance_to_pressure_array(avg_down, pressure_step)
@@ -117,6 +117,57 @@ class D_to_P_prep(object):
             up_lbl += ["Up cycle " + str(c)]
             down_lbl += ["Down cycle " + str(c)]
 
+        if "Std Dev" in charts_to_show:   
+            # show standard deviation of readings across repeated cycles
+            fig, axs = plt.subplots(3, 2, sharey=True )
+            for a in range(6): # actuators
+                up_lines = []
+                down_lines = []
+                axs[a//2, a%2,].plot(np.std(up[:,:,a], axis=0), color='r')
+                axs[a//2, a%2,].plot(np.std(down[:,:,a], axis=0), color='b')
+                axs[a//2, a%2].set_title('Actuator ' + str(a))
+
+            xtick = self.step_size/10
+            for ax in axs.flat:
+                ax.set(xlabel='Pressure', ylabel='Std Deviation')
+                ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, pos: format(int(10*x*xtick))))
+
+            # Hide x labels and tick labels for top plots and y ticks for right plots.
+            for ax in axs.flat:
+                ax.label_outer()
+            title = format("Std deviation of Actuator up and down readings at %d kg" % weight)
+            fig.suptitle(title, fontsize=16)
+            plt.show()
+            
+        if "Combined" in charts_to_show:
+            # show all actuators on same chart
+            fig, ax = plt.subplots()
+            title = format("All actuator Up and Down readings at %d kg" % (weight)) 
+            ylabel = "Distance in mm"
+            up_lines = []
+            down_lines = []
+
+            for c in range(self.nbr_cycles):
+                for a in range(6): # actuators
+                    if a == 0:
+                        up_lines += ax.plot(up[c][:,a], linestyle=linestyles[c], color='r' )
+                        down_lines +=  ax.plot(down[c][:,a], linestyle=linestyles[c], color='b' )
+                    else:
+                        ax.plot(up[c], linestyle=linestyles[c], color='r' )
+                        ax.plot(down[c], linestyle=linestyles[c], color='b' )
+
+            ax.legend(up_lines, up_lbl, loc='upper left', frameon=False)
+            down_lgnd = Legend(ax, down_lines, down_lbl,  loc='lower right', frameon=False)
+            ax.add_artist(down_lgnd);
+
+            xtick = self.step_size/10
+            ax.set(xlabel='Pressure', ylabel='Distance in mm')
+            ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, pos: format(int(10*x*xtick))))
+            
+            fig.suptitle(title, fontsize=16)
+
+            plt.show()
+            #plt.save_figures(title )            
         if "Individual" in charts_to_show:
             # show each actuator on separate chart
             fig, axs = plt.subplots(3, 2)
@@ -149,57 +200,9 @@ class D_to_P_prep(object):
             fig.suptitle(title, fontsize=16)
             plt.show()
             
-        if "Combined" in charts_to_show:
-            # show all actuators on same chart
-            fig, ax = plt.subplots()
-            title = format("All actuator Up and Down readings at %d kg" % (weight)) 
-            ylabel = "Distance in mm"
-            up_lines = []
-            down_lines = []
 
-            for c in range(self.nbr_cycles):
-                for a in range(6): # actuators
-                    if a == 0:
-                        up_lines += ax.plot(up[c][:,a], linestyle=linestyles[c], color='r' )
-                        down_lines +=  ax.plot(down[c][:,a], linestyle=linestyles[c], color='b' )
-                    else:
-                        ax.plot(up[c], linestyle=linestyles[c], color='r' )
-                        ax.plot(down[c], linestyle=linestyles[c], color='b' )
-
-            ax.legend(up_lines, up_lbl, loc='upper left', frameon=False)
-            down_lgnd = Legend(ax, down_lines, down_lbl,  loc='lower right', frameon=False)
-            ax.add_artist(down_lgnd);
-
-            xtick = self.step_size/10
-            ax.set(xlabel='Pressure', ylabel='Distance in mm')
-            ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, pos: format(int(10*x*xtick))))
-            
-            fig.suptitle(title, fontsize=16)
-
-            plt.show()
-            #plt.save_figures(title )
          
-        if "Std Dev" in charts_to_show:   
-            # show standard deviation of readings across repeated cycles
-            fig, axs = plt.subplots(3, 2, sharey=True )
-            for a in range(6): # actuators
-                up_lines = []
-                down_lines = []
-                axs[a//2, a%2,].plot(np.std(up[:,:,a], axis=0), color='r')
-                axs[a//2, a%2,].plot(np.std(down[:,:,a], axis=0), color='b')
-                axs[a//2, a%2].set_title('Actuator ' + str(a))
 
-            xtick = self.step_size/10
-            for ax in axs.flat:
-                ax.set(xlabel='Pressure', ylabel='Std Deviation')
-                ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, pos: format(int(10*x*xtick))))
-
-            # Hide x labels and tick labels for top plots and y ticks for right plots.
-            for ax in axs.flat:
-                ax.label_outer()
-            title = format("Std deviation of Actuator up and down readings at %d kg" % weight)
-            fig.suptitle(title, fontsize=16)
-            plt.show()
 
     def create_distance_to_pressure_array(self, p_to_d, pressure_step):
     # call with array of distances for all pressure steps 

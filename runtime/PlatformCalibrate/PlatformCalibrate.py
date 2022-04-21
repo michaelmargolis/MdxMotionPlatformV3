@@ -249,8 +249,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.lbl_create_d_to_p.setText(lbl_text)
     """
 
-    def list_clicked(self, item):
+    def list_clicked(self, item):    
         print( item.text())
+        file = item.text().split('_')
+        if file[0] == 'DtoP':
+            PtoD = 'PtoD_' + file[1]
+            print(PtoD)
+            up,down, weight, pressure_step = self.DtoP_prep.munge_file(PtoD)
+            d_to_p = self.DtoP_prep.process_p_to_d(up, down, weight, pressure_step)
+        
     
     def echo_to_model(self, percents, distances):
         if self.model.sp.is_open():
