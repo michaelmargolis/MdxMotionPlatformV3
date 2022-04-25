@@ -559,6 +559,9 @@ color:black;</string>
             <property name="text">
              <string>Realtime Graph</string>
             </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
            </widget>
            <widget class="QLabel" name="lbl_create_d_to_p">
             <property name="geometry">

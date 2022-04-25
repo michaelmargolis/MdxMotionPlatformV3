@@ -430,6 +430,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.ui.chk_graph.isChecked():
                 title = "Actuator Movement over Pressure Range for {}kg load".format(round(weight))
                 self.graph.begin(title, repeats, steps+1, 6, self.step_size ) 
+            print()
+            print('Cycle Nbr, Step, up down, pressure, d0, d1, d2, d3, d4, d5')
             for r in range(repeats):
                 # self.encoder_reset()
                 for step in range(steps+1):
@@ -543,7 +545,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pressures = [int(pressure)]*6
         self.muscle_output.send_pressures(pressures)
         self.show_pressures(pressures)
-        print("Step:", pressure, step, updown, repeat, step_delay)
+        # print("Step:", pressure, step, updown, repeat, step_delay)
         start_time = time.time()
         while len(self.distances) == 0 and time.time() - start_time < 0.1:
             app.processEvents()
@@ -565,6 +567,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.step_data.append([repeat, updown, step, pressure, self.distances, move_durations])
         if self.ui.chk_graph.isChecked():
             self.graph.update( updown, repeat, step, self.distances)
+            
+        print('{},{},{},{},{}'.format(repeat, step, updown, pressure, ','.join(str(d) for d in self.distances)))
         return True
 
     def move(self):
