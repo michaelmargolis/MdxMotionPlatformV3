@@ -1,4 +1,4 @@
-#Potential Student Projects
+# Ideas for Student Projects
 
 + Monitor actual platform pose vs inputs and propose control software enhancements to improve accuracy
 + Implement digital filters to create motion cues for movements beyond physical range of platform
