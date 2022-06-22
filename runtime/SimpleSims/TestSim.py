@@ -19,25 +19,32 @@ DATA_PERIOD = 50  # ms between updates
 
 slider_increments = (5)*6  # todo for slow moves
 
-qtcreator_file  = "SimpleSims\TestSim.ui"
-Ui_MainWindow, QtBaseClass = uic.loadUiType(qtcreator_file)
 
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+ui, base = uic.loadUiType("SimpleSims/TestSim_frame.ui")
+
+class frame_gui(QtWidgets.QFrame, ui):
+    def __init__(self, parent=None):
+        super(frame_gui, self).__init__(parent)
+        self.setupUi(self)
+
+import logging
+log = logging.getLogger(__name__)
 
 global_queue = Queue()
 
 class Sim():
-    def __init__(self, sleep_func, interval_ms = 40):
-        
+    def __init__(self, sleep_func, frame, interval_ms = 40):
+        self.frame = frame
         self.is_connected = False
         self.name = "Test Sim"
         global global_queue
         self.data_Q = global_queue
+        self.sim = None
 
     def __del__(self):
-        self.win.close()
-        self.app.exit()
+        if self.sim:
+            self.sim = None
+            print("exiting TestSIm")
     
     def set_norm_factors(self, norm_factors):
         # values for each element that when multiplied will normalize data to a range of +- 1 
@@ -47,11 +54,8 @@ class Sim():
         self.state_callback = callback
 
     def load(self, loader):
-        # ignore loader arg, create QT window
-        self.app = QtWidgets.QApplication(sys.argv)
-        self.win = MainWindow()
-        self.win.show()
-        self.app.exec_()
+        self.sim = TestSim()
+        self.sim.init_ui(self.frame) 
         self.connect()
 
     def connect(self):
@@ -75,16 +79,15 @@ class Sim():
             transform = self.data_Q.get()
             if transform == 'exit':
                 sys.exit()
-            print("debg in read", transform)
             if transform is not None:
                 return transform 
         return (0,0,0,0,0,0)
-            
-class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
-        QtWidgets.QMainWindow.__init__(self)
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
+
+      
+class TestSim(object):
+    def __init__(self, frame_rate=0.05):
+        self.frame_rate = frame_rate
+     
         global global_queue
         self.data_Q = global_queue
         self.timer_data_update = None
@@ -94,8 +97,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.slider_values = [0]*6  # the actual slider percents (-100 to 100)
         self.lagged_slider_values = [0]*6  # values used for sending to festo
 
+
+        
+    def init_ui(self, frame):
+        self.ui = frame_gui(frame)
         # configures
-        self.configure_timers()
+        self.configure_timers(frame)
         self.configure_signals()
         self.configure_defaults()
         self.configure_buttons()
@@ -103,8 +110,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
        self.data_Q.put("exit")
     
-    def configure_timers(self):
-        self.timer_data_update = QtCore.QTimer(self) # timer services muscle pressures and data
+    def configure_timers(self, frame):
+        self.timer_data_update = QtCore.QTimer(frame) 
         self.timer_data_update.timeout.connect(self.data_update)
         self.timer_data_update.start(int(DATA_PERIOD / 2)) # run faster than update period
 
@@ -173,14 +180,3 @@ class MainWindow(QtWidgets.QMainWindow):
                 slider.setValue(-100)
             else:
                 slider.setValue(0)
-
-if __name__ == '__main__':
-
-    app = QtWidgets.QApplication(sys.argv)
-    win = MainWindow()        
-    win.show()
-    app.exec_() #mm added underscore
-
-    win.close()
-    app.exit()  
-    sys.exit()

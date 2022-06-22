@@ -83,6 +83,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.configure_defaults()
         self.configure_buttons()        
 
+    def closeEvent(self, event):
+        log.info("User exit")
+        if self.sim:
+            self.sim = None
+        event.accept()
+        
     def configure_timers(self):
         self.timer_data_update = QtCore.QTimer(self) # timer services muscle pressures and data
         self.timer_data_update.timeout.connect(self.data_update)
@@ -102,8 +108,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.rb_chair.clicked.connect(self.chair_selected)
         self.ui.rb_slider.clicked.connect(self.slider_selected)
         self.ui.cmb_sim_select.activated.connect(self.sim_combo_changed)
+        self.ui.tabWidget.currentChanged.connect(self.tab_changed)
 
     def configure_defaults(self):
+        self.ui.grp_platform_control.hide()
         self.ui.lbl_connecting_status.setText("Choose desired platform above and click 'Load Config'")
         self.slider_selected() # default platform
         print('Available Sims:')
@@ -115,7 +123,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.d_to_p_fname = "output\\DtoP.csv"
 
     def configure_buttons(self):        
-        self.ui.tab_run.setEnabled(False)
+        self.ui.tab_platform.setEnabled(False)
         self.ui.grp_sim.setEnabled(False) 
         #  button groups 
         self.gain = [self.ui.sld_gain_0, self.ui.sld_gain_1, self.ui.sld_gain_2, self.ui.sld_gain_3, self.ui.sld_gain_4, self.ui.sld_gain_5  ]        
@@ -157,7 +165,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.btn_park.setChecked(False)
             self.ui.btn_run.setChecked(False)
             self.pause() 
-       
+   
+    def tab_changed(self, tab_index):
+        if tab_index == 0:
+            self.ui.grp_platform_control.hide()
+        else:
+            self.ui.grp_platform_control.show()
+    
     def data_update(self):
         #  todo if self.estopped then call loadpos and return
 
@@ -166,16 +180,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return # don't output if distance to pressure file has not been loaded
 
         elif self.sim:
+            transform = self.sim.read()
             if not self.sim.is_connected:
                 self.report_state("not connected, is it running")
-                return
-            transform = self.sim.read()
             if transform:
                 self.move(transform)
 
     def move(self, transform):
         transform = [inv * axis for inv, axis in zip(self.invert_axis, transform)]           
-        master_gain = self.ui.sld_gain_master.value() *.01    
+        master_gain = self.ui.sld_gain_master.value() *.01     
         for idx in range(6): 
             gain = self.gain[idx].value() * master_gain      
             percent =  round(transform[idx]*gain)  
@@ -205,10 +218,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if not self.sim:
             # here if sim was not loaded by connect method
             sim_path = "SimpleSims." + self.selected_sim_class
+            log.info("loading %s", sim_path)
             try:
-                sim = importlib.import_module(sim_path)
-                self.sim = sim.Sim(gutil.sleep_qt)
+                sim_module = importlib.import_module(sim_path)
+                self.sim = sim_module.Sim(gutil.sleep_qt, self.ui.tab_sim)
                 log.info("Imported sim: " + self.sim.name)
+                self.sim.set_state_callback(self.report_state )
 
             except Exception as e:
                 print(e)
@@ -227,8 +242,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             print("selected sim is " + self.selected_sim_class)
             sim_path = "SimpleSims." + self.selected_sim_class
             try:
-                sim = importlib.import_module(sim_path)
-                self.sim = sim.Sim(gutil.sleep_qt)
+                sim_module = importlib.import_module(sim_path)
+                self.sim = sim_module.Sim(gutil.sleep_qt, self.ui.tab_sim)
                 log.info("imported sim " + self.sim.name) 
             except Exception as e:
                 print(e)
@@ -236,24 +251,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
         if self.sim:
             self.ui.lbl_connecting_status.setText("Connecting...")
+            self.sim.set_state_callback(self.report_state )  
             err = self.sim.connect()
             if err:
                 self.ui.lbl_connecting_status.setText(err)
                 log.error("connect err: " +  err)
             else:
                 self.ui.lbl_connecting_status.setText("Connected")
-                self.ui.tab_run.setEnabled(True)
+                self.ui.tab_platform.setEnabled(True)
                 self.ui.tabWidget.setCurrentIndex(1)
                 self.ui.tab_load.setEnabled(False)
                 self.is_ready = True;
                 self.sim.run()
                 self.timer_data_update.start(DATA_PERIOD) 
                 log.info("Started {}ms data update timer".format(DATA_PERIOD) )               
-                self.sim.set_state_callback(self.report_state )               
+             
 
     def report_state(self, state_info):
-        self.ui.lbl_sim_status.setText(self.selected_sim_name + ": " + state_info)
-         
+        self.ui.lbl_sim_status.setText(self.selected_sim_name + ": " + state_info)         
 
     def run(self):
         self.sim.run()
