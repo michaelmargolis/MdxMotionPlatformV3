@@ -10,7 +10,7 @@ Desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop') + '/V
 print(Desktop)
 
 available_sims = [  #   display name, sim module name, full path to execute to load sim
-                    ["Microsoft fs2020", "fs2020", "M:/MSFS SDK/Tools/bin/fsdevmodelauncher.exe"],
+                    ["MS FS2020", "fs2020", "Tools/fsdevmodelauncher.exe"],
                     ["X-Plane 11", "xplane", Desktop + "X-Plane.lnk"] ,                        
                     ["Space Coaster", "spacecoaster", Desktop + "SpaceCoaster.lnk"],
                     ["NoLimits2 Coaster", "nolimits2", Desktop + "NoLimits 2.lnk"],

@@ -12,6 +12,7 @@ import logging as log
 import logging.handlers
 import argparse
 import math
+import json
 import traceback
 
 RUNTIME_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -28,13 +29,13 @@ class Panel(SerialProcess):
 
     def __init__(self, sim):
         super(Panel, self).__init__()
-        self.flaps_1_sw = None
-        self.flaps_2_sw = None
+        self.flaps_index = None
         self.flaps_sw_released = True
         self.gear_sw = None
         self.brake_sw = None
         self.sim = sim
         self.pot_simvar = []
+        self.auto_brake_enabled = True
      
 
     def open(port, baud):
@@ -44,14 +45,16 @@ class Panel(SerialProcess):
         if super(Panel, self).available():
             msg = super(Panel, self).read()
             if msg:
-                # print(msg)
-                data = msg.rstrip('\r\n}').split(';')
-                if len(data) == 3 and data[0] == 'report':
-                    # Data format:   "report;pots",throttle,prop, mix";switches," sw0, sw1, sw2, sw3\n"
-                    self.pots = data[1].split(',')[1:]
-                    self.process_pots(self.pots)
-                    switches = data[2].split(',')[1:]
-                    self.process_switches(switches)
+                #  print(msg)
+                data = msg.rstrip('\r\n').split(';')
+                if len(data) == 2 and data[0] == 'report':
+                    # Data format:   'report;"pots"[throttle,prop, mix],"flaps":(index 0-3),"gear":(0 up or 1 down), "brake",(0,1)\n'
+                    # print(data[1])
+                    d = json.loads(data[1])
+                    self.process_pots(d['pots'])
+                    self.process_flaps(d['flaps'])
+                    self.process_gear(d['gear'])
+                    self.process_brake(d['brake'])
                     # print(pots, switches)
                 elif data[0] == 'debug':
                     pass
@@ -59,43 +62,24 @@ class Panel(SerialProcess):
                 else:
                     print("unexpected msg format:", data)
       
-    def process_switches(self, switches):
-        # print(switches)        
-        self.flaps_1_sw = int(switches[0])
-        self.flaps_2_sw = int(switches[1])
-        if FLAPS_SW_INDEX:  # here if panel sends flaps index
-            if self.flaps_1_sw == 1 and self.flaps_2_sw == 1:
-                self.set_flaps_index(3) # not used in this version
-            elif self.flaps_1_sw == 1:
-                self.set_flaps_index(1)
-            elif self.flaps_2_sw == 1:
-                self.set_flaps_index(2)
-            else:
-                self.set_flaps_index(0)
-        else:
-            # here if switches indicate up or down movement
-            if self.flaps_1_sw == 1:
-                if self.flaps_sw_released == True :
-                    self.set_flaps(0)
-                    self.flaps_sw_released = False
-            elif self.flaps_2_sw == 1:
-                if self.flaps_sw_released == True:
-                    self.set_flaps(1)
-                    self.flaps_sw_released = False
-            else:
-                self.flaps_sw_released = True
-            
-        if self.gear_sw != int(switches[2]):
-            self.gear_sw = int(switches[2])
+    def process_flaps(self, value):
+        self.flaps = value
+        self.set_flaps_index(value)
+
+    def process_gear(self, value):        
+        if self.gear_sw != value:
+            self.gear_sw = value
             self.set_gear(self.gear_sw)
-        # print("self.brake_sw", self.brake_sw, int(switches[3])) 
-        if self.brake_sw != int(switches[3]):
+            
+    def process_brake(self, value):
+        if self.brake_sw != value:
             print("self.brake_sw", self.brake_sw) 
-            self.brake_sw = int(switches[3])
+            self.brake_sw = value
             self.set_brake(self.brake_sw)
     
     def process_pots(self, values):    
         # print(values, self.pot_simvar)
+        self.pots = values
         if len(values) == len(self.pot_simvar):
             for idx, simvar in enumerate(self.pot_simvar):
                 if simvar != 'Not Used':
@@ -110,7 +94,7 @@ class Panel(SerialProcess):
           
 
     def set_brake(self, value):
-        print("set brake to:", value )    
+        print("set brake to:", "on" if value else "off" )    
         if self.sim.is_connected:
             # 0 brake off, 1 is on     
             self.sim.set_parking_brake(value)
@@ -127,6 +111,7 @@ class Panel(SerialProcess):
     
     def set_flaps_index(self, value):
         # print("set flaps index to:", value)
+        self.flaps_index = value
         if self.sim.is_connected:
             self.sim.set_flaps_index(value)  
             

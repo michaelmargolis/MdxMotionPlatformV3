@@ -50,6 +50,7 @@ class SimUI(object):
         # configures
         self.set_timer(frame, DATA_PERIOD)
         self.configure_signals()
+        self.ui.chk_auto_brake.setChecked(True)
         
     def set_ser_combo_default(self, ser, default, combo):
         ports = self.panel.get_ports()    
@@ -78,7 +79,7 @@ class SimUI(object):
     def configure_signals(self):
         self.ui.btn_serial_connect.clicked.connect(self.connect)
         for pot_combo in self.pot_combos:
-            pot_combo.currentTextChanged.connect(self.pot_combo_changed)            
+            pot_combo.currentTextChanged.connect(self.pot_combo_changed)       
 
     def set_timer(self, frame, interval):
         self.timer_data_update = QtCore.QTimer(frame) 
@@ -93,7 +94,7 @@ class SimUI(object):
            self.pot_simvar.append(combo.currentText())
         log.debug("pot assignments set to: %s",  self.pot_simvar)
         self.panel.pot_simvar = self.pot_simvar
-        
+    
     def connect(self):
         if self.panel.is_open():
             self.panel.close_port() 
@@ -128,15 +129,14 @@ class SimUI(object):
             self.show_panel()
 
     def show_panel(self):
-        if self.panel.flaps_1_sw != None:        
-            self.ui.rb_flaps_1.setChecked(self.panel.flaps_1_sw == 1)
-            self.ui.rb_flaps_2.setChecked(self.panel.flaps_2_sw == 1)
+        if self.panel.flaps_index is not None:        
+            self.ui.txt_flaps.setText(str(self.panel.flaps_index)) 
             self.ui.txt_gear.setText(GEAR_TEXT[self.panel.gear_sw])
             self.ui.chk_brake.setChecked(self.panel.brake_sw)
             for idx, pot in enumerate(self.pots):
                 pot.setValue(int(self.panel.pots[idx]))
         else:
-            print("switches not yet instantiated")
-            self.sleep_func(.1)
+            print("Waiting for msgs from Panel")
+            self.sleep_func(.5)
 
         

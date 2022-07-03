@@ -41,7 +41,7 @@
     <rect>
      <x>0</x>
      <y>10</y>
-     <width>261</width>
+     <width>281</width>
      <height>171</height>
     </rect>
    </property>
@@ -178,55 +178,26 @@ color:black;</string>
    <widget class="QCheckBox" name="chk_brake">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>140</y>
+      <x>205</x>
+      <y>120</y>
       <width>51</width>
       <height>18</height>
      </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
     </property>
     <property name="text">
      <string>Brake</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="rb_flaps_1">
-    <property name="geometry">
-     <rect>
-      <x>220</x>
-      <y>80</y>
-      <width>41</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>1</string>
-    </property>
-    <property name="autoExclusive">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="rb_flaps_2">
-    <property name="geometry">
-     <rect>
-      <x>220</x>
-      <y>100</y>
-      <width>51</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>2</string>
-    </property>
-    <property name="autoExclusive">
-     <bool>false</bool>
-    </property>
-   </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>210</x>
       <y>90</y>
-      <width>47</width>
-      <height>14</height>
+      <width>31</width>
+      <height>16</height>
      </rect>
     </property>
     <property name="text">
@@ -249,27 +220,56 @@ color:black;</string>
    <widget class="QCheckBox" name="chk_disable_switches">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>5</x>
       <y>50</y>
-      <width>111</width>
+      <width>101</width>
       <height>18</height>
      </rect>
     </property>
     <property name="text">
-     <string>Disable Switches</string>
+     <string>Ignore Switches</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="chk_disable_pots">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>110</x>
       <y>50</y>
       <width>91</width>
       <height>18</height>
      </rect>
     </property>
     <property name="text">
-     <string>Disable Pots</string>
+     <string>Ignore Pots</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chk_auto_brake">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>50</y>
+      <width>81</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Auto brrake</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_flaps">
+    <property name="geometry">
+     <rect>
+      <x>244</x>
+      <y>90</y>
+      <width>21</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
     </property>
    </widget>
   </widget>

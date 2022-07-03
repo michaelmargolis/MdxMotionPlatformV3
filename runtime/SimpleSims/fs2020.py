@@ -23,10 +23,14 @@ class Sim():
         self.is_running = False
         self.norm_factors = [.1, .05, .01, 1, 1, .3]
         self.name = "MS FS2020"
+
         self.fs2020 = FS2020(sleep_func)
         self.fs2020.set_norm_factors(self.norm_factors)
+
         self.sim_ui = SimUI(self.fs2020, sleep_func)
         self.sim_ui.init_ui(frame)
+        self.fs2020.set_ui(self.sim_ui)
+
    
     def __del__(self):
         if self.sim_ui:
@@ -42,8 +46,8 @@ class Sim():
         
     def load(self, loader):
         try:
-            log.info("Attempting to start sim by executing " + loader)
-            os.startfile(loader)
+            log.info("Attempting to start sim by executing " +  loader)
+            os.startfile(os.getcwd() + os.sep +loader)
             return("loading...") 
         except Exception as e:
             print(e)
@@ -71,6 +75,7 @@ class FS2020():
     """ this is the interface to FS 2020 SimConnect """
     def __init__(self, sleep_func,  interval_ms = 25):
         self.sleep_func = sleep_func
+        self.sim_ui = None
         # Create SimConnect link
         self.interval_ms = interval_ms
         self.is_connected = False
@@ -79,7 +84,7 @@ class FS2020():
         self.name = "MS FS2020"
         self.gear_toggle = None
         
-        self.parking_brake_info = 0
+        self.parking_brake_info = None
         self.gear_info = [0,0,0] # center, left, right
         self.gear_state = None # 0 if all up, 1 if all down
         self.flaps_angle = 0
@@ -92,7 +97,10 @@ class FS2020():
         if self.simconnect and self.simconnect.ok:
             self.simconnect.exit()
     """
-    
+   
+    def set_ui(self, ui):
+        self.sim_ui = ui
+ 
     def set_norm_factors(self, norm_factors):
         # values for each element that when multiplied will normalize data to a range of +- 1 
         self.norm_factors = norm_factors
@@ -144,12 +152,13 @@ class FS2020():
 
         flap_positions_req = self.aq.find('FLAPS_NUM_HANDLE_POSITIONS')
         self.flap_positions = flap_positions_req.value
-        log.info("aircraft has %d flap positions", self.flap_positions)
+        if self.flap_positions:
+            log.info("aircraft has %d flap positions", self.flap_positions)
         self.flap_index = self.aq.find('FLAPS_HANDLE_INDEX')  
 
     def read_transform(self):
         if self.simconnect.ok:
-            print("wha", self.simconnect.ok, self.simconnect.paused, self.simconnect.running)
+            # print("wha", self.simconnect.ok, self.simconnect.paused, self.simconnect.running)
             try:
                 x = self.aq.get("ACCELERATION_BODY_X") * self.norm_factors[0]
                 y = self.aq.get("ACCELERATION_BODY_Y") * self.norm_factors[1]
@@ -166,7 +175,18 @@ class FS2020():
     def read_panel_status(self):
         if self.simconnect.ok: #  and self.simconnect.running:
             try:
-                self.parking_brake_info = int(self.aq.get( "BRAKE_PARKING_POSITION"))
+                brake = int(self.aq.get( "BRAKE_PARKING_POSITION")) # on is 1  
+                if brake:
+                #    print("brake is ",  "on" if brake else "off")                  
+                    if self.sim_ui.ui.chk_auto_brake.isChecked() and brake == 1:
+                        print("brake =", brake)
+                        self.set_parking_brake(0)                  
+                    else: 
+                        if self.parking_brake_info  !=  brake:
+                            print("parking brake state change to", "on" if brake else "off")
+                            self.parking_brake_info = brake
+
+                
                 # print("flaps avail", self.aq.get( "FLAPS_AVAILABLE"))
 
                 flaps_angle = self.aq.get("TRAILING_EDGE_FLAPS_LEFT_ANGLE")
@@ -201,9 +221,9 @@ class FS2020():
         # print("gear info", self.gear_state)    
     
     def set_parking_brake(self, value): 
-        print("PARKING_BRAKES") 
+        print("PARKING_BRAKES", self.parking_brake_info) 
         if self.parking_brake_info != value:
-            print("toggling PARKING_BRAKES", self.brake_toggle ) 
+            print("toggling PARKING_BRAKES" ) 
             self.brake_toggle()
             
     def set_gear(self, value): # up 0, down 1
