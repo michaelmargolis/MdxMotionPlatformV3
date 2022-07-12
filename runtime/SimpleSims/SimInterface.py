@@ -193,6 +193,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             gain = self.gain[idx].value() * master_gain      
             percent =  round(transform[idx]*gain)  
             self.transfrm_levels[idx].setValue(percent) # set the UI transform indicators
+            self.dynam.set_gain(idx, gain *.01)
         request = self.dynam.regulate(transform) # convert normalized to real values
         if self.swap_roll_pitch:
             # swap roll, pitch and x,y if set in config
