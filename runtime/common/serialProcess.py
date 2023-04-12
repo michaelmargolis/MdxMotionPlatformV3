@@ -11,6 +11,7 @@ import threading
 from time import time
 import serial
 from serial.tools import list_ports
+from queue import Queue
 
 import logging
 log = logging.getLogger(__name__)
@@ -18,7 +19,11 @@ TERM_CHARS = bytearray([10]) # expect newline terminated msgs
         
 class SerialProcess(object):
     def __init__(self, result_queue=None):
-        self.queue = result_queue
+        if result_queue is True:
+            self.queue = Queue() # modified mar 2023 to create cue if arg is True
+            # print("created queue")
+        else:
+            self.queue = result_queue 
         self.lock = threading.Lock()
         self.s = serial.Serial()
         self.is_started = False
@@ -91,33 +96,15 @@ class SerialProcess(object):
 
     def is_open(self):
         return self.s.isOpen()
-
-    def read_until(self, expected=TERM_CHARS ):
-        """\
-        Read until an expected sequence is found (line feed by default)
-        note this is running on the rx thread
-        """
-        lenterm = len(expected)
-        line = bytearray()
-        while True:
-            c = self.s.read(1)
-            if c:
-                line += c
-                if line[-lenterm:] == expected:
-                    break
-            else:
-                break
-        return bytes(line)
-        
+       
     def rx_thread(self):
         while self.is_started == True:
             try:
-                # data = self.s.read_until().decode()   
-                data = self.read_until().decode()                                
+                data = self.s.read_until().decode()                
                 if data:
                     if self.queue != None:
                         self.queue.put(data)
-                    else:
+                    else:                        
                         with self.lock: 
                             self.data = data
             except Exception as e:
